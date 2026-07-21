@@ -1,0 +1,100 @@
+<ion-content [fullscreen]="true" class="login-content">
+  <div class="page-shell">
+    <header class="brand-header">
+      <div class="brand-logo">
+        <ion-icon name="leaf" aria-hidden="true"></ion-icon>
+      </div>
+      <span class="brand-name">{{ 'BRAND.NAME' | translate }}</span>
+    </header>
+
+    <section class="login-card">
+      <h1>{{ 'LOGIN.WELCOME' | translate }}</h1>
+      <p class="subtitle">{{ 'LOGIN.SUBTITLE' | translate }}</p>
+
+      <div class="field-group">
+        <ion-item lines="none" class="input-item">
+          <ion-input
+            type="text"
+            [placeholder]="'LOGIN.EMAIL_PLACEHOLDER' | translate"
+            [(ngModel)]="email"
+            autocomplete="username"
+          ></ion-input>
+        </ion-item>
+
+        <ion-item lines="none" class="input-item password-item">
+          <ion-input
+            [type]="showPassword ? 'text' : 'password'"
+            [placeholder]="'LOGIN.PASSWORD_PLACEHOLDER' | translate"
+            [(ngModel)]="password"
+            autocomplete="current-password"
+          ></ion-input>
+          <ion-button
+            fill="clear"
+            class="toggle-password"
+            (click)="togglePasswordVisibility()"
+            [attr.aria-label]="'LOGIN.TOGGLE_PASSWORD' | translate"
+          >
+            <ion-icon
+              slot="icon-only"
+              [name]="showPassword ? 'eye-off-outline' : 'eye-outline'"
+            ></ion-icon>
+          </ion-button>
+        </ion-item>
+      </div>
+
+      <div class="options-row">
+        <label class="remember-me">
+          <ion-checkbox [(ngModel)]="rememberMe"></ion-checkbox>
+          <span>{{ 'LOGIN.REMEMBER_ME' | translate }}</span>
+        </label>
+        <a routerLink="/forgot-password" class="link">
+          {{ 'LOGIN.FORGOT_PASSWORD' | translate }}
+        </a>
+      </div>
+
+      <ion-button expand="block" class="primary-btn" (click)="onLogin()">
+        {{ 'LOGIN.LOGIN_BUTTON' | translate }}
+        <ion-icon slot="end" name="arrow-forward-outline"></ion-icon>
+      </ion-button>
+
+      <div class="secure-divider">
+        <span>{{ 'LOGIN.SECURE_LOGIN' | translate }}</span>
+      </div>
+
+      <div class="secondary-actions">
+        <ion-button fill="outline" class="alt-btn" (click)="onPasskeyLogin()">
+          <ion-icon slot="start" name="key-outline"></ion-icon>
+          {{ 'LOGIN.PASSKEY' | translate }}
+        </ion-button>
+        <ion-button fill="outline" class="alt-btn" (click)="onBiometricLogin()">
+          <ion-icon slot="start" name="finger-print-outline"></ion-icon>
+          {{ 'LOGIN.BIOMETRIC' | translate }}
+        </ion-button>
+      </div>
+    </section>
+
+    <aside class="notice-card">
+      <ion-icon name="information-circle-outline" aria-hidden="true"></ion-icon>
+      <div>
+        <strong>{{ 'LOGIN.STAFF_NOTICE' | translate }}</strong>
+        <p>{{ 'LOGIN.STAFF_NOTICE_TEXT' | translate }}</p>
+      </div>
+    </aside>
+
+    <footer class="page-footer">
+      <p>
+        {{ 'LOGIN.NO_ACCOUNT' | translate }}
+        <a routerLink="/register" class="link">
+          {{ 'LOGIN.REGISTER' | translate }}
+        </a>
+      </p>
+      <nav class="footer-links">
+        <a href="#">{{ 'LOGIN.TERMS' | translate }}</a>
+        <span>·</span>
+        <a href="#">{{ 'LOGIN.PRIVACY' | translate }}</a>
+        <span>·</span>
+        <span>{{ appVersion }}</span>
+      </nav>
+    </footer>
+  </div>
+</ion-content>

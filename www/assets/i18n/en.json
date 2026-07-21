@@ -1,0 +1,89 @@
+{
+  "BRAND": {
+    "NAME": "Lemonwood Lodge"
+  },
+  "LANGUAGE": {
+    "TITLE": "Choose your preferred language",
+    "SUBTITLE": "Select the language you'd like to use throughout the app",
+    "ENGLISH": "English",
+    "ENGLISH_SUB": "Default App Language",
+    "MARATHI": "मराठी (Marathi)",
+    "MARATHI_SUB": "Regional Language",
+    "CONTINUE": "Continue",
+    "MANAGED_BY": "Managed by Lemonwood Hospitality",
+    "TERMS": "By continuing, you agree to our",
+    "TERMS_LINK": "Terms of Service"
+  },
+  "LOGIN": {
+    "WELCOME": "Welcome back",
+    "SUBTITLE": "Sign in to manage your lodge operations.",
+    "EMAIL_PLACEHOLDER": "Email or Mobile Number",
+    "PASSWORD_PLACEHOLDER": "Password",
+    "REMEMBER_ME": "Remember me",
+    "FORGOT_PASSWORD": "Forgot Password?",
+    "LOGIN_BUTTON": "Login to Dashboard",
+    "SECURE_LOGIN": "Secure Login",
+    "PASSKEY": "Passkey",
+    "BIOMETRIC": "Biometric",
+    "STAFF_NOTICE": "Staff Notice",
+    "STAFF_NOTICE_TEXT": "Shift changeover protocols are now available in the dashboard documentation.",
+    "NO_ACCOUNT": "Don't have an account?",
+    "CONTACT_ADMIN": "Contact Admin",
+    "REGISTER": "Register",
+    "TERMS": "Terms of Service",
+    "PRIVACY": "Privacy Policy",
+    "TOGGLE_PASSWORD": "Toggle password visibility"
+  },
+  "REGISTER": {
+    "TITLE": "Staff Registration",
+    "SUBTITLE": "Join the team to manage lodge operations.",
+    "FULL_NAME": "Full Name",
+    "FULL_NAME_LOCAL": "पूर्ण नाव",
+    "FULL_NAME_PLACEHOLDER": "e.g. Rahul Sharma",
+    "EMAIL": "Email Address",
+    "EMAIL_LOCAL": "ईमेल पत्ता",
+    "EMAIL_PLACEHOLDER": "rahul@example.com",
+    "MOBILE": "Mobile Number",
+    "MOBILE_LOCAL": "मोबाइल नंबर",
+    "MOBILE_PLACEHOLDER": "+91 00000 00000",
+    "ROLE": "Staff Role",
+    "ROLE_LOCAL": "कर्मचारी भूमिका",
+    "ROLE_PLACEHOLDER": "Select Role",
+    "PASSWORD": "Password",
+    "PASSWORD_LOCAL": "पासवर्ड",
+    "PASSWORD_PLACEHOLDER": "Min 8 characters",
+    "CONFIRM_PASSWORD": "Confirm Password",
+    "CONFIRM_PASSWORD_LOCAL": "पासवर्ड पुष्टी करा",
+    "CONFIRM_PASSWORD_PLACEHOLDER": "Repeat password",
+    "AGREE_TERMS": "I agree to the",
+    "AND": "and",
+    "SUBMIT": "Register & Join",
+    "ALREADY_ACCOUNT": "Already have an account?",
+    "LOGIN": "Login",
+    "ROLES": {
+      "FRONT_DESK": "Front Desk",
+      "HOUSEKEEPING": "Housekeeping",
+      "KITCHEN": "Kitchen Staff",
+      "MANAGER": "Manager",
+      "MAINTENANCE": "Maintenance"
+    },
+    "ERRORS": {
+      "REQUIRED": "Please fill in all required fields.",
+      "PASSWORD_MISMATCH": "Passwords do not match.",
+      "PASSWORD_LENGTH": "Password must be at least 8 characters.",
+      "TERMS": "Please agree to the Terms of Service and Privacy Policy.",
+      "SUCCESS": "Registration successful! Redirecting to login..."
+    }
+  },
+  "AUTH": {
+    "BIOMETRIC_SUCCESS": "Biometric authentication successful!",
+    "BIOMETRIC_UNAVAILABLE": "Biometric authentication is not available on this device.",
+    "BIOMETRIC_FAILED": "Biometric authentication failed. Please try again.",
+    "BIOMETRIC_REASON": "Authenticate to access Lemonwood Lodge",
+    "PASSKEY_SUCCESS": "Passkey authentication successful!",
+    "PASSKEY_UNAVAILABLE": "Passkeys are not supported on this device or browser.",
+    "PASSKEY_FAILED": "Passkey authentication failed. Please try again.",
+    "PASSKEY_SETUP": "Setting up your passkey...",
+    "LOGIN_SUCCESS": "Login successful! Redirecting to dashboard..."
+  }
+}

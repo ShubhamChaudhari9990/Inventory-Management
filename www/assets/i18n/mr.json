@@ -1,0 +1,89 @@
+{
+  "BRAND": {
+    "NAME": "Lemonwood Lodge"
+  },
+  "LANGUAGE": {
+    "TITLE": "तुमची पसंतीची भाषा निवडा",
+    "SUBTITLE": "अ‍ॅपमध्ये वापरायची भाषा निवडा",
+    "ENGLISH": "English",
+    "ENGLISH_SUB": "डीफॉल्ट अ‍ॅप भाषा",
+    "MARATHI": "मराठी (Marathi)",
+    "MARATHI_SUB": "प्रादेशिक भाषा",
+    "CONTINUE": "पुढे जा",
+    "MANAGED_BY": "Lemonwood Hospitality द्वारे व्यवस्थापित",
+    "TERMS": "पुढे जाताना, तुम्ही आमच्या",
+    "TERMS_LINK": "सेवा अटींना सहमती देता"
+  },
+  "LOGIN": {
+    "WELCOME": "पुन्हा स्वागत आहे",
+    "SUBTITLE": "तुमच्या लॉज ऑपरेशन्स व्यवस्थापित करण्यासाठी साइन इन करा.",
+    "EMAIL_PLACEHOLDER": "ईमेल किंवा मोबाइल नंबर",
+    "PASSWORD_PLACEHOLDER": "पासवर्ड",
+    "REMEMBER_ME": "मला लक्षात ठेवा",
+    "FORGOT_PASSWORD": "पासवर्ड विसरलात?",
+    "LOGIN_BUTTON": "डॅशबोर्डवर लॉगिन करा",
+    "SECURE_LOGIN": "सुरक्षित लॉगिन",
+    "PASSKEY": "पासकी",
+    "BIOMETRIC": "बायोमेट्रिक",
+    "STAFF_NOTICE": "कर्मचारी सूचना",
+    "STAFF_NOTICE_TEXT": "शिफ्ट बदल प्रोटोकॉल आता डॅशबोर्ड दस्तऐवजीकरणात उपलब्ध आहेत.",
+    "NO_ACCOUNT": "खाते नाही?",
+    "CONTACT_ADMIN": "अ‍ॅडमिनशी संपर्क करा",
+    "REGISTER": "नोंदणी करा",
+    "TERMS": "सेवा अटी",
+    "PRIVACY": "गोपनीयता धोरण",
+    "TOGGLE_PASSWORD": "पासवर्ड दृश्यता बदला"
+  },
+  "REGISTER": {
+    "TITLE": "कर्मचारी नोंदणी",
+    "SUBTITLE": "लॉज ऑपरेशन्स व्यवस्थापित करण्यासाठी टीममध्ये सामील व्हा.",
+    "FULL_NAME": "Full Name",
+    "FULL_NAME_LOCAL": "पूर्ण नाव",
+    "FULL_NAME_PLACEHOLDER": "उदा. राहुल शर्मा",
+    "EMAIL": "Email Address",
+    "EMAIL_LOCAL": "ईमेल पत्ता",
+    "EMAIL_PLACEHOLDER": "rahul@example.com",
+    "MOBILE": "Mobile Number",
+    "MOBILE_LOCAL": "मोबाइल नंबर",
+    "MOBILE_PLACEHOLDER": "+91 00000 00000",
+    "ROLE": "Staff Role",
+    "ROLE_LOCAL": "कर्मचारी भूमिका",
+    "ROLE_PLACEHOLDER": "भूमिका निवडा",
+    "PASSWORD": "Password",
+    "PASSWORD_LOCAL": "पासवर्ड",
+    "PASSWORD_PLACEHOLDER": "किमान ८ अक्षरे",
+    "CONFIRM_PASSWORD": "Confirm Password",
+    "CONFIRM_PASSWORD_LOCAL": "पासवर्ड पुष्टी करा",
+    "CONFIRM_PASSWORD_PLACEHOLDER": "पासवर्ड पुन्हा टाका",
+    "AGREE_TERMS": "मी सहमत आहे",
+    "AND": "आणि",
+    "SUBMIT": "नोंदणी करा आणि सामील व्हा",
+    "ALREADY_ACCOUNT": "आधीपासून खाते आहे?",
+    "LOGIN": "लॉगिन",
+    "ROLES": {
+      "FRONT_DESK": "फ्रंट डेस्क",
+      "HOUSEKEEPING": "हाऊसकीपिंग",
+      "KITCHEN": "Kitchen Staff",
+      "MANAGER": "Manager",
+      "MAINTENANCE": "Maintenance"
+    },
+    "ERRORS": {
+      "REQUIRED": "कृपया सर्व आवश्यक फील्ड भरा.",
+      "PASSWORD_MISMATCH": "पासवर्ड जुळत नाहीत.",
+      "PASSWORD_LENGTH": "पासवर्ड किमान ८ अक्षरांचा असावा.",
+      "TERMS": "कृपया सेवा अटी आणि गोपनीयता धोरणाशी सहमत व्हा.",
+      "SUCCESS": "नोंदणी यशस्वी! लॉगिनकडे पुनर्निर्देशित करत आहे..."
+    }
+  },
+  "AUTH": {
+    "BIOMETRIC_SUCCESS": "बायोमेट्रिक प्रमाणीकरण यशस्वी!",
+    "BIOMETRIC_UNAVAILABLE": "या डिव्हाइसवर बायोमेट्रिक प्रमाणीकरण उपलब्ध नाही.",
+    "BIOMETRIC_FAILED": "बायोमेट्रिक प्रमाणीकरण अयशस्वी. कृपया पुन्हा प्रयत्न करा.",
+    "BIOMETRIC_REASON": "Lemonwood Lodge मध्ये प्रवेश करण्यासाठी प्रमाणित करा",
+    "PASSKEY_SUCCESS": "पासकी प्रमाणीकरण यशस्वी!",
+    "PASSKEY_UNAVAILABLE": "या डिव्हाइसवर किंवा ब्राउझरवर पासकी समर्थित नाहीत.",
+    "PASSKEY_FAILED": "पासकी प्रमाणीकरण अयशस्वी. कृपया पुन्हा प्रयत्न करा.",
+    "PASSKEY_SETUP": "तुमची पासकी सेट करत आहे...",
+    "LOGIN_SUCCESS": "लॉगिन यशस्वी! डॅशबोर्डवर पुनर्निर्देशित करत आहे..."
+  }
+}

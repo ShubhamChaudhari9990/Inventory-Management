@@ -1,0 +1,57 @@
+<ion-content [fullscreen]="true" class="language-content">
+  <div class="page-shell">
+    <header class="brand-header">
+      <div class="brand-logo">
+        <ion-icon name="leaf" aria-hidden="true"></ion-icon>
+      </div>
+      <span class="brand-name">{{ 'BRAND.NAME' | translate }}</span>
+    </header>
+
+    <div class="hero-icon">
+      <ion-icon name="language-outline" aria-hidden="true"></ion-icon>
+    </div>
+
+    <h1>{{ 'LANGUAGE.TITLE' | translate }}</h1>
+    <p class="marathi-subtitle">{{ 'LANGUAGE.SUBTITLE' | translate }}</p>
+
+    <div class="language-list">
+      @for (language of languages; track language.code) {
+        <button
+          type="button"
+          class="language-card"
+          [class.selected]="selectedLanguage === language.code"
+          (click)="selectLanguage(language.code)"
+        >
+          <div class="language-icon" [class]="language.iconClass">
+            <ion-icon [name]="language.icon" aria-hidden="true"></ion-icon>
+          </div>
+          <div class="language-copy">
+            <strong>{{ language.labelKey | translate }}</strong>
+            <span>{{ language.subtitleKey | translate }}</span>
+          </div>
+        </button>
+      }
+    </div>
+
+    <figure class="lodge-image">
+      <div class="image-overlay">
+        <ion-icon name="checkmark-circle" aria-hidden="true"></ion-icon>
+        <span>{{ 'LANGUAGE.MANAGED_BY' | translate }}</span>
+      </div>
+    </figure>
+
+    <ion-button
+      expand="block"
+      class="continue-btn"
+      [disabled]="!selectedLanguage"
+      (click)="continue()"
+    >
+      {{ 'LANGUAGE.CONTINUE' | translate }}
+    </ion-button>
+
+    <p class="terms-copy">
+      {{ 'LANGUAGE.TERMS' | translate }}
+      <a routerLink="/terms">{{ 'LANGUAGE.TERMS_LINK' | translate }}</a>
+    </p>
+  </div>
+</ion-content>
