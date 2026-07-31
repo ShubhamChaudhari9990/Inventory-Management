@@ -1,2 +1,15 @@
-// For information on how to create your own theme, please refer to:
-// https://ionicframework.com/docs/theming/
+:root {
+  --brand-primary: #1d3e9f;
+  --brand-primary-dark: #152f7a;
+  --brand-primary-soft: #e8eefc;
+  --text-primary: #111827;
+  --text-muted: #6b7280;
+  --border-color: #e5e7eb;
+  --surface: #ffffff;
+  --surface-muted: #f3f4f6;
+  --destructive: #ef4444;
+  --sidebar-width: 288px;
+
+  --font-sans: Poppins, "Noto Sans Devanagari", ui-sans-serif, system-ui, sans-serif;
+  --ion-font-family: var(--font-sans);
+}

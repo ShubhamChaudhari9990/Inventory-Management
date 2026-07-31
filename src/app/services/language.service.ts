@@ -4,14 +4,25 @@ import { TranslateService } from '@ngx-translate/core';
 
 export type AppLanguage = 'en' | 'mr';
 
+export interface LanguageOption {
+  code: AppLanguage;
+  label: string;
+}
+
 const LANGUAGE_KEY = 'app_language';
 const DEFAULT_LANGUAGE: AppLanguage = 'mr';
+
+export const LANGUAGE_OPTIONS: readonly LanguageOption[] = [
+  { code: 'en', label: 'English' },
+  { code: 'mr', label: 'मराठी' },
+] as const;
 
 @Injectable({ providedIn: 'root' })
 export class LanguageService {
   private readonly translate = inject(TranslateService);
 
   readonly supportedLanguages: AppLanguage[] = ['en', 'mr'];
+  readonly languageOptions = LANGUAGE_OPTIONS;
 
   async init(): Promise<void> {
     this.translate.addLangs(this.supportedLanguages);
