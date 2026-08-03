@@ -1,32 +1,70 @@
 # Specifies intentionally untracked files to ignore when using Git
 # http://git-scm.com/docs/gitignore
 
-*~
-*.sw[mnpcod]
-.tmp
-*.tmp
-*.tmp.*
-*.sublime-project
-*.sublime-workspace
-.DS_Store
-Thumbs.db
-UserInterfaceState.xcuserstate
-$RECYCLE.BIN/
+# Dependencies
+/node_modules
+/npm-debug.log*
+/yarn-error.log*
+/yarn-debug.log*
+/pnpm-debug.log*
 
-*.log
-log.txt
-npm-debug.log*
-.angular
-/.idea
+# Build / output
+/www
+/dist
+/out-tsc
+/tmp
+/build
+*.tsbuildinfo
+
+# Angular / Ionic / Sass caches
+/.angular
 /.ionic
 /.sass-cache
 /.sourcemaps
 /.versions
-/.vscode/*
-!/.vscode/extensions.json
-/coverage
-/dist
-/node_modules
+
+# Capacitor / Cordova native
+/android
+/ios
 /platforms
 /plugins
-/www
+
+# Test / coverage
+/coverage
+/cypress/videos
+/cypress/screenshots
+*.lcov
+
+# Environment & secrets (keep example files tracked)
+.env
+.env.*
+!.env.example
+*.pem
+*.p12
+*.keystore
+google-services.json
+GoogleService-Info.plist
+
+# IDE / editor
+/.idea
+/.vscode/*
+!/.vscode/extensions.json
+*.sublime-project
+*.sublime-workspace
+*.sw[mnpcod]
+*~
+
+# OS junk
+.DS_Store
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+UserInterfaceState.xcuserstate
+
+# Logs & temp
+*.log
+log.txt
+*.tmp
+*.tmp.*
+.tmp
