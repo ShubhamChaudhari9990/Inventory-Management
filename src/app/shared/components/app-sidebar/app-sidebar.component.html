@@ -1,0 +1,61 @@
+<div class="sidebar" role="navigation" aria-label="Main navigation">
+  <button
+    type="button"
+    class="sidebar__close"
+    aria-label="Close menu"
+    (click)="onClose()"
+  >
+    <svg
+      class="sidebar__close-icon"
+      viewBox="0 0 24 24"
+      fill="none"
+      xmlns="http://www.w3.org/2000/svg"
+      aria-hidden="true"
+    >
+      <path
+        d="M18 6 6 18"
+        stroke="currentColor"
+        stroke-width="2.5"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      />
+      <path
+        d="m6 6 12 12"
+        stroke="currentColor"
+        stroke-width="2.5"
+        stroke-linecap="round"
+        stroke-linejoin="round"
+      />
+    </svg>
+  </button>
+
+  <div class="sidebar__header">
+    <div class="sidebar__brand">
+      <ion-avatar class="sidebar__logo" aria-hidden="true">
+        <span>{{ brandInitials() }}</span>
+      </ion-avatar>
+      <div class="sidebar__brand-text">
+        <ion-label>
+          <h2 class="sidebar__brand-name">{{ brandName() }}</h2>
+          <p class="sidebar__brand-subtitle">{{ brandSubtitle() }}</p>
+        </ion-label>
+      </div>
+    </div>
+  </div>
+
+  <ion-list class="sidebar__nav" lines="none">
+    @for (item of items(); track item.id) {
+      <ion-item
+        class="sidebar__item"
+        button
+        detail="false"
+        [class.sidebar__item--active]="item.id === activeId()"
+        [attr.aria-current]="item.id === activeId() ? 'page' : null"
+        (click)="onNavigate(item)"
+      >
+        <ion-icon [name]="item.icon" slot="start" aria-hidden="true"></ion-icon>
+        <ion-label class="sidebar__item-label">{{ item.label }}</ion-label>
+      </ion-item>
+    }
+  </ion-list>
+</div>

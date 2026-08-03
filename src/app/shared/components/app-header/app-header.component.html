@@ -1,0 +1,145 @@
+<div class="app-header">
+  <ion-button
+    class="app-header__icon-btn"
+    fill="clear"
+    aria-label="Menu"
+    (click)="onMenuClick()"
+  >
+    <ion-icon slot="icon-only" name="chevron-forward-outline"></ion-icon>
+  </ion-button>
+
+  <ion-label class="app-header__title">{{ title() }}</ion-label>
+
+  <div class="app-header__actions">
+    <div class="app-header__lang">
+      <ion-button
+        class="app-header__lang-btn"
+        fill="clear"
+        aria-label="Language"
+        aria-haspopup="menu"
+        [attr.aria-expanded]="isLanguageMenuOpen()"
+        (click)="onLanguageButtonClick($event)"
+      >
+        <ion-icon slot="start" name="language-outline"></ion-icon>
+        <span class="app-header__lang-code">{{ currentLanguage() }}</span>
+      </ion-button>
+
+      @if (isLanguageMenuOpen()) {
+        <ion-list
+          class="app-header__dropdown app-header__lang-menu"
+          lines="none"
+          role="menu"
+          aria-label="Select language"
+          (click)="$event.stopPropagation()"
+        >
+          @for (option of languageOptions; track option.code) {
+            <ion-item
+              class="app-header__lang-option"
+              button
+              detail="false"
+              role="menuitem"
+              [class.app-header__lang-option--active]="
+                option.code === currentLanguage()
+              "
+              (click)="onLanguageSelect(option, $event)"
+            >
+              <ion-label>{{ option.label }}</ion-label>
+            </ion-item>
+          }
+        </ion-list>
+      }
+    </div>
+
+    <div class="app-header__notifications">
+      <ion-button
+        class="app-header__icon-btn app-header__icon-btn--relative"
+        fill="clear"
+        aria-label="Notifications"
+        aria-haspopup="menu"
+        [attr.aria-expanded]="isNotificationsMenuOpen()"
+        (click)="onNotificationsButtonClick($event)"
+      >
+        <ion-icon slot="icon-only" name="notifications-outline"></ion-icon>
+        @if (hasNotifications()) {
+          <span class="app-header__badge" aria-hidden="true"></span>
+        }
+      </ion-button>
+
+      @if (isNotificationsMenuOpen()) {
+        <div
+          class="app-header__dropdown app-header__notifications-menu"
+          role="menu"
+          aria-label="Notifications"
+          (click)="$event.stopPropagation()"
+        >
+          <p class="app-header__notifications-heading">Notifications</p>
+
+          @for (notification of notifications; track notification.id) {
+            <button
+              type="button"
+              class="app-header__notification-item"
+              role="menuitem"
+              (click)="onNotificationClick(notification, $event)"
+            >
+              <span class="app-header__notification-title">{{
+                notification.title
+              }}</span>
+              <span class="app-header__notification-desc">{{
+                notification.description
+              }}</span>
+            </button>
+          }
+        </div>
+      }
+    </div>
+
+    <div class="app-header__profile">
+      <ion-button
+        class="app-header__avatar"
+        fill="solid"
+        shape="round"
+        aria-label="Profile"
+        aria-haspopup="menu"
+        [attr.aria-expanded]="isProfileMenuOpen()"
+        (click)="onProfileButtonClick($event)"
+      >
+        {{ profileInitials() }}
+      </ion-button>
+
+      @if (isProfileMenuOpen()) {
+        <div
+          class="app-header__dropdown app-header__profile-menu"
+          role="menu"
+          aria-label="Profile menu"
+          (click)="$event.stopPropagation()"
+        >
+          <div class="app-header__profile-info">
+            <span class="app-header__profile-name">{{ profileName() }}</span>
+            <span class="app-header__profile-role">{{ profileRole() }}</span>
+          </div>
+
+          <div class="app-header__profile-separator" role="separator"></div>
+
+          <button
+            type="button"
+            class="app-header__menu-item"
+            role="menuitem"
+            (click)="onSettingsClick($event)"
+          >
+            Settings
+          </button>
+
+          <button
+            type="button"
+            class="app-header__menu-item"
+            role="menuitem"
+            (click)="onLogoutClick($event)"
+          >
+            <ion-icon name="log-out-outline" aria-hidden="true"></ion-icon>
+            Logout
+          </button>
+        </div>
+      }
+    </div>
+  </div>
+</div>

@@ -1,0 +1,39 @@
+<ion-menu
+  [menuId]="menuId()"
+  [contentId]="contentId()"
+  type="overlay"
+  side="start"
+  (ionWillOpen)="onMenuWillOpen()"
+  (ionWillClose)="onMenuWillClose()"
+>
+  <ion-content [forceOverscroll]="false">
+    <app-sidebar
+      [items]="navItems"
+      [activeId]="activeNavId()"
+      (closed)="closeMenu()"
+      (navigated)="onNavigate($event)"
+    />
+  </ion-content>
+</ion-menu>
+
+<div class="shell-page" [attr.id]="contentId()">
+  <app-header
+    [title]="pageTitle()"
+    [profileInitials]="profileInitials()"
+    (menuClick)="openMenu()"
+    (settingsClick)="onSettingsFromHeader()"
+  />
+
+  <main class="shell-page__main">
+    <ng-content />
+  </main>
+
+  @if (isMenuOpen()) {
+    <ion-backdrop
+      class="shell-backdrop"
+      [visible]="true"
+      [tappable]="true"
+      (ionBackdropTap)="closeMenu()"
+    ></ion-backdrop>
+  }
+</div>

@@ -1,0 +1,40 @@
+:host {
+  /* Let menu + page sit as direct children of the routed ion-page. */
+  display: contents;
+}
+
+ion-menu {
+  --width: var(--sidebar-width, 288px);
+  --background: var(--surface, #ffffff);
+}
+
+/* Keep Ionic's built-in backdrop for swipe/click wiring, but invisible —
+   we render our own darker overlay to match the web UI. */
+ion-menu::part(backdrop) {
+  background: transparent;
+  opacity: 0.01;
+}
+
+.shell-page {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  background: var(--surface, #ffffff);
+}
+
+.shell-page__main {
+  flex: 1;
+  min-height: 0;
+  overflow: auto;
+  background: var(--surface-muted, #f3f4f6);
+}
+
+.shell-backdrop {
+  position: absolute;
+  inset: 0;
+  z-index: 20;
+  opacity: 0.79;
+  background: #000;
+  cursor: pointer;
+}
