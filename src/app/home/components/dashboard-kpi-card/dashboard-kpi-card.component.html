@@ -1,0 +1,23 @@
+<ion-card class="kpi-card">
+  <ion-card-content class="kpi-card__content">
+    <div class="kpi-card__text">
+      <p class="kpi-card__label">{{ kpi().label }}</p>
+      <p class="kpi-card__value">{{ kpi().value }}</p>
+      @if (kpi().meta) {
+        <p class="kpi-card__meta">{{ kpi().meta }}</p>
+      }
+    </div>
+
+    <span class="kpi-card__icon" [class]="'kpi-card__icon kpi-card__icon--' + kpi().tone">
+      @if (isCustomIcon()) {
+        <span
+          class="kpi-card__custom-icon"
+          [innerHTML]="customIconHtml()"
+          aria-hidden="true"
+        ></span>
+      } @else {
+        <ion-icon [name]="kpi().icon" aria-hidden="true"></ion-icon>
+      }
+    </span>
+  </ion-card-content>
+</ion-card>

@@ -1,1 +1,162 @@
-<app-shell />
+<app-shell
+  [activeNavId]="activeNavId()"
+  (activeNavIdChange)="activeNavId.set($event)"
+>
+  @if (isDashboardActive()) {
+    <div class="dashboard-page">
+      <div class="dashboard-page__inner">
+        <section class="dashboard-page__hero">
+          <div class="dashboard-page__hero-copy">
+            <h1 class="dashboard-page__title">Dashboard</h1>
+            <p class="dashboard-page__subtitle">{{ todayLabel }}</p>
+          </div>
+
+          <ion-button class="dashboard-page__cta" fill="solid">
+            <ion-icon slot="start" name="add-outline"></ion-icon>
+            New Booking
+          </ion-button>
+        </section>
+
+        <section class="dashboard-page__kpis">
+          @for (kpi of kpis; track kpi.id) {
+            <app-dashboard-kpi-card [kpi]="kpi" />
+          }
+        </section>
+
+        <section class="dashboard-page__charts">
+          <app-dashboard-section-card
+            class="dashboard-page__section dashboard-page__section--wide"
+            title="Revenue vs Expense"
+          >
+            <app-dashboard-axis-chart [options]="revenueExpenseChart" />
+          </app-dashboard-section-card>
+
+          <app-dashboard-section-card title="Room Status">
+            <app-dashboard-donut-chart [options]="roomStatusChart" />
+
+            <div class="status-legend">
+              @for (item of roomStatusLegend; track item.label) {
+                <div class="status-legend__item">
+                  <span
+                    class="status-legend__dot"
+                    [style.background]="item.color"
+                  ></span>
+                  <span class="status-legend__label">{{ item.label }}</span>
+                  <span class="status-legend__value">{{ item.value }}</span>
+                </div>
+              }
+            </div>
+          </app-dashboard-section-card>
+
+          <app-dashboard-section-card title="Monthly Revenue">
+            <app-dashboard-axis-chart [options]="monthlyRevenueChart" />
+          </app-dashboard-section-card>
+
+          <app-dashboard-section-card title="Occupancy Rate">
+            <app-dashboard-axis-chart [options]="occupancyRateChart" />
+          </app-dashboard-section-card>
+
+          <app-dashboard-section-card title="Booking Trend">
+            <app-dashboard-axis-chart [options]="bookingTrendChart" />
+          </app-dashboard-section-card>
+        </section>
+
+        <app-dashboard-section-card title="Quick Actions">
+          <div class="quick-actions">
+            @for (action of quickActions; track action.id) {
+              <button type="button" class="quick-actions__item">
+                <ion-icon [name]="action.icon" aria-hidden="true"></ion-icon>
+                <span>{{ action.label }}</span>
+              </button>
+            }
+          </div>
+        </app-dashboard-section-card>
+
+        <section class="dashboard-page__bottom">
+          <app-dashboard-section-card
+            class="dashboard-page__section dashboard-page__section--wide"
+            title="Recent Bookings"
+            [noPadding]="true"
+          >
+            <div class="dashboard-table">
+              <table>
+                <thead>
+                  <tr>
+                    <th>Guest</th>
+                    <th>Room</th>
+                    <th>Check In</th>
+                    <th class="dashboard-table__amount">Amount</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (booking of recentBookings; track trackBooking($index, booking)) {
+                    <tr>
+                      <td class="dashboard-table__strong">{{ booking.guest }}</td>
+                      <td>{{ booking.room }}</td>
+                      <td>{{ booking.checkIn }}</td>
+                      <td class="dashboard-table__amount dashboard-table__strong">
+                        {{ booking.amount }}
+                      </td>
+                      <td>
+                        <span
+                          class="status-chip"
+                          [class.status-chip--due]="booking.status === 'Due'"
+                        >
+                          <span class="status-chip__dot"></span>
+                          {{ booking.status }}
+                        </span>
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          </app-dashboard-section-card>
+
+          <div class="dashboard-page__side-column">
+            <app-dashboard-section-card title="Recent Payments" [noPadding]="true">
+              <ul class="detail-list">
+                @for (payment of recentPayments; track trackPayment($index, payment)) {
+                  <li class="detail-list__item">
+                    <span class="detail-list__icon detail-list__icon--secondary">
+                      <ion-icon name="cash-outline" aria-hidden="true"></ion-icon>
+                    </span>
+                    <div class="detail-list__content">
+                      <p class="detail-list__title">{{ payment.guest }}</p>
+                      <p class="detail-list__meta">{{ payment.method }} · {{ payment.time }}</p>
+                    </div>
+                    <span class="detail-list__amount">{{ payment.amount }}</span>
+                  </li>
+                }
+              </ul>
+            </app-dashboard-section-card>
+
+            <app-dashboard-section-card title="Recent Activity" [noPadding]="true">
+              <ul class="activity-list">
+                @for (item of recentActivity; track item.text) {
+                  <li class="activity-list__item">
+                    <span class="activity-list__dot"></span>
+                    <p class="activity-list__text">{{ item.text }}</p>
+                    <span class="activity-list__time">{{ item.timeAgo }}</span>
+                  </li>
+                }
+              </ul>
+            </app-dashboard-section-card>
+          </div>
+        </section>
+      </div>
+    </div>
+  } @else if (isMoreActive()) {
+    <div class="dashboard-page">
+      <div class="dashboard-page__inner">
+        <app-more-menu-view
+          [items]="moreMenuItems"
+          (itemClick)="onMoreItemClick($event)"
+        />
+      </div>
+    </div>
+  } @else {
+    <app-coming-soon-view [sectionId]="activeNavId()" />
+  }
+</app-shell>

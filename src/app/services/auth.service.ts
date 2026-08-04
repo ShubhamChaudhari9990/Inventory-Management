@@ -142,7 +142,7 @@ export class AuthService {
   }
 
   private async navigateToDashboard(): Promise<void> {
-    await this.router.navigate(['/home']);
+    await this.router.navigateByUrl('/home', { replaceUrl: true });
   }
 
   private async showToast(

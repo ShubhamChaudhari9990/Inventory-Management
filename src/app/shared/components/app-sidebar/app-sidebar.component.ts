@@ -6,20 +6,6 @@ import {
   IonLabel,
   IonList,
 } from '@ionic/angular/standalone';
-import { addIcons } from 'ionicons';
-import {
-  barChartOutline,
-  bedOutline,
-  calendarOutline,
-  cashOutline,
-  cubeOutline,
-  gridOutline,
-  peopleOutline,
-  personCircleOutline,
-  receiptOutline,
-  settingsOutline,
-  sparklesOutline,
-} from 'ionicons/icons';
 
 import { NavItem } from '../../models/nav-item.model';
 
@@ -38,22 +24,6 @@ export class AppSidebarComponent {
 
   readonly closed = output<void>();
   readonly navigated = output<NavItem>();
-
-  constructor() {
-    addIcons({
-      'grid-outline': gridOutline,
-      'bed-outline': bedOutline,
-      'calendar-outline': calendarOutline,
-      'people-outline': peopleOutline,
-      'cube-outline': cubeOutline,
-      'cash-outline': cashOutline,
-      'receipt-outline': receiptOutline,
-      'person-circle-outline': personCircleOutline,
-      'sparkles-outline': sparklesOutline,
-      'bar-chart-outline': barChartOutline,
-      'settings-outline': settingsOutline,
-    });
-  }
 
   onClose(): void {
     this.closed.emit();
