@@ -44,7 +44,7 @@ export class AppShellComponent {
   readonly bottomNavItems = BOTTOM_NAV_ITEMS;
   readonly isMenuOpen = signal(false);
   readonly pageTitle = computed(
-    () => getNavItemById(this.activeNavId())?.label ?? 'Dashboard',
+    () => getNavItemById(this.activeNavId())?.label ?? 'NAV.DASHBOARD',
   );
 
   async openMenu(): Promise<void> {

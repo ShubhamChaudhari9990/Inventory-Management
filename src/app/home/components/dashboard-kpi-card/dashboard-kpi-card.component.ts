@@ -1,6 +1,7 @@
 import { Component, computed, inject, input } from '@angular/core';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { IonCard, IonCardContent, IonIcon } from '@ionic/angular/standalone';
+import { TranslatePipe } from '@ngx-translate/core';
 
 import { DashboardKpi } from '../../data/dashboard.data';
 import { isCustomKpiIcon, KPI_CUSTOM_ICONS } from '../../data/kpi-icons.data';
@@ -9,7 +10,7 @@ import { isCustomKpiIcon, KPI_CUSTOM_ICONS } from '../../data/kpi-icons.data';
   selector: 'app-dashboard-kpi-card',
   templateUrl: './dashboard-kpi-card.component.html',
   styleUrls: ['./dashboard-kpi-card.component.scss'],
-  imports: [IonCard, IonCardContent, IonIcon],
+  imports: [IonCard, IonCardContent, IonIcon, TranslatePipe],
 })
 export class DashboardKpiCardComponent {
   private readonly sanitizer = inject(DomSanitizer);

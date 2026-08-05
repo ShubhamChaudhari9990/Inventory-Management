@@ -86,11 +86,11 @@ const yaxisWithFormatter = (
 
 /** Single source for room-status chart + legend. */
 export const ROOM_STATUS_LEGEND: readonly RoomStatusLegendItem[] = [
-  { label: 'Available', value: 6, color: '#60a5fa' },
-  { label: 'Occupied', value: 9, color: '#1d3e9f' },
-  { label: 'Cleaning', value: 3, color: '#22c55e' },
-  { label: 'Reserved', value: 3, color: '#94a3b8' },
-  { label: 'Maintenance', value: 3, color: '#ef4444' },
+  { label: 'STATUS.AVAILABLE', value: 6, color: '#60a5fa' },
+  { label: 'STATUS.OCCUPIED', value: 9, color: '#1d3e9f' },
+  { label: 'STATUS.CLEANING', value: 3, color: '#22c55e' },
+  { label: 'STATUS.RESERVED', value: 3, color: '#94a3b8' },
+  { label: 'STATUS.MAINTENANCE', value: 3, color: '#ef4444' },
 ] as const;
 
 export const REVENUE_EXPENSE_CHART: AxisChartOptions = {

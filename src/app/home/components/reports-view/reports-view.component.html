@@ -1,0 +1,96 @@
+<div class="reports-page">
+  <header class="reports-page__hero">
+    <div class="reports-page__hero-copy">
+      <h1 class="reports-page__title">{{ 'REPORTS.TITLE' | translate }}</h1>
+      <p class="reports-page__subtitle">{{ subtitle | translate }}</p>
+    </div>
+
+    <div class="reports-page__actions">
+      <button type="button" class="reports-page__action" (click)="exportPdf()">
+        <ion-icon name="document-text-outline" aria-hidden="true"></ion-icon>
+        {{ 'REPORTS.PDF' | translate }}
+      </button>
+      <button type="button" class="reports-page__action" (click)="exportExcel()">
+        <ion-icon name="grid-outline" aria-hidden="true"></ion-icon>
+        {{ 'REPORTS.EXCEL' | translate }}
+      </button>
+      <button
+        type="button"
+        class="reports-page__action reports-page__action--icon"
+        (click)="printReport()"
+        [attr.aria-label]="'REPORTS.PRINT' | translate"
+      >
+        <ion-icon name="print-outline" aria-hidden="true"></ion-icon>
+      </button>
+    </div>
+  </header>
+
+  <div class="reports-grid">
+    @for (card of cards; track trackCard($index, card)) {
+      <button type="button" class="report-card">
+        <span class="report-card__icon">
+          @if (isCustomIcon(card.icon)) {
+            <span
+              class="report-card__custom"
+              [innerHTML]="customIconHtml(card.icon)"
+              aria-hidden="true"
+            ></span>
+          } @else {
+            <ion-icon [name]="card.icon" aria-hidden="true"></ion-icon>
+          }
+        </span>
+        <div class="report-card__copy">
+          <p class="report-card__title">{{ card.titleKey | translate }}</p>
+          <p class="report-card__meta">{{ card.metaKey | translate }}</p>
+        </div>
+        <ion-icon
+          class="report-card__chevron"
+          name="document-text-outline"
+          aria-hidden="true"
+        ></ion-icon>
+      </button>
+    }
+  </div>
+
+  <app-dashboard-section-card title="REPORTS.PNL.TITLE" [noPadding]="true">
+    <table class="pnl-table">
+      <tbody>
+        @for (row of pnlRows; track trackRow($index, row)) {
+          <tr [class.pnl-table__row--strong]="row.tone === 'strong'">
+            <td
+              [class.pnl-table__label--strong]="row.tone === 'strong'"
+            >
+              {{ row.labelKey | translate }}
+            </td>
+            <td
+              class="pnl-table__amount"
+              [class.pnl-table__amount--success]="row.tone === 'success'"
+              [class.pnl-table__amount--danger]="row.tone === 'danger'"
+              [class.pnl-table__amount--strong]="row.tone === 'strong'"
+            >
+              {{ row.amount }}
+            </td>
+          </tr>
+        }
+      </tbody>
+    </table>
+  </app-dashboard-section-card>
+</div>
+
+@if (toastMessageKey(); as messageKey) {
+  <div class="reports-toast" role="status" aria-live="polite">
+    <span class="reports-toast__icon" aria-hidden="true">
+      <svg viewBox="0 0 24 24" fill="none">
+        <circle cx="12" cy="12" r="10" fill="currentColor" opacity="0.12"></circle>
+        <path
+          d="m9 12 2 2 4-4"
+          stroke="currentColor"
+          stroke-width="2.2"
+          stroke-linecap="round"
+          stroke-linejoin="round"
+        ></path>
+      </svg>
+    </span>
+    <span>{{ messageKey | translate }}</span>
+  </div>
+}

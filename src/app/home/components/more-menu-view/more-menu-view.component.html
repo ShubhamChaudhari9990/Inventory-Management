@@ -1,8 +1,8 @@
 <div class="more-page">
   <header class="more-page__header">
     <div class="more-page__header-copy">
-      <h1 class="more-page__title">More</h1>
-      <p class="more-page__subtitle">{{ subtitle() }}</p>
+      <h1 class="more-page__title">{{ 'NAV.MORE' | translate }}</h1>
+      <p class="more-page__subtitle">{{ subtitle() | translate }}</p>
     </div>
   </header>
 
@@ -18,7 +18,7 @@
           <span class="more-menu__icon" [class.more-menu__icon--destructive]="item.destructive">
             <ion-icon [name]="item.icon" aria-hidden="true"></ion-icon>
           </span>
-          <span class="more-menu__label">{{ item.label }}</span>
+          <span class="more-menu__label">{{ item.label | translate }}</span>
           @if (!item.destructive) {
             <ion-icon
               class="more-menu__chevron"

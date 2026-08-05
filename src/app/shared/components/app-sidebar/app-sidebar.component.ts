@@ -6,6 +6,7 @@ import {
   IonLabel,
   IonList,
 } from '@ionic/angular/standalone';
+import { TranslatePipe } from '@ngx-translate/core';
 
 import { NavItem } from '../../models/nav-item.model';
 
@@ -13,13 +14,13 @@ import { NavItem } from '../../models/nav-item.model';
   selector: 'app-sidebar',
   templateUrl: './app-sidebar.component.html',
   styleUrls: ['./app-sidebar.component.scss'],
-  imports: [IonAvatar, IonLabel, IonList, IonItem, IonIcon],
+  imports: [IonAvatar, IonLabel, IonList, IonItem, IonIcon, TranslatePipe],
 })
 export class AppSidebarComponent {
   readonly items = input.required<readonly NavItem[]>();
   readonly activeId = input.required<string>();
   readonly brandName = input('Lemonwood Lodge');
-  readonly brandSubtitle = input('Lodge Management System');
+  readonly brandSubtitle = input('BRAND.SUBTITLE');
   readonly brandInitials = input('LL');
 
   readonly closed = output<void>();

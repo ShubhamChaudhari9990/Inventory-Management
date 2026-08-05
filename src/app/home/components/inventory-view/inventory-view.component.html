@@ -1,0 +1,105 @@
+<div class="inventory-page">
+  <header class="inventory-page__hero">
+    <div class="inventory-page__hero-copy">
+      <h1 class="inventory-page__title">{{ 'INVENTORY.TITLE' | translate }}</h1>
+      <p class="inventory-page__subtitle">{{ subtitle | translate }}</p>
+    </div>
+
+    <ion-button class="inventory-page__cta" fill="solid">
+      <ion-icon slot="start" name="bag-add-outline"></ion-icon>
+      {{ 'INVENTORY.ADD' | translate }}
+    </ion-button>
+  </header>
+
+  <section class="inventory-page__kpis" aria-label="Inventory summary">
+    @for (kpi of kpis; track kpi.id) {
+      <app-dashboard-kpi-card [kpi]="kpi" />
+    }
+  </section>
+
+  <div class="inventory-toolbar">
+    <label class="inventory-search" [attr.aria-label]="'INVENTORY.SEARCH' | translate">
+      <ion-icon name="search-outline" aria-hidden="true"></ion-icon>
+      <input
+        type="search"
+        [placeholder]="'INVENTORY.SEARCH' | translate"
+        [value]="query()"
+        (input)="onQueryInput($event)"
+      />
+    </label>
+
+    <button
+      type="button"
+      class="inventory-toolbar__chip"
+      [class.inventory-toolbar__chip--active]="lowStockOnly()"
+      (click)="toggleLowStockFilter()"
+    >
+      {{ 'INVENTORY.LOW_STOCK_FILTER' | translate }}
+    </button>
+  </div>
+
+  <div class="inventory-grid">
+    @for (item of filteredItems(); track trackItem($index, item)) {
+      <article class="inventory-card">
+        <div class="inventory-card__header">
+          <div class="inventory-card__copy">
+            <p class="inventory-card__name">{{ item.name }}</p>
+            <p class="inventory-card__category">{{ item.category }}</p>
+          </div>
+          <span
+            class="inventory-status"
+            [class.inventory-status--ok]="item.status === 'In stock'"
+            [class.inventory-status--low]="item.status === 'Low Stock Alerts'"
+          >
+            <span class="inventory-status__dot"></span>
+            {{ statusLabelKey(item.status) | translate }}
+          </span>
+        </div>
+
+        <div class="inventory-card__stats">
+          <p class="inventory-card__qty">
+            {{ item.quantity }}
+            <span>{{ item.unit }}</span>
+          </p>
+          <p class="inventory-card__min">{{ 'COMMON.MIN' | translate }} {{ item.min }}</p>
+        </div>
+
+        <div
+          class="inventory-card__bar"
+          role="progressbar"
+          [attr.aria-valuenow]="item.fillPercent"
+          aria-valuemin="0"
+          aria-valuemax="100"
+        >
+          <span [style.width.%]="item.fillPercent"></span>
+        </div>
+      </article>
+    }
+  </div>
+
+  <section class="stock-movement">
+    <header class="stock-movement__header">
+      <h2 class="stock-movement__title">{{ 'INVENTORY.STOCK_MOVEMENT' | translate }}</h2>
+    </header>
+
+    <ul class="stock-movement__list">
+      @for (movement of movements; track trackMovement($index, movement)) {
+        <li class="stock-movement__item">
+          <div class="stock-movement__copy">
+            <p class="stock-movement__name">{{ movement.title | translate }}</p>
+            <p class="stock-movement__detail">{{ movement.detail }}</p>
+          </div>
+          <span
+            class="stock-movement__delta"
+            [class.stock-movement__delta--success]="movement.tone === 'success'"
+            [class.stock-movement__delta--warm]="movement.tone === 'warm'"
+            [class.stock-movement__delta--danger]="movement.tone === 'danger'"
+          >
+            <span class="stock-movement__dot"></span>
+            {{ movement.delta }}
+          </span>
+        </li>
+      }
+    </ul>
+  </section>
+</div>

@@ -44,85 +44,85 @@ export interface ActivityItem {
 export const DASHBOARD_KPIS: readonly DashboardKpi[] = [
   {
     id: 'revenue',
-    label: "Today's Revenue",
+    label: 'DASHBOARD.KPI.REVENUE',
     value: '₹42,850',
-    meta: '+12% vs yesterday',
+    meta: 'DASHBOARD.KPI.REVENUE_META',
     icon: 'rupee',
     tone: 'success',
   },
   {
     id: 'expenses',
-    label: "Today's Expenses",
+    label: 'DASHBOARD.KPI.EXPENSES',
     value: '₹15,320',
     icon: 'receipt-outline',
     tone: 'danger',
   },
   {
     id: 'profit',
-    label: "Today's Profit",
+    label: 'DASHBOARD.KPI.PROFIT',
     value: '₹27,530',
     icon: 'trending-up-outline',
     tone: 'primary',
   },
   {
     id: 'available',
-    label: 'Available',
+    label: 'DASHBOARD.KPI.AVAILABLE',
     value: '6',
     icon: 'door-open',
     tone: 'success',
   },
   {
     id: 'occupied',
-    label: 'Occupied',
+    label: 'DASHBOARD.KPI.OCCUPIED',
     value: '9',
     icon: 'bed-outline',
     tone: 'primary',
   },
   {
     id: 'reserved',
-    label: 'Reserved',
+    label: 'DASHBOARD.KPI.RESERVED',
     value: '3',
     icon: 'calendar-clock',
     tone: 'secondary',
   },
   {
     id: 'cleaning',
-    label: 'Cleaning',
+    label: 'DASHBOARD.KPI.CLEANING',
     value: '3',
     icon: 'sparkles-outline',
     tone: 'warm',
   },
   {
     id: 'check-in',
-    label: 'Check-in Today',
+    label: 'DASHBOARD.KPI.CHECK_IN',
     value: '6',
     icon: 'log-in-outline',
     tone: 'primary',
   },
   {
     id: 'check-out',
-    label: 'Check-out Today',
+    label: 'DASHBOARD.KPI.CHECK_OUT',
     value: '4',
     icon: 'log-out-outline',
     tone: 'warm',
   },
   {
     id: 'pending-payments',
-    label: 'Pending Payments',
+    label: 'DASHBOARD.KPI.PENDING_PAYMENTS',
     value: '₹7,750',
     icon: 'warning-outline',
     tone: 'danger',
   },
   {
     id: 'low-stock',
-    label: 'Low Stock Alerts',
+    label: 'DASHBOARD.KPI.LOW_STOCK',
     value: '5',
     icon: 'package-open',
     tone: 'warm',
   },
   {
     id: 'staff-present',
-    label: 'Staff Present Today',
+    label: 'DASHBOARD.KPI.STAFF_PRESENT',
     value: '5/6',
     icon: 'user-check',
     tone: 'success',
@@ -130,11 +130,11 @@ export const DASHBOARD_KPIS: readonly DashboardKpi[] = [
 ] as const;
 
 export const QUICK_ACTIONS: readonly QuickAction[] = [
-  { id: 'new-booking', label: 'New Booking', icon: 'add-outline' },
-  { id: 'new-customer', label: 'New Customer', icon: 'person-add-outline' },
-  { id: 'add-expense', label: 'Add Expense', icon: 'receipt-outline' },
-  { id: 'add-inventory', label: 'Add Inventory', icon: 'bag-add-outline' },
-  { id: 'room-cleaning', label: 'Room Cleaning', icon: 'sparkles-outline' },
+  { id: 'new-booking', label: 'DASHBOARD.ACTION.NEW_BOOKING', icon: 'add-outline' },
+  { id: 'new-customer', label: 'DASHBOARD.ACTION.NEW_CUSTOMER', icon: 'person-add-outline' },
+  { id: 'add-expense', label: 'DASHBOARD.ACTION.ADD_EXPENSE', icon: 'receipt-outline' },
+  { id: 'add-inventory', label: 'DASHBOARD.ACTION.ADD_INVENTORY', icon: 'bag-add-outline' },
+  { id: 'room-cleaning', label: 'DASHBOARD.ACTION.ROOM_CLEANING', icon: 'sparkles-outline' },
 ] as const;
 
 export const RECENT_BOOKINGS: readonly RecentBooking[] = [
@@ -153,9 +153,9 @@ export const RECENT_PAYMENTS: readonly RecentPayment[] = [
 ] as const;
 
 export const RECENT_ACTIVITY: readonly ActivityItem[] = [
-  { text: 'Room 204 checked in — Sneha Patil', timeAgo: '12 min' },
-  { text: 'Payment ₹2,250 received via cash', timeAgo: '38 min' },
-  { text: 'Room 302 marked for cleaning', timeAgo: '1 hr' },
-  { text: 'Low stock: Bucket (18 left)', timeAgo: '2 hr' },
-  { text: 'Manoj Gaikwad marked on leave', timeAgo: '3 hr' },
+  { text: 'DASHBOARD.ACTIVITY.A1', timeAgo: 'DASHBOARD.TIME.12_MIN' },
+  { text: 'DASHBOARD.ACTIVITY.A2', timeAgo: 'DASHBOARD.TIME.38_MIN' },
+  { text: 'DASHBOARD.ACTIVITY.A3', timeAgo: 'DASHBOARD.TIME.1_HR' },
+  { text: 'DASHBOARD.ACTIVITY.A4', timeAgo: 'DASHBOARD.TIME.2_HR' },
+  { text: 'DASHBOARD.ACTIVITY.A5', timeAgo: 'DASHBOARD.TIME.3_HR' },
 ] as const;

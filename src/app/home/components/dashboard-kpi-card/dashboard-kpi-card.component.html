@@ -1,10 +1,10 @@
 <ion-card class="kpi-card">
   <ion-card-content class="kpi-card__content">
     <div class="kpi-card__text">
-      <p class="kpi-card__label">{{ kpi().label }}</p>
+      <p class="kpi-card__label">{{ kpi().label | translate }}</p>
       <p class="kpi-card__value">{{ kpi().value }}</p>
       @if (kpi().meta) {
-        <p class="kpi-card__meta">{{ kpi().meta }}</p>
+        <p class="kpi-card__meta">{{ kpi().meta | translate }}</p>
       }
     </div>
 

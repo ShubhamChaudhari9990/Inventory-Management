@@ -1,30 +1,30 @@
 import { AppNotification } from '../models/notification.model';
 
-/** Demo notifications matching lodge web shell. */
+/** Demo notifications matching lodge web shell. Titles/descriptions are i18n keys. */
 export const APP_NOTIFICATIONS: readonly AppNotification[] = [
   {
     id: 'low-inventory',
-    title: 'Low inventory',
-    description: 'Bucket, Shampoo, Kettle below minimum',
+    title: 'NOTIFICATIONS.LOW_INVENTORY_TITLE',
+    description: 'NOTIFICATIONS.LOW_INVENTORY_DESC',
   },
   {
     id: 'payment-due',
-    title: 'Payment due',
-    description: '₹3,400 pending from Sneha Patil',
+    title: 'NOTIFICATIONS.PAYMENT_DUE_TITLE',
+    description: 'NOTIFICATIONS.PAYMENT_DUE_DESC',
   },
   {
     id: 'upcoming-checkout',
-    title: 'Upcoming check-out',
-    description: '4 rooms checking out before 11:00 AM',
+    title: 'NOTIFICATIONS.UPCOMING_CHECKOUT_TITLE',
+    description: 'NOTIFICATIONS.UPCOMING_CHECKOUT_DESC',
   },
   {
     id: 'booking-reminder',
-    title: 'Booking reminder',
-    description: 'Kiran More arrives tomorrow, Room 307',
+    title: 'NOTIFICATIONS.BOOKING_REMINDER_TITLE',
+    description: 'NOTIFICATIONS.BOOKING_REMINDER_DESC',
   },
   {
     id: 'staff-reminder',
-    title: 'Staff reminder',
-    description: 'Salary disbursement due in 3 days',
+    title: 'NOTIFICATIONS.STAFF_REMINDER_TITLE',
+    description: 'NOTIFICATIONS.STAFF_REMINDER_DESC',
   },
 ] as const;

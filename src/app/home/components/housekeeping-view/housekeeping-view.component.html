@@ -1,0 +1,80 @@
+<div class="hk-page">
+  <header class="hk-page__hero">
+    <div class="hk-page__hero-copy">
+      <h1 class="hk-page__title">{{ 'HOUSEKEEPING.TITLE' | translate }}</h1>
+      <p class="hk-page__subtitle">{{ subtitle | translate }}</p>
+    </div>
+  </header>
+
+  <section class="hk-page__kpis">
+    @for (kpi of kpis; track kpi.id) {
+      <app-dashboard-kpi-card [kpi]="kpi" />
+    }
+  </section>
+
+  <div class="hk-page__panels">
+    <app-dashboard-section-card
+      class="hk-page__schedule"
+      title="HOUSEKEEPING.SCHEDULE"
+      [noPadding]="true"
+    >
+      <ul class="hk-list">
+        @for (item of schedule; track trackSchedule($index, item)) {
+          <li class="hk-list__item">
+            <span class="hk-list__room">{{ item.room }}</span>
+            <div class="hk-list__copy">
+              <p class="hk-list__name">{{ item.assignee }}</p>
+              <p class="hk-list__meta">{{ item.time }}</p>
+            </div>
+            <span
+              class="hk-status"
+              [class.hk-status--completed]="item.status === 'Completed'"
+              [class.hk-status--pending]="item.status === 'Pending'"
+            >
+              <span class="hk-status__dot"></span>
+              {{ statusLabelKey(item.status) | translate }}
+            </span>
+          </li>
+        }
+      </ul>
+    </app-dashboard-section-card>
+
+    <app-dashboard-section-card title="HOUSEKEEPING.CHECKLIST">
+      <ul class="hk-check">
+        @for (item of checklist(); track trackChecklist($index, item)) {
+          <li class="hk-check__item">
+            <button
+              type="button"
+              class="hk-check__box"
+              role="checkbox"
+              [attr.aria-checked]="item.checked"
+              [class.hk-check__box--on]="item.checked"
+              [attr.id]="item.id"
+              (click)="toggleChecklist(item.id)"
+            >
+              @if (item.checked) {
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  aria-hidden="true"
+                >
+                  <path d="M20 6 9 17l-5-5"></path>
+                </svg>
+              }
+            </button>
+            <label class="hk-check__label" [attr.for]="item.id">
+              {{ item.labelKey | translate }}
+            </label>
+          </li>
+        }
+      </ul>
+    </app-dashboard-section-card>
+  </div>
+</div>
