@@ -28,6 +28,14 @@
     <ng-content />
   </main>
 
+  <div class="shell-page__bottom-nav">
+    <app-bottom-nav
+      [items]="bottomNavItems"
+      [activeId]="activeNavId()"
+      (navigated)="onBottomNavNavigate($event)"
+    />
+  </div>
+
   @if (isMenuOpen()) {
     <ion-backdrop
       class="shell-backdrop"

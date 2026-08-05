@@ -15,13 +15,6 @@ import {
   IonLabel,
   IonList,
 } from '@ionic/angular/standalone';
-import { addIcons } from 'ionicons';
-import {
-  chevronForwardOutline,
-  languageOutline,
-  logOutOutline,
-  notificationsOutline,
-} from 'ionicons/icons';
 
 import {
   AppLanguage,
@@ -67,15 +60,6 @@ export class AppHeaderComponent {
     () => this.openMenu() === 'notifications',
   );
   readonly isProfileMenuOpen = computed(() => this.openMenu() === 'profile');
-
-  constructor() {
-    addIcons({
-      'chevron-forward-outline': chevronForwardOutline,
-      'language-outline': languageOutline,
-      'notifications-outline': notificationsOutline,
-      'log-out-outline': logOutOutline,
-    });
-  }
 
   @HostListener('document:click')
   onDocumentClick(): void {

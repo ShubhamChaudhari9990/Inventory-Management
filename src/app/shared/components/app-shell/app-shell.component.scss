@@ -28,6 +28,19 @@ ion-menu::part(backdrop) {
   min-height: 0;
   overflow: auto;
   background: var(--surface-muted, #f3f4f6);
+  padding-bottom: 72px;
+}
+
+.shell-page__bottom-nav {
+  position: absolute;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 15;
+  border: 0;
+  background: #ffffff;
+  box-shadow: 0 -4px 12px rgba(15, 23, 42, 0.04);
+  outline: none;
 }
 
 .shell-backdrop {
