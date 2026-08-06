@@ -1,6 +1,7 @@
 {
   "BRAND": {
-    "NAME": "Lemonwood Lodge"
+    "NAME": "Lemonwood Lodge",
+    "SUBTITLE": "Lodge Management System"
   },
   "LANGUAGE": {
     "TITLE": "Choose your preferred language",
@@ -85,5 +86,377 @@
     "PASSKEY_FAILED": "Passkey authentication failed. Please try again.",
     "PASSKEY_SETUP": "Setting up your passkey...",
     "LOGIN_SUCCESS": "Login successful! Redirecting to dashboard..."
+  },
+  "NAV": {
+    "DASHBOARD": "Dashboard",
+    "ROOMS": "Rooms",
+    "BOOKINGS": "Bookings",
+    "CUSTOMERS": "Customers",
+    "INVENTORY": "Inventory",
+    "REVENUE": "Revenue",
+    "EXPENSES": "Expenses",
+    "STAFF": "Staff",
+    "HOUSEKEEPING": "Housekeeping",
+    "REPORTS": "Reports",
+    "SETTINGS": "Settings",
+    "MORE": "More",
+    "LOGOUT": "Logout"
+  },
+  "SHELL": {
+    "MENU": "Menu",
+    "CLOSE_MENU": "Close menu",
+    "LANGUAGE": "Language",
+    "SELECT_LANGUAGE": "Select language",
+    "NOTIFICATIONS": "Notifications",
+    "PROFILE": "Profile",
+    "PROFILE_MENU": "Profile menu",
+    "SETTINGS": "Settings",
+    "LOGOUT": "Logout",
+    "BOTTOM_NAV": "Bottom navigation",
+    "MAIN_NAV": "Main navigation"
+  },
+  "STATUS": {
+    "PAID": "Paid",
+    "DUE": "Due",
+    "CANCELLED": "Cancelled",
+    "AVAILABLE": "Available",
+    "OCCUPIED": "Occupied",
+    "RESERVED": "Reserved",
+    "CLEANING": "Cleaning",
+    "MAINTENANCE": "Maintenance",
+    "IN_STOCK": "In stock",
+    "LOW_STOCK": "Low Stock Alerts",
+    "PRESENT": "Present",
+    "ON_LEAVE": "On Leave",
+    "COMPLETED": "Completed",
+    "PENDING": "Pending",
+    "ACTIVE": "Active"
+  },
+  "COMMON": {
+    "ALL": "All",
+    "SEARCH": "Search",
+    "VIEW": "View",
+    "SAVE": "Save",
+    "CLOSE": "Close",
+    "VISITS": "Visits",
+    "DUE": "Due",
+    "ID": "ID",
+    "MIN": "min",
+    "COMING_SOON": "Coming soon",
+    "COMING_SOON_TEXT": "This screen is not built yet. The dashboard is available right now."
+  },
+  "NOTIFICATIONS": {
+    "LOW_INVENTORY_TITLE": "Low inventory",
+    "LOW_INVENTORY_DESC": "Bucket, Shampoo, Kettle below minimum",
+    "PAYMENT_DUE_TITLE": "Payment due",
+    "PAYMENT_DUE_DESC": "₹3,400 pending from Sneha Patil",
+    "UPCOMING_CHECKOUT_TITLE": "Upcoming check-out",
+    "UPCOMING_CHECKOUT_DESC": "4 rooms checking out before 11:00 AM",
+    "BOOKING_REMINDER_TITLE": "Booking reminder",
+    "BOOKING_REMINDER_DESC": "Kiran More arrives tomorrow, Room 307",
+    "STAFF_REMINDER_TITLE": "Staff reminder",
+    "STAFF_REMINDER_DESC": "Salary disbursement due in 3 days"
+  },
+  "DASHBOARD": {
+    "TITLE": "Dashboard",
+    "SUBTITLE": "Today's overview — 26 July",
+    "NEW_BOOKING": "New Booking",
+    "KPI": {
+      "REVENUE": "Today's Revenue",
+      "REVENUE_META": "+12% vs yesterday",
+      "EXPENSES": "Today's Expenses",
+      "PROFIT": "Today's Profit",
+      "AVAILABLE": "Available",
+      "OCCUPIED": "Occupied",
+      "RESERVED": "Reserved",
+      "CLEANING": "Cleaning",
+      "CHECK_IN": "Check-in Today",
+      "CHECK_OUT": "Check-out Today",
+      "PENDING_PAYMENTS": "Pending Payments",
+      "LOW_STOCK": "Low Stock Alerts",
+      "STAFF_PRESENT": "Staff Present Today"
+    },
+    "CHART": {
+      "REVENUE_VS_EXPENSE": "Revenue vs Expense",
+      "ROOM_STATUS": "Room Status",
+      "MONTHLY_REVENUE": "Monthly Revenue",
+      "OCCUPANCY_RATE": "Occupancy Rate",
+      "BOOKING_TREND": "Booking Trend"
+    },
+    "QUICK_ACTIONS": "Quick Actions",
+    "ACTION": {
+      "NEW_BOOKING": "New Booking",
+      "NEW_CUSTOMER": "New Customer",
+      "ADD_EXPENSE": "Add Expense",
+      "ADD_INVENTORY": "Add Inventory",
+      "ROOM_CLEANING": "Room Cleaning"
+    },
+    "RECENT_BOOKINGS": "Recent Bookings",
+    "RECENT_PAYMENTS": "Recent Payments",
+    "RECENT_ACTIVITY": "Recent Activity",
+    "TABLE": {
+      "GUEST": "Guest",
+      "ROOM": "Room",
+      "CHECK_IN": "Check In",
+      "AMOUNT": "Amount",
+      "STATUS": "Status"
+    },
+    "ACTIVITY": {
+      "A1": "Room 204 checked in — Sneha Patil",
+      "A2": "Payment ₹2,250 received via cash",
+      "A3": "Room 302 marked for cleaning",
+      "A4": "Low stock: Bucket (18 left)",
+      "A5": "Manoj Gaikwad marked on leave"
+    },
+    "TIME": {
+      "12_MIN": "12 min",
+      "38_MIN": "38 min",
+      "1_HR": "1 hr",
+      "2_HR": "2 hr",
+      "3_HR": "3 hr"
+    },
+    "METHOD": {
+      "UPI": "UPI",
+      "CASH": "Cash",
+      "CARD": "Card",
+      "BANK": "Bank Transfer"
+    }
+  },
+  "ROOMS": {
+    "TITLE": "Rooms",
+    "SUBTITLE": "24 Rooms",
+    "ADD_ROOM": "Add Room",
+    "SEARCH": "Search Rooms...",
+    "FILTER": {
+      "ALL": "All",
+      "AVAILABLE": "Available",
+      "OCCUPIED": "Occupied",
+      "RESERVED": "Reserved",
+      "CLEANING": "Cleaning",
+      "MAINTENANCE": "Maintenance"
+    },
+    "TABLE": {
+      "ROOM": "Room",
+      "FLOOR": "Floor",
+      "TYPE": "Type",
+      "GUEST": "Guest",
+      "PRICE": "Price / night",
+      "STATUS": "Status"
+    },
+    "SHEET": {
+      "TITLE": "Add Room",
+      "NUMBER": "Room number",
+      "FLOOR": "Floor",
+      "TYPE": "Type",
+      "PRICE": "Price / night",
+      "SAVE": "Save Room",
+      "SAVED": "Room saved"
+    }
+  },
+  "BOOKINGS": {
+    "TITLE": "Bookings",
+    "SUBTITLE": "7 Bookings",
+    "NEW_BOOKING": "New Booking",
+    "SEARCH": "Search Bookings…",
+    "KPI": {
+      "CHECK_IN": "Check-in Today",
+      "CHECK_OUT": "Check-out Today",
+      "PAID": "Paid",
+      "DUE": "Due"
+    },
+    "FILTER": {
+      "ALL": "All",
+      "WALK_IN": "Walk-in",
+      "ADVANCE": "Advance",
+      "ONLINE": "Online"
+    },
+    "TABLE": {
+      "ID": "#",
+      "GUEST": "Guest",
+      "ROOM": "Room",
+      "CHECK_IN": "Check In",
+      "CHECK_OUT": "Check Out",
+      "AMOUNT": "Amount",
+      "STATUS": "Status",
+      "ACTIONS": "Actions"
+    },
+    "INVOICE_READY": "Invoice ready"
+  },
+  "INVENTORY": {
+    "TITLE": "Inventory",
+    "SUBTITLE": "14 items",
+    "ADD": "Add Inventory",
+    "SEARCH": "Search Inventory…",
+    "LOW_STOCK_FILTER": "Low Stock Alerts",
+    "KPI": {
+      "IN_STOCK": "In stock",
+      "LOW_STOCK": "Low Stock Alerts",
+      "CATEGORIES": "Categories",
+      "ASSIGNED": "Assigned to rooms"
+    },
+    "STOCK_MOVEMENT": "Stock movement",
+    "MOVEMENT": {
+      "PURCHASE": "Purchase entry",
+      "ASSIGNED": "Assigned to room 204",
+      "DAMAGED": "Damaged",
+      "RETURNED": "Returned"
+    }
+  },
+  "CUSTOMERS": {
+    "TITLE": "Customers",
+    "SUBTITLE": "6 Customers",
+    "NEW": "New Customer",
+    "SEARCH": "Search Customers…"
+  },
+  "REVENUE": {
+    "TITLE": "Revenue",
+    "PERIODS": "Revenue period",
+    "PERIOD": {
+      "TODAY": "Today",
+      "WEEK": "Week",
+      "MONTH": "Month",
+      "YEAR": "Year"
+    },
+    "SUBTITLE": {
+      "TODAY": "Today's Revenue",
+      "WEEK": "Weekly Revenue",
+      "MONTH": "Monthly Revenue",
+      "YEAR": "Yearly Revenue"
+    },
+    "KPI": {
+      "CASH": "Cash",
+      "UPI": "UPI",
+      "CARD": "Card",
+      "BANK": "Bank Transfer"
+    },
+    "CHART": {
+      "MONTHLY": "Monthly Revenue",
+      "METHODS": "Payment methods"
+    },
+    "RECENT_PAYMENTS": "Recent Payments"
+  },
+  "EXPENSES": {
+    "TITLE": "Expenses",
+    "SUBTITLE": "Month",
+    "ADD": "Add Expense",
+    "KPI": {
+      "TODAY": "Today's Expenses",
+      "MONTH": "Month",
+      "REVENUE": "Revenue",
+      "PNL": "Profit & Loss"
+    },
+    "CHART": {
+      "REVENUE_VS_EXPENSE": "Revenue vs Expense",
+      "CATEGORIES": "Expense categories"
+    },
+    "CATEGORY": {
+      "ELECTRICITY": "Electricity",
+      "WATER": "Water",
+      "SALARY": "Staff Salary",
+      "LAUNDRY": "Laundry",
+      "CLEANING": "Cleaning",
+      "REPAIR": "Repair",
+      "FOOD": "Food"
+    }
+  },
+  "STAFF": {
+    "TITLE": "Staff",
+    "SUBTITLE": "6 Staff",
+    "ADD": "Add Staff",
+    "ATTENDANCE": "Attendance",
+    "KPI": {
+      "PRESENT": "Staff Present Today",
+      "ON_LEAVE": "On Leave",
+      "SALARY": "Salary",
+      "ADVANCE": "Advance"
+    },
+    "ROLE": {
+      "MANAGER": "Manager",
+      "RECEPTION": "Reception",
+      "HOUSEKEEPING": "Housekeeping",
+      "SECURITY": "Security"
+    }
+  },
+  "HOUSEKEEPING": {
+    "TITLE": "Housekeeping",
+    "SUBTITLE": "Today",
+    "SCHEDULE": "Cleaning schedule",
+    "CHECKLIST": "Cleaning checklist",
+    "KPI": {
+      "CLEANING": "Cleaning",
+      "COMPLETED": "Completed",
+      "PENDING": "Pending",
+      "STAFF": "Staff Present Today"
+    },
+    "CHECK": {
+      "BEDSHEET": "Change bedsheet & pillow covers",
+      "BATHROOM": "Clean bathroom & refill soap",
+      "WATER": "Refill water bottles",
+      "FLOOR": "Sweep and mop floor",
+      "AC": "Check AC / fan working",
+      "DUSTBIN": "Empty dustbin"
+    }
+  },
+  "REPORTS": {
+    "TITLE": "Reports",
+    "SUBTITLE": "Profit & Loss",
+    "PDF": "PDF",
+    "EXCEL": "Excel",
+    "PRINT": "Print",
+    "PDF_EXPORTED": "PDF exported",
+    "EXCEL_EXPORTED": "Excel exported",
+    "CARD": {
+      "REVENUE": "Revenue Reports",
+      "EXPENSES": "Expenses Reports",
+      "INVENTORY": "Inventory Reports",
+      "ROOMS": "Rooms Reports",
+      "STAFF": "Staff Reports",
+      "CUSTOMERS": "Customers Reports",
+      "META": "PDF · Excel · Print"
+    },
+    "PNL": {
+      "TITLE": "Profit & Loss",
+      "REVENUE": "Revenue",
+      "EXPENSES": "Expenses",
+      "PROFIT": "Today's Profit"
+    }
+  },
+  "SETTINGS": {
+    "TITLE": "Settings",
+    "LODGE": {
+      "TITLE": "Lodge Details",
+      "NAME": "Lodge name",
+      "PHONE": "Phone",
+      "GSTIN": "GSTIN"
+    },
+    "TAX": {
+      "TITLE": "GST & Taxes",
+      "GST": "GST %",
+      "SERVICE": "Service charge %",
+      "INCLUSIVE": "Tax inclusive pricing"
+    },
+    "LANGUAGE": {
+      "TITLE": "Language",
+      "COMPACT": "Compact layout"
+    },
+    "USERS": {
+      "TITLE": "Users & Permissions"
+    },
+    "ROLE": {
+      "SUPER_ADMIN": "Super Admin",
+      "SUPER_ADMIN_DESC": "Full access to every module",
+      "MANAGER": "Manager",
+      "MANAGER_DESC": "All except users & permissions",
+      "RECEPTION": "Reception",
+      "RECEPTION_DESC": "Bookings, customers, payments",
+      "HOUSEKEEPING": "Housekeeping",
+      "HOUSEKEEPING_DESC": "Rooms & cleaning tasks only"
+    },
+    "BACKUP": {
+      "TITLE": "Backup & Restore",
+      "NOW": "Backup now",
+      "RESTORE": "Restore",
+      "LAST": "Last backup: 26 Jul, 06:00 AM"
+    }
   }
 }

@@ -1,0 +1,118 @@
+<div class="bookings-page">
+  <header class="bookings-page__hero">
+    <div class="bookings-page__hero-copy">
+      <h1 class="bookings-page__title">{{ 'BOOKINGS.TITLE' | translate }}</h1>
+      <p class="bookings-page__subtitle">{{ subtitle | translate }}</p>
+    </div>
+
+    <ion-button class="bookings-page__cta" fill="solid">
+      <ion-icon slot="start" name="add-outline"></ion-icon>
+      {{ 'BOOKINGS.NEW_BOOKING' | translate }}
+    </ion-button>
+  </header>
+
+  <section class="bookings-page__kpis" aria-label="Booking summary">
+    @for (kpi of kpis; track kpi.id) {
+      <app-dashboard-kpi-card [kpi]="kpi" />
+    }
+  </section>
+
+  <div class="bookings-toolbar">
+    <label class="bookings-search" [attr.aria-label]="'BOOKINGS.SEARCH' | translate">
+      <ion-icon name="search-outline" aria-hidden="true"></ion-icon>
+      <input
+        type="search"
+        [placeholder]="'BOOKINGS.SEARCH' | translate"
+        [value]="query()"
+        (input)="onQueryInput($event)"
+      />
+    </label>
+
+    <div class="bookings-filters" aria-label="Booking channel filters">
+      @for (filter of filters; track filter) {
+        <button
+          type="button"
+          class="bookings-filters__chip"
+          [class.bookings-filters__chip--active]="filter === activeFilter()"
+          (click)="setFilter(filter)"
+        >
+          {{ bookingFilterLabelKey(filter) | translate }}
+        </button>
+      }
+    </div>
+  </div>
+
+  <section class="bookings-table-card">
+    <div class="bookings-table-wrap">
+      <table class="bookings-table">
+        <thead>
+          <tr>
+            <th>{{ 'BOOKINGS.TABLE.ID' | translate }}</th>
+            <th>{{ 'BOOKINGS.TABLE.GUEST' | translate }}</th>
+            <th>{{ 'BOOKINGS.TABLE.ROOM' | translate }}</th>
+            <th>{{ 'BOOKINGS.TABLE.CHECK_IN' | translate }}</th>
+            <th>{{ 'BOOKINGS.TABLE.CHECK_OUT' | translate }}</th>
+            <th class="bookings-table__amount">{{ 'BOOKINGS.TABLE.AMOUNT' | translate }}</th>
+            <th>{{ 'BOOKINGS.TABLE.STATUS' | translate }}</th>
+            <th class="bookings-table__actions">{{ 'BOOKINGS.TABLE.ACTIONS' | translate }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (booking of filteredBookings(); track trackBooking($index, booking)) {
+            <tr>
+              <td>{{ booking.id }}</td>
+              <td>
+                <p class="bookings-table__guest">{{ booking.guestName }}</p>
+                <p class="bookings-table__phone">{{ booking.guestPhone }}</p>
+              </td>
+              <td>{{ booking.room }}</td>
+              <td>{{ booking.checkIn }}</td>
+              <td>{{ booking.checkOut }}</td>
+              <td class="bookings-table__amount bookings-table__strong">
+                {{ booking.amount }}
+              </td>
+              <td>
+                <span
+                  class="booking-status"
+                  [class.booking-status--paid]="booking.status === 'Paid'"
+                  [class.booking-status--due]="booking.status === 'Due'"
+                  [class.booking-status--cancelled]="booking.status === 'Cancelled'"
+                >
+                  <span class="booking-status__dot"></span>
+                  {{ statusLabelKey(booking.status) | translate }}
+                </span>
+              </td>
+              <td class="bookings-table__actions">
+                <button
+                  type="button"
+                  class="bookings-table__view"
+                  (click)="showInvoiceToast()"
+                >
+                  <ion-icon name="receipt-outline" aria-hidden="true"></ion-icon>
+                  {{ 'COMMON.VIEW' | translate }}
+                </button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </section>
+</div>
+
+@if (invoiceToasts().length) {
+  <div class="invoice-toast-stack" aria-live="polite" aria-relevant="additions">
+    @for (toast of invoiceToasts(); track trackToast($index, toast); let i = $index) {
+      <div
+        class="invoice-toast"
+        role="status"
+        [class.invoice-toast--front]="stackDepth(i) === 0"
+        [class.invoice-toast--enter]="toast.enter"
+        [style.--stack-depth]="stackDepth(i)"
+        [style.z-index]="i + 1"
+      >
+        {{ 'BOOKINGS.INVOICE_READY' | translate }}
+      </div>
+    }
+  </div>
+}

@@ -1,8 +1,8 @@
-<div class="sidebar" role="navigation" aria-label="Main navigation">
+<div class="sidebar" role="navigation" [attr.aria-label]="'SHELL.MAIN_NAV' | translate">
   <button
     type="button"
     class="sidebar__close"
-    aria-label="Close menu"
+    [attr.aria-label]="'SHELL.CLOSE_MENU' | translate"
     (click)="onClose()"
   >
     <svg
@@ -37,7 +37,7 @@
       <div class="sidebar__brand-text">
         <ion-label>
           <h2 class="sidebar__brand-name">{{ brandName() }}</h2>
-          <p class="sidebar__brand-subtitle">{{ brandSubtitle() }}</p>
+          <p class="sidebar__brand-subtitle">{{ brandSubtitle() | translate }}</p>
         </ion-label>
       </div>
     </div>
@@ -54,7 +54,7 @@
         (click)="onNavigate(item)"
       >
         <ion-icon [name]="item.icon" slot="start" aria-hidden="true"></ion-icon>
-        <ion-label class="sidebar__item-label">{{ item.label }}</ion-label>
+        <ion-label class="sidebar__item-label">{{ item.label | translate }}</ion-label>
       </ion-item>
     }
   </ion-list>

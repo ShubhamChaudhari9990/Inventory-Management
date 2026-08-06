@@ -2,20 +2,20 @@
   <ion-button
     class="app-header__icon-btn"
     fill="clear"
-    aria-label="Menu"
+    [attr.aria-label]="'SHELL.MENU' | translate"
     (click)="onMenuClick()"
   >
     <ion-icon slot="icon-only" name="chevron-forward-outline"></ion-icon>
   </ion-button>
 
-  <ion-label class="app-header__title">{{ title() }}</ion-label>
+  <ion-label class="app-header__title">{{ title() | translate }}</ion-label>
 
   <div class="app-header__actions">
     <div class="app-header__lang">
       <ion-button
         class="app-header__lang-btn"
         fill="clear"
-        aria-label="Language"
+        [attr.aria-label]="'SHELL.LANGUAGE' | translate"
         aria-haspopup="menu"
         [attr.aria-expanded]="isLanguageMenuOpen()"
         (click)="onLanguageButtonClick($event)"
@@ -29,7 +29,7 @@
           class="app-header__dropdown app-header__lang-menu"
           lines="none"
           role="menu"
-          aria-label="Select language"
+          [attr.aria-label]="'SHELL.SELECT_LANGUAGE' | translate"
           (click)="$event.stopPropagation()"
         >
           @for (option of languageOptions; track option.code) {
@@ -54,7 +54,7 @@
       <ion-button
         class="app-header__icon-btn app-header__icon-btn--relative"
         fill="clear"
-        aria-label="Notifications"
+        [attr.aria-label]="'SHELL.NOTIFICATIONS' | translate"
         aria-haspopup="menu"
         [attr.aria-expanded]="isNotificationsMenuOpen()"
         (click)="onNotificationsButtonClick($event)"
@@ -69,10 +69,12 @@
         <div
           class="app-header__dropdown app-header__notifications-menu"
           role="menu"
-          aria-label="Notifications"
+          [attr.aria-label]="'SHELL.NOTIFICATIONS' | translate"
           (click)="$event.stopPropagation()"
         >
-          <p class="app-header__notifications-heading">Notifications</p>
+          <p class="app-header__notifications-heading">
+            {{ 'SHELL.NOTIFICATIONS' | translate }}
+          </p>
 
           @for (notification of notifications; track notification.id) {
             <button
@@ -82,10 +84,10 @@
               (click)="onNotificationClick(notification, $event)"
             >
               <span class="app-header__notification-title">{{
-                notification.title
+                notification.title | translate
               }}</span>
               <span class="app-header__notification-desc">{{
-                notification.description
+                notification.description | translate
               }}</span>
             </button>
           }
@@ -98,7 +100,7 @@
         class="app-header__avatar"
         fill="solid"
         shape="round"
-        aria-label="Profile"
+        [attr.aria-label]="'SHELL.PROFILE' | translate"
         aria-haspopup="menu"
         [attr.aria-expanded]="isProfileMenuOpen()"
         (click)="onProfileButtonClick($event)"
@@ -110,7 +112,7 @@
         <div
           class="app-header__dropdown app-header__profile-menu"
           role="menu"
-          aria-label="Profile menu"
+          [attr.aria-label]="'SHELL.PROFILE_MENU' | translate"
           (click)="$event.stopPropagation()"
         >
           <div class="app-header__profile-info">
@@ -126,7 +128,7 @@
             role="menuitem"
             (click)="onSettingsClick($event)"
           >
-            Settings
+            {{ 'SHELL.SETTINGS' | translate }}
           </button>
 
           <button
@@ -136,7 +138,7 @@
             (click)="onLogoutClick($event)"
           >
             <ion-icon name="log-out-outline" aria-hidden="true"></ion-icon>
-            Logout
+            {{ 'SHELL.LOGOUT' | translate }}
           </button>
         </div>
       }

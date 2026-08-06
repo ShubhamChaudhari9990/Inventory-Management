@@ -1,0 +1,151 @@
+<div class="settings-page">
+  <header class="settings-page__hero">
+    <div class="settings-page__hero-copy">
+      <h1 class="settings-page__title">{{ 'SETTINGS.TITLE' | translate }}</h1>
+      <p class="settings-page__subtitle">{{ subtitle | translate }}</p>
+    </div>
+  </header>
+
+  <div class="settings-page__grid">
+    <app-dashboard-section-card title="SETTINGS.LODGE.TITLE">
+      <div class="settings-form">
+        <label class="settings-field settings-field--full">
+          <span>{{ 'SETTINGS.LODGE.NAME' | translate }}</span>
+          <input
+            type="text"
+            [value]="lodgeName()"
+            (input)="onLodgeNameInput($event)"
+          />
+        </label>
+        <label class="settings-field">
+          <span>{{ 'SETTINGS.LODGE.PHONE' | translate }}</span>
+          <input type="text" [value]="phone()" (input)="onPhoneInput($event)" />
+        </label>
+        <label class="settings-field">
+          <span>{{ 'SETTINGS.LODGE.GSTIN' | translate }}</span>
+          <input type="text" [value]="gstin()" (input)="onGstinInput($event)" />
+        </label>
+      </div>
+      <ion-button class="settings-save" fill="solid">
+        {{ 'COMMON.SAVE' | translate }}
+      </ion-button>
+    </app-dashboard-section-card>
+
+    <app-dashboard-section-card title="SETTINGS.TAX.TITLE">
+      <div class="settings-form">
+        <label class="settings-field">
+          <span>{{ 'SETTINGS.TAX.GST' | translate }}</span>
+          <input
+            type="text"
+            inputmode="numeric"
+            [value]="gstPercent()"
+            (input)="onGstPercentInput($event)"
+          />
+        </label>
+        <label class="settings-field">
+          <span>{{ 'SETTINGS.TAX.SERVICE' | translate }}</span>
+          <input
+            type="text"
+            inputmode="numeric"
+            [value]="serviceCharge()"
+            (input)="onServiceChargeInput($event)"
+          />
+        </label>
+      </div>
+      <div class="settings-toggle-row">
+        <span class="settings-toggle-row__label">
+          <ion-icon name="settings-outline" aria-hidden="true"></ion-icon>
+          {{ 'SETTINGS.TAX.INCLUSIVE' | translate }}
+        </span>
+        <button
+          type="button"
+          class="settings-switch"
+          role="switch"
+          [attr.aria-checked]="taxInclusive()"
+          [class.settings-switch--on]="taxInclusive()"
+          (click)="toggleTaxInclusive()"
+        >
+          <span class="settings-switch__thumb"></span>
+        </button>
+      </div>
+    </app-dashboard-section-card>
+
+    <app-dashboard-section-card title="SETTINGS.LANGUAGE.TITLE">
+      <div class="settings-langs">
+        <button
+          type="button"
+          class="settings-lang"
+          [class.settings-lang--active]="currentLanguage() === 'en'"
+          (click)="setLanguage('en')"
+        >
+          <ion-icon name="language-outline" aria-hidden="true"></ion-icon>
+          <span>English</span>
+        </button>
+        <button
+          type="button"
+          class="settings-lang"
+          [class.settings-lang--active]="currentLanguage() === 'mr'"
+          (click)="setLanguage('mr')"
+        >
+          <ion-icon name="language-outline" aria-hidden="true"></ion-icon>
+          <span>मराठी</span>
+        </button>
+      </div>
+      <div class="settings-toggle-row">
+        <span class="settings-toggle-row__label">
+          <ion-icon name="grid-outline" aria-hidden="true"></ion-icon>
+          {{ 'SETTINGS.LANGUAGE.COMPACT' | translate }}
+        </span>
+        <button
+          type="button"
+          class="settings-switch"
+          role="switch"
+          [attr.aria-checked]="compactLayout()"
+          [class.settings-switch--on]="compactLayout()"
+          (click)="toggleCompactLayout()"
+        >
+          <span class="settings-switch__thumb"></span>
+        </button>
+      </div>
+    </app-dashboard-section-card>
+
+    <app-dashboard-section-card title="SETTINGS.USERS.TITLE" [noPadding]="true">
+      <ul class="settings-roles">
+        @for (role of roles; track trackRole($index, role)) {
+          <li class="settings-roles__item">
+            <span class="settings-roles__icon">
+              <ion-icon name="people-outline" aria-hidden="true"></ion-icon>
+            </span>
+            <div class="settings-roles__copy">
+              <p class="settings-roles__title">{{ role.titleKey | translate }}</p>
+              <p class="settings-roles__desc">{{ role.descKey | translate }}</p>
+            </div>
+            <span class="settings-roles__status">
+              <span class="settings-roles__dot"></span>
+              {{ statusLabelKey(role.status) | translate }}
+            </span>
+          </li>
+        }
+      </ul>
+    </app-dashboard-section-card>
+
+    <app-dashboard-section-card
+      class="settings-page__backup"
+      title="SETTINGS.BACKUP.TITLE"
+    >
+      <div class="settings-backup">
+        <button type="button" class="settings-backup__btn">
+          <ion-icon name="cube-outline" aria-hidden="true"></ion-icon>
+          {{ 'SETTINGS.BACKUP.NOW' | translate }}
+        </button>
+        <button type="button" class="settings-backup__btn">
+          <ion-icon name="refresh-outline" aria-hidden="true"></ion-icon>
+          {{ 'SETTINGS.BACKUP.RESTORE' | translate }}
+        </button>
+        <p class="settings-backup__meta">
+          {{ 'SETTINGS.BACKUP.LAST' | translate }}
+        </p>
+      </div>
+    </app-dashboard-section-card>
+  </div>
+</div>

@@ -1,0 +1,86 @@
+<div class="customers-page">
+  <header class="customers-page__hero">
+    <div class="customers-page__hero-copy">
+      <h1 class="customers-page__title">{{ 'CUSTOMERS.TITLE' | translate }}</h1>
+      <p class="customers-page__subtitle">{{ subtitle | translate }}</p>
+    </div>
+
+    <ion-button class="customers-page__cta" fill="solid">
+      <ion-icon slot="start" name="person-add-outline"></ion-icon>
+      {{ 'CUSTOMERS.NEW' | translate }}
+    </ion-button>
+  </header>
+
+  <label class="customers-search" [attr.aria-label]="'CUSTOMERS.SEARCH' | translate">
+    <ion-icon name="search-outline" aria-hidden="true"></ion-icon>
+    <input
+      type="search"
+      [placeholder]="'CUSTOMERS.SEARCH' | translate"
+      [value]="query()"
+      (input)="onQueryInput($event)"
+    />
+  </label>
+
+  <div class="customers-grid">
+    @for (customer of filteredCustomers(); track trackCustomer($index, customer)) {
+      <article class="customer-card">
+        <div class="customer-card__header">
+          <span class="customer-card__avatar">{{ customer.initials }}</span>
+
+          <div class="customer-card__copy">
+            <p class="customer-card__name">{{ customer.name }}</p>
+            <p class="customer-card__meta">
+              {{ customer.phone }} · {{ customer.city }}
+            </p>
+          </div>
+
+          <span
+            class="customer-status"
+            [class.customer-status--paid]="customer.status === 'Paid'"
+            [class.customer-status--due]="customer.status === 'Due'"
+          >
+            <span class="customer-status__dot"></span>
+            {{ statusLabelKey(customer.status) | translate }}
+          </span>
+        </div>
+
+        <dl class="customer-card__stats">
+          <div>
+            <dt>{{ 'COMMON.VISITS' | translate }}</dt>
+            <dd>{{ customer.visits }}</dd>
+          </div>
+          <div>
+            <dt>{{ 'COMMON.DUE' | translate }}</dt>
+            <dd>{{ customer.due }}</dd>
+          </div>
+          <div>
+            <dt>{{ 'COMMON.ID' | translate }}</dt>
+            <dd>{{ customer.idType }}</dd>
+          </div>
+        </dl>
+
+        <p class="customer-card__id">
+          <svg
+            xmlns="http://www.w3.org/2000/svg"
+            width="16"
+            height="16"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            stroke-width="2"
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M16 10h2"></path>
+            <path d="M16 14h2"></path>
+            <path d="M6.17 15a3 3 0 0 1 5.66 0"></path>
+            <circle cx="9" cy="11" r="2"></circle>
+            <rect x="2" y="5" width="20" height="14" rx="2"></rect>
+          </svg>
+          {{ customer.idNumber }}
+        </p>
+      </article>
+    }
+  </div>
+</div>

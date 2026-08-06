@@ -1,6 +1,7 @@
 {
   "BRAND": {
-    "NAME": "Lemonwood Lodge"
+    "NAME": "Lemonwood Lodge",
+    "SUBTITLE": "लॉज व्यवस्थापन प्रणाली"
   },
   "LANGUAGE": {
     "TITLE": "तुमची पसंतीची भाषा निवडा",
@@ -63,9 +64,9 @@
     "ROLES": {
       "FRONT_DESK": "फ्रंट डेस्क",
       "HOUSEKEEPING": "हाऊसकीपिंग",
-      "KITCHEN": "Kitchen Staff",
-      "MANAGER": "Manager",
-      "MAINTENANCE": "Maintenance"
+      "KITCHEN": "स्वयंपाक कर्मचारी",
+      "MANAGER": "व्यवस्थापक",
+      "MAINTENANCE": "देखभाल"
     },
     "ERRORS": {
       "REQUIRED": "कृपया सर्व आवश्यक फील्ड भरा.",
@@ -85,5 +86,377 @@
     "PASSKEY_FAILED": "पासकी प्रमाणीकरण अयशस्वी. कृपया पुन्हा प्रयत्न करा.",
     "PASSKEY_SETUP": "तुमची पासकी सेट करत आहे...",
     "LOGIN_SUCCESS": "लॉगिन यशस्वी! डॅशबोर्डवर पुनर्निर्देशित करत आहे..."
+  },
+  "NAV": {
+    "DASHBOARD": "डॅशबोर्ड",
+    "ROOMS": "खोल्या",
+    "BOOKINGS": "बुकिंग्ज",
+    "CUSTOMERS": "ग्राहक",
+    "INVENTORY": "इन्व्हेंटरी",
+    "REVENUE": "महसूल",
+    "EXPENSES": "खर्च",
+    "STAFF": "कर्मचारी",
+    "HOUSEKEEPING": "हाऊसकीपिंग",
+    "REPORTS": "अहवाल",
+    "SETTINGS": "सेटिंग्ज",
+    "MORE": "अधिक",
+    "LOGOUT": "लॉगआउट"
+  },
+  "SHELL": {
+    "MENU": "मेनू",
+    "CLOSE_MENU": "मेनू बंद करा",
+    "LANGUAGE": "भाषा",
+    "SELECT_LANGUAGE": "भाषा निवडा",
+    "NOTIFICATIONS": "सूचना",
+    "PROFILE": "प्रोफाइल",
+    "PROFILE_MENU": "प्रोफाइल मेनू",
+    "SETTINGS": "सेटिंग्ज",
+    "LOGOUT": "लॉगआउट",
+    "BOTTOM_NAV": "खालचे नेव्हिगेशन",
+    "MAIN_NAV": "मुख्य नेव्हिगेशन"
+  },
+  "STATUS": {
+    "PAID": "भरले",
+    "DUE": "बाकी",
+    "CANCELLED": "रद्द",
+    "AVAILABLE": "उपलब्ध",
+    "OCCUPIED": "व्यापलेली",
+    "RESERVED": "आरक्षित",
+    "CLEANING": "स्वच्छता",
+    "MAINTENANCE": "देखभाल",
+    "IN_STOCK": "स्टॉकमध्ये",
+    "LOW_STOCK": "कमी स्टॉक सूचना",
+    "PRESENT": "उपस्थित",
+    "ON_LEAVE": "रजेवर",
+    "COMPLETED": "पूर्ण",
+    "PENDING": "प्रलंबित",
+    "ACTIVE": "सक्रिय"
+  },
+  "COMMON": {
+    "ALL": "सर्व",
+    "SEARCH": "शोधा",
+    "VIEW": "पहा",
+    "SAVE": "जतन करा",
+    "CLOSE": "बंद करा",
+    "VISITS": "भेटी",
+    "DUE": "बाकी",
+    "ID": "ओळखपत्र",
+    "MIN": "किमान",
+    "COMING_SOON": "लवकरच येत आहे",
+    "COMING_SOON_TEXT": "ही स्क्रीन अद्याप तयार नाही. सध्या डॅशबोर्ड उपलब्ध आहे."
+  },
+  "NOTIFICATIONS": {
+    "LOW_INVENTORY_TITLE": "कमी इन्व्हेंटरी",
+    "LOW_INVENTORY_DESC": "बादली, शॅम्पू, केटल किमान मर्यादेपेक्षा कमी",
+    "PAYMENT_DUE_TITLE": "पेमेंट बाकी",
+    "PAYMENT_DUE_DESC": "स्नेहा पाटील कडून ₹३,४०० बाकी",
+    "UPCOMING_CHECKOUT_TITLE": "आगामी चेक-आउट",
+    "UPCOMING_CHECKOUT_DESC": "सकाळी ११:०० पूर्वी ४ खोल्या चेक-आउट",
+    "BOOKING_REMINDER_TITLE": "बुकिंग स्मरण",
+    "BOOKING_REMINDER_DESC": "किरण मोरे उद्या येणार, खोली ३०७",
+    "STAFF_REMINDER_TITLE": "कर्मचारी स्मरण",
+    "STAFF_REMINDER_DESC": "३ दिवसांत पगार वितरण बाकी"
+  },
+  "DASHBOARD": {
+    "TITLE": "डॅशबोर्ड",
+    "SUBTITLE": "आजचा आढावा — २६ जुलै",
+    "NEW_BOOKING": "नवीन बुकिंग",
+    "KPI": {
+      "REVENUE": "आजचा महसूल",
+      "REVENUE_META": "कालच्या तुलनेत +१२%",
+      "EXPENSES": "आजचा खर्च",
+      "PROFIT": "आजचा नफा",
+      "AVAILABLE": "उपलब्ध",
+      "OCCUPIED": "व्यापलेली",
+      "RESERVED": "आरक्षित",
+      "CLEANING": "स्वच्छता",
+      "CHECK_IN": "आजचे चेक-इन",
+      "CHECK_OUT": "आजचे चेक-आउट",
+      "PENDING_PAYMENTS": "प्रलंबित पेमेंट्स",
+      "LOW_STOCK": "कमी स्टॉक सूचना",
+      "STAFF_PRESENT": "आज उपस्थित कर्मचारी"
+    },
+    "CHART": {
+      "REVENUE_VS_EXPENSE": "महसूल विरुद्ध खर्च",
+      "ROOM_STATUS": "खोली स्थिती",
+      "MONTHLY_REVENUE": "मासिक महसूल",
+      "OCCUPANCY_RATE": "व्याप्ती दर",
+      "BOOKING_TREND": "बुकिंग ट्रेंड"
+    },
+    "QUICK_ACTIONS": "त्वरित क्रिया",
+    "ACTION": {
+      "NEW_BOOKING": "नवीन बुकिंग",
+      "NEW_CUSTOMER": "नवीन ग्राहक",
+      "ADD_EXPENSE": "खर्च जोडा",
+      "ADD_INVENTORY": "इन्व्हेंटरी जोडा",
+      "ROOM_CLEANING": "खोली स्वच्छता"
+    },
+    "RECENT_BOOKINGS": "अलीकडील बुकिंग्ज",
+    "RECENT_PAYMENTS": "अलीकडील पेमेंट्स",
+    "RECENT_ACTIVITY": "अलीकडील क्रिया",
+    "TABLE": {
+      "GUEST": "पाहुणा",
+      "ROOM": "खोली",
+      "CHECK_IN": "चेक-इन",
+      "AMOUNT": "रक्कम",
+      "STATUS": "स्थिती"
+    },
+    "ACTIVITY": {
+      "A1": "खोली २०४ चेक-इन — स्नेहा पाटील",
+      "A2": "रोख रकमेने ₹२,२५० पेमेंट मिळाले",
+      "A3": "खोली ३०२ स्वच्छतेसाठी चिन्हांकित",
+      "A4": "कमी स्टॉक: बादली (१८ शिल्लक)",
+      "A5": "मनोज गायकवाड रजेवर"
+    },
+    "TIME": {
+      "12_MIN": "१२ मिनिटे",
+      "38_MIN": "३८ मिनिटे",
+      "1_HR": "१ तास",
+      "2_HR": "२ तास",
+      "3_HR": "३ तास"
+    },
+    "METHOD": {
+      "UPI": "यूपीआय",
+      "CASH": "रोख",
+      "CARD": "कार्ड",
+      "BANK": "बँक ट्रान्सफर"
+    }
+  },
+  "ROOMS": {
+    "TITLE": "खोल्या",
+    "SUBTITLE": "२४ खोल्या",
+    "ADD_ROOM": "खोली जोडा",
+    "SEARCH": "खोल्या शोधा...",
+    "FILTER": {
+      "ALL": "सर्व",
+      "AVAILABLE": "उपलब्ध",
+      "OCCUPIED": "व्यापलेली",
+      "RESERVED": "आरक्षित",
+      "CLEANING": "स्वच्छता",
+      "MAINTENANCE": "देखभाल"
+    },
+    "TABLE": {
+      "ROOM": "खोली",
+      "FLOOR": "मजला",
+      "TYPE": "प्रकार",
+      "GUEST": "पाहुणा",
+      "PRICE": "दर / रात्र",
+      "STATUS": "स्थिती"
+    },
+    "SHEET": {
+      "TITLE": "खोली जोडा",
+      "NUMBER": "खोली क्रमांक",
+      "FLOOR": "मजला",
+      "TYPE": "प्रकार",
+      "PRICE": "दर / रात्र",
+      "SAVE": "खोली जतन करा",
+      "SAVED": "खोली जतन झाली"
+    }
+  },
+  "BOOKINGS": {
+    "TITLE": "बुकिंग्ज",
+    "SUBTITLE": "७ बुकिंग्ज",
+    "NEW_BOOKING": "नवीन बुकिंग",
+    "SEARCH": "बुकिंग्ज शोधा…",
+    "KPI": {
+      "CHECK_IN": "आजचे चेक-इन",
+      "CHECK_OUT": "आजचे चेक-आउट",
+      "PAID": "भरले",
+      "DUE": "बाकी"
+    },
+    "FILTER": {
+      "ALL": "सर्व",
+      "WALK_IN": "वॉक-इन",
+      "ADVANCE": "अॅडव्हान्स",
+      "ONLINE": "ऑनलाइन"
+    },
+    "TABLE": {
+      "ID": "#",
+      "GUEST": "पाहुणा",
+      "ROOM": "खोली",
+      "CHECK_IN": "चेक-इन",
+      "CHECK_OUT": "चेक-आउट",
+      "AMOUNT": "रक्कम",
+      "STATUS": "स्थिती",
+      "ACTIONS": "क्रिया"
+    },
+    "INVOICE_READY": "इनव्हॉइस तयार"
+  },
+  "INVENTORY": {
+    "TITLE": "इन्व्हेंटरी",
+    "SUBTITLE": "१४ वस्तू",
+    "ADD": "इन्व्हेंटरी जोडा",
+    "SEARCH": "इन्व्हेंटरी शोधा…",
+    "LOW_STOCK_FILTER": "कमी स्टॉक सूचना",
+    "KPI": {
+      "IN_STOCK": "स्टॉकमध्ये",
+      "LOW_STOCK": "कमी स्टॉक सूचना",
+      "CATEGORIES": "श्रेण्या",
+      "ASSIGNED": "खोल्यांना नियुक्त"
+    },
+    "STOCK_MOVEMENT": "स्टॉक हालचाल",
+    "MOVEMENT": {
+      "PURCHASE": "खरेदी नोंद",
+      "ASSIGNED": "खोली २०४ ला नियुक्त",
+      "DAMAGED": "खराब",
+      "RETURNED": "परत आले"
+    }
+  },
+  "CUSTOMERS": {
+    "TITLE": "ग्राहक",
+    "SUBTITLE": "६ ग्राहक",
+    "NEW": "नवीन ग्राहक",
+    "SEARCH": "ग्राहक शोधा…"
+  },
+  "REVENUE": {
+    "TITLE": "महसूल",
+    "PERIODS": "महसूल कालावधी",
+    "PERIOD": {
+      "TODAY": "आज",
+      "WEEK": "आठवडा",
+      "MONTH": "महिना",
+      "YEAR": "वर्ष"
+    },
+    "SUBTITLE": {
+      "TODAY": "आजचा महसूल",
+      "WEEK": "साप्ताहिक महसूल",
+      "MONTH": "मासिक महसूल",
+      "YEAR": "वार्षिक महसूल"
+    },
+    "KPI": {
+      "CASH": "रोख",
+      "UPI": "यूपीआय",
+      "CARD": "कार्ड",
+      "BANK": "बँक ट्रान्सफर"
+    },
+    "CHART": {
+      "MONTHLY": "मासिक महसूल",
+      "METHODS": "पेमेंट पद्धती"
+    },
+    "RECENT_PAYMENTS": "अलीकडील पेमेंट्स"
+  },
+  "EXPENSES": {
+    "TITLE": "खर्च",
+    "SUBTITLE": "महिना",
+    "ADD": "खर्च जोडा",
+    "KPI": {
+      "TODAY": "आजचा खर्च",
+      "MONTH": "महिना",
+      "REVENUE": "महसूल",
+      "PNL": "नफा आणि तोटा"
+    },
+    "CHART": {
+      "REVENUE_VS_EXPENSE": "महसूल विरुद्ध खर्च",
+      "CATEGORIES": "खर्च श्रेण्या"
+    },
+    "CATEGORY": {
+      "ELECTRICITY": "वीज",
+      "WATER": "पाणी",
+      "SALARY": "कर्मचारी पगार",
+      "LAUNDRY": "धुतणे",
+      "CLEANING": "स्वच्छता",
+      "REPAIR": "दुरुस्ती",
+      "FOOD": "अन्न"
+    }
+  },
+  "STAFF": {
+    "TITLE": "कर्मचारी",
+    "SUBTITLE": "६ कर्मचारी",
+    "ADD": "कर्मचारी जोडा",
+    "ATTENDANCE": "उपस्थिती",
+    "KPI": {
+      "PRESENT": "आज उपस्थित कर्मचारी",
+      "ON_LEAVE": "रजेवर",
+      "SALARY": "पगार",
+      "ADVANCE": "अॅडव्हान्स"
+    },
+    "ROLE": {
+      "MANAGER": "व्यवस्थापक",
+      "RECEPTION": "रिसेप्शन",
+      "HOUSEKEEPING": "हाऊसकीपिंग",
+      "SECURITY": "सुरक्षा"
+    }
+  },
+  "HOUSEKEEPING": {
+    "TITLE": "हाऊसकीपिंग",
+    "SUBTITLE": "आज",
+    "SCHEDULE": "स्वच्छता वेळापत्रक",
+    "CHECKLIST": "स्वच्छता यादी",
+    "KPI": {
+      "CLEANING": "स्वच्छता",
+      "COMPLETED": "पूर्ण",
+      "PENDING": "प्रलंबित",
+      "STAFF": "आज उपस्थित कर्मचारी"
+    },
+    "CHECK": {
+      "BEDSHEET": "बेडशीट आणि उशी कव्हर्स बदला",
+      "BATHROOM": "बाथरूम स्वच्छ करा आणि साबण भरा",
+      "WATER": "पाण्याच्या बाटल्या भरा",
+      "FLOOR": "फरशी झाडा आणि पुसा",
+      "AC": "एसी / पंखा तपासा",
+      "DUSTBIN": "कचरापेटी रिकामी करा"
+    }
+  },
+  "REPORTS": {
+    "TITLE": "अहवाल",
+    "SUBTITLE": "नफा आणि तोटा",
+    "PDF": "पीडीएफ",
+    "EXCEL": "एक्सेल",
+    "PRINT": "प्रिंट",
+    "PDF_EXPORTED": "पीडीएफ निर्यात झाले",
+    "EXCEL_EXPORTED": "एक्सेल निर्यात झाले",
+    "CARD": {
+      "REVENUE": "महसूल अहवाल",
+      "EXPENSES": "खर्च अहवाल",
+      "INVENTORY": "इन्व्हेंटरी अहवाल",
+      "ROOMS": "खोली अहवाल",
+      "STAFF": "कर्मचारी अहवाल",
+      "CUSTOMERS": "ग्राहक अहवाल",
+      "META": "पीडीएफ · एक्सेल · प्रिंट"
+    },
+    "PNL": {
+      "TITLE": "नफा आणि तोटा",
+      "REVENUE": "महसूल",
+      "EXPENSES": "खर्च",
+      "PROFIT": "आजचा नफा"
+    }
+  },
+  "SETTINGS": {
+    "TITLE": "सेटिंग्ज",
+    "LODGE": {
+      "TITLE": "लॉज तपशील",
+      "NAME": "लॉज नाव",
+      "PHONE": "फोन",
+      "GSTIN": "जीएसटीआयएन"
+    },
+    "TAX": {
+      "TITLE": "जीएसटी आणि कर",
+      "GST": "जीएसटी %",
+      "SERVICE": "सेवा शुल्क %",
+      "INCLUSIVE": "कर समाविष्ट किंमत"
+    },
+    "LANGUAGE": {
+      "TITLE": "भाषा",
+      "COMPACT": "संक्षिप्त लेआउट"
+    },
+    "USERS": {
+      "TITLE": "वापरकर्ते आणि परवानग्या"
+    },
+    "ROLE": {
+      "SUPER_ADMIN": "सुपर अॅडमिन",
+      "SUPER_ADMIN_DESC": "सर्व मॉड्यूल्सवर पूर्ण प्रवेश",
+      "MANAGER": "व्यवस्थापक",
+      "MANAGER_DESC": "वापरकर्ते आणि परवानग्या वगळता सर्व",
+      "RECEPTION": "रिसेप्शन",
+      "RECEPTION_DESC": "बुकिंग्ज, ग्राहक, पेमेंट्स",
+      "HOUSEKEEPING": "हाऊसकीपिंग",
+      "HOUSEKEEPING_DESC": "फक्त खोल्या आणि स्वच्छता कामे"
+    },
+    "BACKUP": {
+      "TITLE": "बॅकअप आणि पुनर्स्थापना",
+      "NOW": "आत्ता बॅकअप",
+      "RESTORE": "पुनर्स्थापित करा",
+      "LAST": "शेवटचा बॅकअप: २६ जुलै, सकाळी ०६:००"
+    }
   }
 }

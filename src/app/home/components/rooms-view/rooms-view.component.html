@@ -1,0 +1,200 @@
+<div class="rooms-page">
+  <header class="rooms-page__hero">
+    <div class="rooms-page__hero-copy">
+      <h1 class="rooms-page__title">{{ 'ROOMS.TITLE' | translate }}</h1>
+      <p class="rooms-page__subtitle">{{ subtitle | translate }}</p>
+    </div>
+
+    <ion-button class="rooms-page__cta" fill="solid" (click)="openAddRoom()">
+      <ion-icon slot="start" name="add-outline"></ion-icon>
+      {{ 'ROOMS.ADD_ROOM' | translate }}
+    </ion-button>
+  </header>
+
+  <div class="rooms-toolbar">
+    <label class="rooms-search" [attr.aria-label]="'ROOMS.SEARCH' | translate">
+      <ion-icon name="search-outline" aria-hidden="true"></ion-icon>
+      <input
+        type="search"
+        [placeholder]="'ROOMS.SEARCH' | translate"
+        [value]="query()"
+        (input)="onQueryInput($event)"
+      />
+    </label>
+
+    <div class="rooms-view-toggle" role="tablist" aria-label="View mode">
+      <button
+        type="button"
+        class="rooms-view-toggle__button"
+        [class.rooms-view-toggle__button--active]="viewMode() === 'grid'"
+        [attr.aria-selected]="viewMode() === 'grid'"
+        (click)="setViewMode('grid')"
+      >
+        <ion-icon name="grid-outline" aria-hidden="true"></ion-icon>
+      </button>
+      <button
+        type="button"
+        class="rooms-view-toggle__button"
+        [class.rooms-view-toggle__button--active]="viewMode() === 'list'"
+        [attr.aria-selected]="viewMode() === 'list'"
+        (click)="setViewMode('list')"
+      >
+        <ion-icon name="list-outline" aria-hidden="true"></ion-icon>
+      </button>
+    </div>
+  </div>
+
+  <div class="rooms-filters" aria-label="Room status filters">
+    @for (filter of filters; track filter) {
+      <button
+        type="button"
+        class="rooms-filters__chip"
+        [class.rooms-filters__chip--active]="filter === activeFilter()"
+        (click)="setFilter(filter)"
+      >
+        {{ roomFilterLabelKey(filter) | translate }}
+      </button>
+    }
+  </div>
+
+  @if (viewMode() === 'grid') {
+    <div class="rooms-grid">
+      @for (room of filteredRooms(); track trackRoom($index, room)) {
+        <button type="button" class="room-card">
+          <div class="room-card__header">
+            <div>
+              <p class="room-card__number">{{ room.number }}</p>
+              <p class="room-card__type">{{ room.type }}</p>
+            </div>
+            <ion-icon name="bed-outline" aria-hidden="true"></ion-icon>
+          </div>
+
+          <div class="room-card__status">
+            <span
+              class="room-status"
+              [class.room-status--available]="room.status === 'Available'"
+              [class.room-status--occupied]="room.status === 'Occupied'"
+              [class.room-status--reserved]="room.status === 'Reserved'"
+              [class.room-status--cleaning]="room.status === 'Cleaning'"
+              [class.room-status--maintenance]="room.status === 'Maintenance'"
+            >
+              <span class="room-status__dot"></span>
+              {{ statusLabelKey(room.status) | translate }}
+            </span>
+          </div>
+
+          <p class="room-card__price">{{ room.price }}</p>
+
+          @if (room.guestName && room.guestDate) {
+            <p class="room-card__meta">{{ room.guestName }} · {{ room.guestDate }}</p>
+          }
+        </button>
+      }
+    </div>
+  } @else {
+    <div class="rooms-table-card">
+      <div class="rooms-table-wrap">
+        <table class="rooms-table">
+          <thead>
+            <tr>
+              <th>{{ 'ROOMS.TABLE.ROOM' | translate }}</th>
+              <th>{{ 'ROOMS.TABLE.FLOOR' | translate }}</th>
+              <th>{{ 'ROOMS.TABLE.TYPE' | translate }}</th>
+              <th>{{ 'ROOMS.TABLE.GUEST' | translate }}</th>
+              <th class="rooms-table__price">{{ 'ROOMS.TABLE.PRICE' | translate }}</th>
+              <th>{{ 'ROOMS.TABLE.STATUS' | translate }}</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (room of filteredRooms(); track trackRoom($index, room)) {
+              <tr>
+                <td class="rooms-table__room">{{ room.number }}</td>
+                <td>{{ room.floor }}</td>
+                <td>{{ room.type }}</td>
+                <td>{{ room.guestName ?? '—' }}</td>
+                <td class="rooms-table__price rooms-table__room">{{ room.price }}</td>
+                <td>
+                  <span
+                    class="room-status"
+                    [class.room-status--available]="room.status === 'Available'"
+                    [class.room-status--occupied]="room.status === 'Occupied'"
+                    [class.room-status--reserved]="room.status === 'Reserved'"
+                    [class.room-status--cleaning]="room.status === 'Cleaning'"
+                    [class.room-status--maintenance]="room.status === 'Maintenance'"
+                  >
+                    <span class="room-status__dot"></span>
+                    {{ statusLabelKey(room.status) | translate }}
+                  </span>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  }
+
+  @if (isAddRoomOpen()) {
+    <div class="rooms-sheet-backdrop" (click)="closeAddRoom()"></div>
+    <div
+      class="rooms-sheet"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="add-room-title"
+      (click)="$event.stopPropagation()"
+    >
+      <button
+        type="button"
+        class="rooms-sheet__close"
+        [attr.aria-label]="'COMMON.CLOSE' | translate"
+        (click)="closeAddRoom()"
+      >
+        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M18 6 6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          <path d="m6 6 12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+        </svg>
+      </button>
+
+      <div class="rooms-sheet__header">
+        <h2 id="add-room-title" class="rooms-sheet__title">{{ 'ROOMS.SHEET.TITLE' | translate }}</h2>
+      </div>
+
+      <div class="rooms-sheet__grid">
+        <label class="rooms-sheet__field">
+          <span>{{ 'ROOMS.SHEET.NUMBER' | translate }}</span>
+          <input type="text" placeholder="401" />
+        </label>
+        <label class="rooms-sheet__field">
+          <span>{{ 'ROOMS.SHEET.FLOOR' | translate }}</span>
+          <input type="text" inputmode="numeric" placeholder="4" />
+        </label>
+        <label class="rooms-sheet__field">
+          <span>{{ 'ROOMS.SHEET.TYPE' | translate }}</span>
+          <input type="text" placeholder="Deluxe" />
+        </label>
+        <label class="rooms-sheet__field">
+          <span>{{ 'ROOMS.SHEET.PRICE' | translate }}</span>
+          <input type="text" inputmode="numeric" placeholder="1800" />
+        </label>
+      </div>
+
+      <div class="rooms-sheet__footer">
+        <button type="button" class="rooms-sheet__save" (click)="showSaveToast()">
+          {{ 'ROOMS.SHEET.SAVE' | translate }}
+        </button>
+      </div>
+
+      @if (isSaveToastVisible()) {
+        <div class="rooms-sheet__toast" role="status" aria-live="polite">
+          <span class="rooms-sheet__toast-icon">
+            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <circle cx="12" cy="12" r="10" fill="currentColor" opacity="0.12"></circle>
+              <path d="m9 12 2 2 4-4" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"></path>
+            </svg>
+          </span>
+          <span>{{ 'ROOMS.SHEET.SAVED' | translate }}</span>
+        </div>
+      }
+    </div>
+  }
+</div>

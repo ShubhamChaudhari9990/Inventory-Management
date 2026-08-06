@@ -7,13 +7,13 @@
       <div class="dashboard-page__inner">
         <section class="dashboard-page__hero">
           <div class="dashboard-page__hero-copy">
-            <h1 class="dashboard-page__title">Dashboard</h1>
-            <p class="dashboard-page__subtitle">{{ todayLabel }}</p>
+            <h1 class="dashboard-page__title">{{ 'DASHBOARD.TITLE' | translate }}</h1>
+            <p class="dashboard-page__subtitle">{{ todayLabel | translate }}</p>
           </div>
 
           <ion-button class="dashboard-page__cta" fill="solid">
             <ion-icon slot="start" name="add-outline"></ion-icon>
-            New Booking
+            {{ 'DASHBOARD.NEW_BOOKING' | translate }}
           </ion-button>
         </section>
 
@@ -26,12 +26,12 @@
         <section class="dashboard-page__charts">
           <app-dashboard-section-card
             class="dashboard-page__section dashboard-page__section--wide"
-            title="Revenue vs Expense"
+            title="DASHBOARD.CHART.REVENUE_VS_EXPENSE"
           >
             <app-dashboard-axis-chart [options]="revenueExpenseChart" />
           </app-dashboard-section-card>
 
-          <app-dashboard-section-card title="Room Status">
+          <app-dashboard-section-card title="DASHBOARD.CHART.ROOM_STATUS">
             <app-dashboard-donut-chart [options]="roomStatusChart" />
 
             <div class="status-legend">
@@ -41,32 +41,32 @@
                     class="status-legend__dot"
                     [style.background]="item.color"
                   ></span>
-                  <span class="status-legend__label">{{ item.label }}</span>
+                  <span class="status-legend__label">{{ item.label | translate }}</span>
                   <span class="status-legend__value">{{ item.value }}</span>
                 </div>
               }
             </div>
           </app-dashboard-section-card>
 
-          <app-dashboard-section-card title="Monthly Revenue">
+          <app-dashboard-section-card title="DASHBOARD.CHART.MONTHLY_REVENUE">
             <app-dashboard-axis-chart [options]="monthlyRevenueChart" />
           </app-dashboard-section-card>
 
-          <app-dashboard-section-card title="Occupancy Rate">
+          <app-dashboard-section-card title="DASHBOARD.CHART.OCCUPANCY_RATE">
             <app-dashboard-axis-chart [options]="occupancyRateChart" />
           </app-dashboard-section-card>
 
-          <app-dashboard-section-card title="Booking Trend">
+          <app-dashboard-section-card title="DASHBOARD.CHART.BOOKING_TREND">
             <app-dashboard-axis-chart [options]="bookingTrendChart" />
           </app-dashboard-section-card>
         </section>
 
-        <app-dashboard-section-card title="Quick Actions">
+        <app-dashboard-section-card title="DASHBOARD.QUICK_ACTIONS">
           <div class="quick-actions">
             @for (action of quickActions; track action.id) {
               <button type="button" class="quick-actions__item">
                 <ion-icon [name]="action.icon" aria-hidden="true"></ion-icon>
-                <span>{{ action.label }}</span>
+                <span>{{ action.label | translate }}</span>
               </button>
             }
           </div>
@@ -75,18 +75,18 @@
         <section class="dashboard-page__bottom">
           <app-dashboard-section-card
             class="dashboard-page__section dashboard-page__section--wide"
-            title="Recent Bookings"
+            title="DASHBOARD.RECENT_BOOKINGS"
             [noPadding]="true"
           >
             <div class="dashboard-table">
               <table>
                 <thead>
                   <tr>
-                    <th>Guest</th>
-                    <th>Room</th>
-                    <th>Check In</th>
-                    <th class="dashboard-table__amount">Amount</th>
-                    <th>Status</th>
+                    <th>{{ 'DASHBOARD.TABLE.GUEST' | translate }}</th>
+                    <th>{{ 'DASHBOARD.TABLE.ROOM' | translate }}</th>
+                    <th>{{ 'DASHBOARD.TABLE.CHECK_IN' | translate }}</th>
+                    <th class="dashboard-table__amount">{{ 'DASHBOARD.TABLE.AMOUNT' | translate }}</th>
+                    <th>{{ 'DASHBOARD.TABLE.STATUS' | translate }}</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -104,7 +104,7 @@
                           [class.status-chip--due]="booking.status === 'Due'"
                         >
                           <span class="status-chip__dot"></span>
-                          {{ booking.status }}
+                          {{ statusLabelKey(booking.status) | translate }}
                         </span>
                       </td>
                     </tr>
@@ -115,7 +115,7 @@
           </app-dashboard-section-card>
 
           <div class="dashboard-page__side-column">
-            <app-dashboard-section-card title="Recent Payments" [noPadding]="true">
+            <app-dashboard-section-card title="DASHBOARD.RECENT_PAYMENTS" [noPadding]="true">
               <ul class="detail-list">
                 @for (payment of recentPayments; track trackPayment($index, payment)) {
                   <li class="detail-list__item">
@@ -124,7 +124,9 @@
                     </span>
                     <div class="detail-list__content">
                       <p class="detail-list__title">{{ payment.guest }}</p>
-                      <p class="detail-list__meta">{{ payment.method }} · {{ payment.time }}</p>
+                      <p class="detail-list__meta">
+                        {{ paymentMethodLabelKey(payment.method) | translate }} · {{ payment.time }}
+                      </p>
                     </div>
                     <span class="detail-list__amount">{{ payment.amount }}</span>
                   </li>
@@ -132,19 +134,79 @@
               </ul>
             </app-dashboard-section-card>
 
-            <app-dashboard-section-card title="Recent Activity" [noPadding]="true">
+            <app-dashboard-section-card title="DASHBOARD.RECENT_ACTIVITY" [noPadding]="true">
               <ul class="activity-list">
                 @for (item of recentActivity; track item.text) {
                   <li class="activity-list__item">
                     <span class="activity-list__dot"></span>
-                    <p class="activity-list__text">{{ item.text }}</p>
-                    <span class="activity-list__time">{{ item.timeAgo }}</span>
+                    <p class="activity-list__text">{{ item.text | translate }}</p>
+                    <span class="activity-list__time">{{ item.timeAgo | translate }}</span>
                   </li>
                 }
               </ul>
             </app-dashboard-section-card>
           </div>
         </section>
+      </div>
+    </div>
+  } @else if (isRoomsActive()) {
+    <div class="dashboard-page">
+      <div class="dashboard-page__inner">
+        <app-rooms-view />
+      </div>
+    </div>
+  } @else if (isBookingsActive()) {
+    <div class="dashboard-page">
+      <div class="dashboard-page__inner">
+        <app-bookings-view />
+      </div>
+    </div>
+  } @else if (isInventoryActive()) {
+    <div class="dashboard-page">
+      <div class="dashboard-page__inner">
+        <app-inventory-view />
+      </div>
+    </div>
+  } @else if (isCustomersActive()) {
+    <div class="dashboard-page">
+      <div class="dashboard-page__inner">
+        <app-customers-view />
+      </div>
+    </div>
+  } @else if (isRevenueActive()) {
+    <div class="dashboard-page">
+      <div class="dashboard-page__inner">
+        <app-revenue-view />
+      </div>
+    </div>
+  } @else if (isExpensesActive()) {
+    <div class="dashboard-page">
+      <div class="dashboard-page__inner">
+        <app-expenses-view />
+      </div>
+    </div>
+  } @else if (isStaffActive()) {
+    <div class="dashboard-page">
+      <div class="dashboard-page__inner">
+        <app-staff-view />
+      </div>
+    </div>
+  } @else if (isHousekeepingActive()) {
+    <div class="dashboard-page">
+      <div class="dashboard-page__inner">
+        <app-housekeeping-view />
+      </div>
+    </div>
+  } @else if (isReportsActive()) {
+    <div class="dashboard-page">
+      <div class="dashboard-page__inner">
+        <app-reports-view />
+      </div>
+    </div>
+  } @else if (isSettingsActive()) {
+    <div class="dashboard-page">
+      <div class="dashboard-page__inner">
+        <app-settings-view />
       </div>
     </div>
   } @else if (isMoreActive()) {

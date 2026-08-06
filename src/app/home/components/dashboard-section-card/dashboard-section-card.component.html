@@ -1,7 +1,7 @@
 <ion-card class="section-card">
   @if (title()) {
     <ion-card-header class="section-card__header">
-      <ion-card-title class="section-card__title">{{ title() }}</ion-card-title>
+      <ion-card-title class="section-card__title">{{ title() | translate }}</ion-card-title>
       <div class="section-card__header-extra">
         <ng-content select="[sectionHeaderExtra]"></ng-content>
       </div>

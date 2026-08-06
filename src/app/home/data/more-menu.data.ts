@@ -12,7 +12,7 @@ const MORE_ICON_OVERRIDES: Readonly<Record<string, string>> = {
 
 const LOGOUT_ITEM: MoreMenuItem = {
   id: 'logout',
-  label: 'Logout',
+  label: 'NAV.LOGOUT',
   icon: 'log-out-outline',
   destructive: true,
 };

@@ -1,0 +1,93 @@
+<div class="revenue-page">
+  <header class="revenue-page__hero">
+    <div class="revenue-page__hero-copy">
+      <h1 class="revenue-page__title">{{ 'REVENUE.TITLE' | translate }}</h1>
+      <p class="revenue-page__subtitle">{{ subtitleKey() | translate }}</p>
+    </div>
+
+    <div class="revenue-periods" role="tablist" [attr.aria-label]="'REVENUE.PERIODS' | translate">
+      @for (period of periods; track period) {
+        <button
+          type="button"
+          role="tab"
+          class="revenue-periods__tab"
+          [class.revenue-periods__tab--active]="period === activePeriod()"
+          [attr.aria-selected]="period === activePeriod()"
+          (click)="setPeriod(period)"
+        >
+          {{ periodLabelKeys[period] | translate }}
+        </button>
+      }
+    </div>
+  </header>
+
+  <section class="revenue-page__kpis" aria-label="Revenue summary">
+    @for (kpi of kpis; track kpi.id) {
+      <app-dashboard-kpi-card [kpi]="kpi" />
+    }
+  </section>
+
+  <div class="revenue-page__charts">
+    <app-dashboard-section-card
+      class="revenue-page__chart revenue-page__chart--wide"
+      title="REVENUE.CHART.MONTHLY"
+    >
+      <app-dashboard-axis-chart [options]="monthlyChart" />
+    </app-dashboard-section-card>
+
+    <app-dashboard-section-card title="REVENUE.CHART.METHODS">
+      <app-dashboard-donut-chart [options]="methodsChart" />
+    </app-dashboard-section-card>
+  </div>
+
+  <app-dashboard-section-card title="REVENUE.RECENT_PAYMENTS" [noPadding]="true">
+    <ul class="revenue-payments">
+      @for (payment of payments; track trackPayment($index, payment)) {
+        <li class="revenue-payments__item">
+          <span class="revenue-payments__icon" aria-hidden="true">
+            <svg viewBox="0 0 24 24" fill="none">
+              <path
+                d="M6 3h12"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+              />
+              <path
+                d="M6 8h12"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+              />
+              <path
+                d="m6 13 8.5 8"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+              />
+              <path
+                d="M6 13h3"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+              />
+              <path
+                d="M9 13c6.667 0 6.667-10 0-10"
+                stroke="currentColor"
+                stroke-width="2"
+                stroke-linecap="round"
+              />
+            </svg>
+          </span>
+          <div class="revenue-payments__copy">
+            <p class="revenue-payments__name">{{ payment.guest }}</p>
+            <p class="revenue-payments__meta">
+              {{ paymentMethodLabelKey(payment.method) | translate }} ·
+              {{ payment.time }}
+            </p>
+          </div>
+          <span class="revenue-payments__amount">{{ payment.amount }}</span>
+        </li>
+      }
+    </ul>
+  </app-dashboard-section-card>
+</div>

@@ -1,4 +1,4 @@
-<nav class="bottom-nav" aria-label="Bottom navigation">
+<nav class="bottom-nav" [attr.aria-label]="'SHELL.BOTTOM_NAV' | translate">
   @for (item of items(); track item.id) {
     <button
       type="button"
@@ -9,7 +9,7 @@
       (click)="onNavigate(item)"
     >
       <ion-icon [name]="item.icon" aria-hidden="true"></ion-icon>
-      <span class="bottom-nav__label">{{ item.label }}</span>
+      <span class="bottom-nav__label">{{ item.label | translate }}</span>
     </button>
   }
 </nav>

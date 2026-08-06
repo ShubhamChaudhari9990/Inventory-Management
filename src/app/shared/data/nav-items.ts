@@ -1,25 +1,25 @@
 import { NavItem } from '../models/nav-item.model';
 
-/** Single source of truth for lodge sidebar navigation. */
+/** Single source of truth for lodge sidebar navigation. Labels are i18n keys. */
 export const NAV_ITEMS: readonly NavItem[] = [
-  { id: 'dashboard', label: 'Dashboard', icon: 'grid-outline', route: '/home' },
-  { id: 'rooms', label: 'Rooms', icon: 'bed-outline', route: '/rooms' },
-  { id: 'bookings', label: 'Bookings', icon: 'calendar-outline', route: '/bookings' },
-  { id: 'customers', label: 'Customers', icon: 'people-outline', route: '/customers' },
-  { id: 'inventory', label: 'Inventory', icon: 'cube-outline', route: '/inventory' },
-  { id: 'revenue', label: 'Revenue', icon: 'cash-outline', route: '/revenue' },
-  { id: 'expenses', label: 'Expenses', icon: 'receipt-outline', route: '/expenses' },
-  { id: 'staff', label: 'Staff', icon: 'person-circle-outline', route: '/staff' },
-  { id: 'housekeeping', label: 'Housekeeping', icon: 'sparkles-outline', route: '/housekeeping' },
-  { id: 'reports', label: 'Reports', icon: 'bar-chart-outline', route: '/reports' },
-  { id: 'settings', label: 'Settings', icon: 'settings-outline', route: '/settings' },
+  { id: 'dashboard', label: 'NAV.DASHBOARD', icon: 'grid-outline', route: '/home' },
+  { id: 'rooms', label: 'NAV.ROOMS', icon: 'bed-outline', route: '/rooms' },
+  { id: 'bookings', label: 'NAV.BOOKINGS', icon: 'calendar-outline', route: '/bookings' },
+  { id: 'customers', label: 'NAV.CUSTOMERS', icon: 'people-outline', route: '/customers' },
+  { id: 'inventory', label: 'NAV.INVENTORY', icon: 'cube-outline', route: '/inventory' },
+  { id: 'revenue', label: 'NAV.REVENUE', icon: 'cash-outline', route: '/revenue' },
+  { id: 'expenses', label: 'NAV.EXPENSES', icon: 'receipt-outline', route: '/expenses' },
+  { id: 'staff', label: 'NAV.STAFF', icon: 'person-circle-outline', route: '/staff' },
+  { id: 'housekeeping', label: 'NAV.HOUSEKEEPING', icon: 'sparkles-outline', route: '/housekeeping' },
+  { id: 'reports', label: 'NAV.REPORTS', icon: 'bar-chart-outline', route: '/reports' },
+  { id: 'settings', label: 'NAV.SETTINGS', icon: 'settings-outline', route: '/settings' },
 ] as const;
 
 const BOTTOM_NAV_IDS = ['dashboard', 'rooms', 'bookings', 'inventory'] as const;
 
 const MORE_ITEM: NavItem = {
   id: 'more',
-  label: 'More',
+  label: 'NAV.MORE',
   icon: 'ellipsis-horizontal',
 };
 

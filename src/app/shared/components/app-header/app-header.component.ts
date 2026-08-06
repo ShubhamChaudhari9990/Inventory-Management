@@ -15,6 +15,7 @@ import {
   IonLabel,
   IonList,
 } from '@ionic/angular/standalone';
+import { TranslatePipe } from '@ngx-translate/core';
 
 import {
   AppLanguage,
@@ -31,7 +32,7 @@ type HeaderMenu = 'language' | 'notifications' | 'profile';
   selector: 'app-header',
   templateUrl: './app-header.component.html',
   styleUrls: ['./app-header.component.scss'],
-  imports: [IonButton, IonIcon, IonList, IonItem, IonLabel],
+  imports: [IonButton, IonIcon, IonList, IonItem, IonLabel, TranslatePipe],
 })
 export class AppHeaderComponent {
   private readonly languageService = inject(LanguageService);

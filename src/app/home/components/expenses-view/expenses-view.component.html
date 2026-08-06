@@ -1,0 +1,49 @@
+<div class="expenses-page">
+  <header class="expenses-page__hero">
+    <div class="expenses-page__hero-copy">
+      <h1 class="expenses-page__title">{{ 'EXPENSES.TITLE' | translate }}</h1>
+      <p class="expenses-page__subtitle">{{ subtitle | translate }}</p>
+    </div>
+
+    <ion-button class="expenses-page__cta" fill="solid">
+      <ion-icon slot="start" name="add-outline"></ion-icon>
+      {{ 'EXPENSES.ADD' | translate }}
+    </ion-button>
+  </header>
+
+  <section class="expenses-page__kpis" aria-label="Expenses summary">
+    @for (kpi of kpis; track kpi.id) {
+      <app-dashboard-kpi-card [kpi]="kpi" />
+    }
+  </section>
+
+  <div class="expenses-page__panels">
+    <app-dashboard-section-card title="EXPENSES.CHART.REVENUE_VS_EXPENSE">
+      <app-dashboard-axis-chart [options]="revenueChart" />
+    </app-dashboard-section-card>
+
+    <app-dashboard-section-card title="EXPENSES.CHART.CATEGORIES">
+      <ul class="expense-categories">
+        @for (category of categories; track trackCategory($index, category)) {
+          <li class="expense-categories__item">
+            <div class="expense-categories__row">
+              <span class="expense-categories__name">{{
+                category.nameKey | translate
+              }}</span>
+              <span class="expense-categories__amount">{{ category.amount }}</span>
+            </div>
+            <div
+              class="expense-categories__bar"
+              role="progressbar"
+              [attr.aria-valuenow]="category.fillPercent"
+              aria-valuemin="0"
+              aria-valuemax="100"
+            >
+              <span [style.width.%]="category.fillPercent"></span>
+            </div>
+          </li>
+        }
+      </ul>
+    </app-dashboard-section-card>
+  </div>
+</div>

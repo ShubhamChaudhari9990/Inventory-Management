@@ -1,0 +1,44 @@
+<div class="staff-page">
+  <header class="staff-page__hero">
+    <div class="staff-page__hero-copy">
+      <h1 class="staff-page__title">{{ 'STAFF.TITLE' | translate }}</h1>
+      <p class="staff-page__subtitle">{{ subtitle | translate }}</p>
+    </div>
+
+    <ion-button class="staff-page__cta" fill="solid">
+      <ion-icon slot="start" name="person-add-outline"></ion-icon>
+      {{ 'STAFF.ADD' | translate }}
+    </ion-button>
+  </header>
+
+  <section class="staff-page__kpis">
+    @for (kpi of kpis; track kpi.id) {
+      <app-dashboard-kpi-card [kpi]="kpi" />
+    }
+  </section>
+
+  <app-dashboard-section-card title="STAFF.ATTENDANCE" [noPadding]="true">
+    <ul class="staff-list">
+      @for (member of members; track trackMember($index, member)) {
+        <li class="staff-list__item">
+          <span class="staff-list__avatar">{{ member.initials }}</span>
+          <div class="staff-list__copy">
+            <p class="staff-list__name">{{ member.name }}</p>
+            <p class="staff-list__meta">
+              {{ member.roleKey | translate }} · {{ member.phone }}
+            </p>
+          </div>
+          <span class="staff-list__salary">{{ member.salary }}</span>
+          <span
+            class="staff-status"
+            [class.staff-status--present]="member.status === 'Present'"
+            [class.staff-status--leave]="member.status === 'On Leave'"
+          >
+            <span class="staff-status__dot"></span>
+            {{ statusLabelKey(member.status) | translate }}
+          </span>
+        </li>
+      }
+    </ul>
+  </app-dashboard-section-card>
+</div>
