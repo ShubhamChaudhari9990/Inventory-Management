@@ -18,7 +18,6 @@ import {
 import { TranslatePipe } from '@ngx-translate/core';
 
 import {
-  AppLanguage,
   LANGUAGE_OPTIONS,
   LanguageOption,
   LanguageService,
@@ -51,9 +50,8 @@ export class AppHeaderComponent {
   readonly languageOptions = LANGUAGE_OPTIONS;
   readonly notifications = APP_NOTIFICATIONS;
   readonly hasNotifications = computed(() => this.notifications.length > 0);
-  readonly currentLanguage = signal<AppLanguage>(
-    this.languageService.getCurrentLanguage(),
-  );
+  /** Shared with Settings via LanguageService — stays in sync both ways. */
+  readonly currentLanguage = this.languageService.currentLanguage;
   readonly openMenu = signal<HeaderMenu | null>(null);
 
   readonly isLanguageMenuOpen = computed(() => this.openMenu() === 'language');
@@ -81,7 +79,6 @@ export class AppHeaderComponent {
   ): Promise<void> {
     event.stopPropagation();
     await this.languageService.setLanguage(option.code);
-    this.currentLanguage.set(option.code);
     this.openMenu.set(null);
   }
 

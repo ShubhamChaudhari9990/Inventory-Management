@@ -10,9 +10,8 @@ import {
   IonItem,
   IonSelect,
   IonSelectOption,
-  ToastController,
 } from '@ionic/angular/standalone';
-import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { TranslatePipe } from '@ngx-translate/core';
 import { addIcons } from 'ionicons';
 import {
   arrowForwardOutline,
@@ -26,6 +25,8 @@ import {
   mailOutline,
   personOutline,
 } from 'ionicons/icons';
+
+import { AppToastService } from '../shared/services/app-toast.service';
 
 type StaffRole =
   | 'front_desk'
@@ -59,8 +60,7 @@ interface RoleOption {
 })
 export class RegisterPage {
   private readonly router = inject(Router);
-  private readonly toastCtrl = inject(ToastController);
-  private readonly translate = inject(TranslateService);
+  private readonly appToast = inject(AppToastService);
 
   fullName = '';
   email = '';
@@ -137,12 +137,6 @@ export class RegisterPage {
     key: string,
     color: 'success' | 'warning' | 'danger' = 'warning',
   ): Promise<void> {
-    const toast = await this.toastCtrl.create({
-      message: this.translate.instant(key),
-      duration: 2500,
-      color,
-      position: 'bottom',
-    });
-    await toast.present();
+    await this.appToast.show(key, 2500, color);
   }
 }

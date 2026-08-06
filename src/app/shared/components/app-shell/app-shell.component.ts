@@ -3,6 +3,7 @@ import {
   IonBackdrop,
   IonContent,
   IonMenu,
+  IonSplitPane,
   MenuController,
 } from '@ionic/angular/standalone';
 
@@ -17,11 +18,15 @@ import { AppBottomNavComponent } from '../app-bottom-nav/app-bottom-nav.componen
 import { AppHeaderComponent } from '../app-header/app-header.component';
 import { AppSidebarComponent } from '../app-sidebar/app-sidebar.component';
 
+/** Matches CSS: mobile drawer below this, persistent web sidebar at/above. */
+export const DESKTOP_BREAKPOINT_PX = 1027;
+
 @Component({
   selector: 'app-shell',
   templateUrl: './app-shell.component.html',
   styleUrls: ['./app-shell.component.scss'],
   imports: [
+    IonSplitPane,
     IonMenu,
     IonContent,
     IonBackdrop,

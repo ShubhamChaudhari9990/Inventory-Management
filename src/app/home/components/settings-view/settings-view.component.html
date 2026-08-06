@@ -26,7 +26,7 @@
           <input type="text" [value]="gstin()" (input)="onGstinInput($event)" />
         </label>
       </div>
-      <ion-button class="settings-save" fill="solid">
+      <ion-button class="settings-save" fill="solid" (click)="saveLodgeDetails()">
         {{ 'COMMON.SAVE' | translate }}
       </ion-button>
     </app-dashboard-section-card>
@@ -134,11 +134,15 @@
       title="SETTINGS.BACKUP.TITLE"
     >
       <div class="settings-backup">
-        <button type="button" class="settings-backup__btn">
+        <button type="button" class="settings-backup__btn" (click)="backupNow()">
           <ion-icon name="cube-outline" aria-hidden="true"></ion-icon>
           {{ 'SETTINGS.BACKUP.NOW' | translate }}
         </button>
-        <button type="button" class="settings-backup__btn">
+        <button
+          type="button"
+          class="settings-backup__btn"
+          (click)="restoreBackup()"
+        >
           <ion-icon name="refresh-outline" aria-hidden="true"></ion-icon>
           {{ 'SETTINGS.BACKUP.RESTORE' | translate }}
         </button>

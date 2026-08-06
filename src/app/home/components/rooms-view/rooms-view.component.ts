@@ -1,7 +1,8 @@
-import { Component, computed, signal } from '@angular/core';
-import { IonButton, IonIcon } from '@ionic/angular/standalone';
+import { Component, computed, inject, signal } from '@angular/core';
+import { IonButton, IonIcon, IonModal } from '@ionic/angular/standalone';
 import { TranslatePipe } from '@ngx-translate/core';
 
+import { AppToastService } from '../../../shared/services/app-toast.service';
 import {
   roomFilterLabelKey,
   statusLabelKey,
@@ -19,10 +20,10 @@ import {
   selector: 'app-rooms-view',
   templateUrl: './rooms-view.component.html',
   styleUrls: ['./rooms-view.component.scss'],
-  imports: [IonButton, IonIcon, TranslatePipe],
+  imports: [IonButton, IonIcon, IonModal, TranslatePipe],
 })
 export class RoomsViewComponent {
-  private saveToastTimeoutId: ReturnType<typeof setTimeout> | null = null;
+  private readonly appToast = inject(AppToastService);
 
   readonly subtitle = ROOM_VIEW_SUBTITLE;
   readonly filters = ROOM_STATUS_FILTERS;
@@ -35,7 +36,13 @@ export class RoomsViewComponent {
   readonly activeFilter = signal<RoomStatus>('All');
   readonly viewMode = signal<RoomViewMode>('grid');
   readonly isAddRoomOpen = signal(false);
-  readonly isSaveToastVisible = signal(false);
+  readonly roomTypes = ['AC', 'Non AC', 'Suite', 'Deluxe'] as const;
+  readonly selectedRoomType = signal<'AC' | 'Non AC' | 'Suite' | 'Deluxe'>('AC');
+
+  /** Always bottom sheet (web + app). */
+  readonly addRoomBreakpoints: [number, number] = [0, 1];
+  readonly addRoomInitialBreakpoint = 1;
+  readonly addRoomModalClass = 'app-form-modal';
 
   readonly filteredRooms = computed(() => {
     const query = this.query().trim().toLowerCase();
@@ -74,29 +81,21 @@ export class RoomsViewComponent {
 
   closeAddRoom(): void {
     this.isAddRoomOpen.set(false);
-    this.clearSaveToast();
+  }
+
+  onRoomTypeChange(event: Event): void {
+    const target = event.target as HTMLSelectElement | null;
+    const value = target?.value as 'AC' | 'Non AC' | 'Suite' | 'Deluxe';
+    if (value) {
+      this.selectedRoomType.set(value);
+    }
   }
 
   showSaveToast(): void {
-    this.isSaveToastVisible.set(true);
-    if (this.saveToastTimeoutId) {
-      clearTimeout(this.saveToastTimeoutId);
-    }
-    this.saveToastTimeoutId = setTimeout(() => {
-      this.isSaveToastVisible.set(false);
-      this.saveToastTimeoutId = null;
-    }, 2200);
+    void this.appToast.show('ROOMS.SHEET.SAVED');
   }
 
   trackRoom(_: number, room: RoomItem): string {
     return room.id;
-  }
-
-  private clearSaveToast(): void {
-    this.isSaveToastVisible.set(false);
-    if (this.saveToastTimeoutId) {
-      clearTimeout(this.saveToastTimeoutId);
-      this.saveToastTimeoutId = null;
-    }
   }
 }

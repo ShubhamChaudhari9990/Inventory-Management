@@ -76,21 +76,3 @@
     </table>
   </app-dashboard-section-card>
 </div>
-
-@if (toastMessageKey(); as messageKey) {
-  <div class="reports-toast" role="status" aria-live="polite">
-    <span class="reports-toast__icon" aria-hidden="true">
-      <svg viewBox="0 0 24 24" fill="none">
-        <circle cx="12" cy="12" r="10" fill="currentColor" opacity="0.12"></circle>
-        <path
-          d="m9 12 2 2 4-4"
-          stroke="currentColor"
-          stroke-width="2.2"
-          stroke-linecap="round"
-          stroke-linejoin="round"
-        ></path>
-      </svg>
-    </span>
-    <span>{{ messageKey | translate }}</span>
-  </div>
-}

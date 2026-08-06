@@ -2,6 +2,7 @@ import { Component, inject, signal } from '@angular/core';
 import { IonButton, IonIcon } from '@ionic/angular/standalone';
 import { TranslatePipe } from '@ngx-translate/core';
 
+import { AppToastService } from '../../../shared/services/app-toast.service';
 import {
   AppLanguage,
   LanguageService,
@@ -21,6 +22,7 @@ import { DashboardSectionCardComponent } from '../dashboard-section-card/dashboa
   imports: [DashboardSectionCardComponent, IonButton, IonIcon, TranslatePipe],
 })
 export class SettingsViewComponent {
+  private readonly appToast = inject(AppToastService);
   private readonly languageService = inject(LanguageService);
 
   readonly subtitle = SETTINGS_VIEW_SUBTITLE;
@@ -34,13 +36,11 @@ export class SettingsViewComponent {
   readonly serviceCharge = signal('5');
   readonly taxInclusive = signal(true);
   readonly compactLayout = signal(false);
-  readonly currentLanguage = signal<AppLanguage>(
-    this.languageService.getCurrentLanguage(),
-  );
+  /** Shared with header via LanguageService — stays in sync both ways. */
+  readonly currentLanguage = this.languageService.currentLanguage;
 
   async setLanguage(lang: AppLanguage): Promise<void> {
     await this.languageService.setLanguage(lang);
-    this.currentLanguage.set(lang);
   }
 
   toggleTaxInclusive(): void {
@@ -49,6 +49,18 @@ export class SettingsViewComponent {
 
   toggleCompactLayout(): void {
     this.compactLayout.update((value) => !value);
+  }
+
+  saveLodgeDetails(): void {
+    void this.appToast.show('SETTINGS.TOAST.SAVED', 2400);
+  }
+
+  backupNow(): void {
+    void this.appToast.show('SETTINGS.TOAST.BACKUP_CREATED', 2400);
+  }
+
+  restoreBackup(): void {
+    void this.appToast.show('SETTINGS.TOAST.RESTORE', 2400);
   }
 
   onLodgeNameInput(event: Event): void {
