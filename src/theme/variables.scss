@@ -9,6 +9,10 @@
   --surface-muted: #f3f4f6;
   --destructive: #ef4444;
   --sidebar-width: 288px;
+  /* Mobile drawer below this; persistent web sidebar at/above (see app-shell). */
+  --breakpoint-desktop: 1027px;
+  /* Keep sidebar brand row + top header the same height so dividers align. */
+  --shell-topbar-height: 60px;
 
   --font-sans: Poppins, "Noto Sans Devanagari", ui-sans-serif, system-ui, sans-serif;
   --ion-font-family: var(--font-sans);

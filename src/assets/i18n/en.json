@@ -245,11 +245,11 @@
     },
     "SHEET": {
       "TITLE": "Add Room",
-      "NUMBER": "Room number",
+      "NUMBER": "Room",
       "FLOOR": "Floor",
       "TYPE": "Type",
       "PRICE": "Price / night",
-      "SAVE": "Save Room",
+      "SAVE": "Save",
       "SAVED": "Room saved"
     }
   },
@@ -280,7 +280,23 @@
       "STATUS": "Status",
       "ACTIONS": "Actions"
     },
-    "INVOICE_READY": "Invoice ready"
+    "INVOICE_READY": "Invoice ready",
+    "SHEET": {
+      "TITLE": "New Booking",
+      "GUEST": "Guest",
+      "GUEST_PH": "Rahul Deshmukh",
+      "PHONE": "Phone",
+      "PHONE_PH": "98220 11223",
+      "ROOM": "Room",
+      "SOURCE": "Source",
+      "CHECK_IN": "Check In",
+      "CHECK_OUT": "Check Out",
+      "AMOUNT": "Amount",
+      "ADVANCE": "Advance paid",
+      "PAYMENT": "Payment method",
+      "SAVE": "Save",
+      "SAVED": "Booking saved"
+    }
   },
   "INVENTORY": {
     "TITLE": "Inventory",
@@ -457,6 +473,11 @@
       "NOW": "Backup now",
       "RESTORE": "Restore",
       "LAST": "Last backup: 26 Jul, 06:00 AM"
+    },
+    "TOAST": {
+      "SAVED": "Saved",
+      "BACKUP_CREATED": "Backup created",
+      "RESTORE": "Restore from 25 July"
     }
   }
 }

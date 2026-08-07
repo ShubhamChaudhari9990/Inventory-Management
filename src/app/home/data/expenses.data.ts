@@ -52,6 +52,7 @@ export const EXPENSE_REVENUE_CHART: AxisChartOptions = {
     type: 'bar',
     height: 280,
     toolbar: { show: false },
+    zoom: { enabled: false, allowMouseWheelZoom: false },
     fontFamily: 'var(--font-sans)',
     parentHeightOffset: 0,
   },

@@ -1,7 +1,8 @@
-import { Component, computed, OnDestroy, signal } from '@angular/core';
-import { IonButton, IonIcon } from '@ionic/angular/standalone';
+import { Component, computed, inject, signal } from '@angular/core';
+import { IonButton, IonIcon, IonModal } from '@ionic/angular/standalone';
 import { TranslatePipe } from '@ngx-translate/core';
 
+import { AppToastService } from '../../../shared/services/app-toast.service';
 import {
   bookingFilterLabelKey,
   statusLabelKey,
@@ -14,37 +15,55 @@ import {
   BookingChannel,
   BookingItem,
 } from '../../data/bookings.data';
+import { ROOM_ITEMS } from '../../data/rooms.data';
 import { DashboardKpiCardComponent } from '../dashboard-kpi-card/dashboard-kpi-card.component';
 
-interface InvoiceToast {
-  id: number;
-  enter: boolean;
-}
+export const BOOKING_SOURCE_OPTIONS = ['Walk-in', 'Advance', 'Online'] as const;
+export const BOOKING_PAYMENT_OPTIONS = [
+  'Cash',
+  'UPI',
+  'Card',
+  'Bank Transfer',
+] as const;
 
 @Component({
   selector: 'app-bookings-view',
   templateUrl: './bookings-view.component.html',
   styleUrls: ['./bookings-view.component.scss'],
-  imports: [DashboardKpiCardComponent, IonButton, IonIcon, TranslatePipe],
+  imports: [DashboardKpiCardComponent, IonButton, IonIcon, IonModal, TranslatePipe],
 })
-export class BookingsViewComponent implements OnDestroy {
-  private static readonly MAX_TOASTS = 3;
-  private static readonly TOAST_DURATION_MS = 3200;
-
-  private nextToastId = 0;
-  private readonly toastTimers = new Map<number, ReturnType<typeof setTimeout>>();
+export class BookingsViewComponent {
+  private readonly appToast = inject(AppToastService);
 
   readonly subtitle = BOOKING_VIEW_SUBTITLE;
   readonly kpis = BOOKING_KPIS;
   readonly filters = BOOKING_CHANNEL_FILTERS;
   readonly bookings = BOOKING_ITEMS;
+  readonly sourceOptions = BOOKING_SOURCE_OPTIONS;
+  readonly paymentOptions = BOOKING_PAYMENT_OPTIONS;
+  readonly availableRooms = ROOM_ITEMS.filter(
+    (room) => room.status === 'Available',
+  );
 
   readonly bookingFilterLabelKey = bookingFilterLabelKey;
   readonly statusLabelKey = statusLabelKey;
 
   readonly query = signal('');
   readonly activeFilter = signal<BookingChannel>('All');
-  readonly invoiceToasts = signal<InvoiceToast[]>([]);
+  readonly isNewBookingOpen = signal(false);
+
+  readonly selectedRoom = signal(this.availableRooms[0]?.number ?? '');
+  readonly selectedSource = signal<(typeof BOOKING_SOURCE_OPTIONS)[number]>(
+    'Walk-in',
+  );
+  readonly selectedPayment = signal<(typeof BOOKING_PAYMENT_OPTIONS)[number]>(
+    'Cash',
+  );
+
+  /** Always bottom sheet (web + app). */
+  readonly bookingBreakpoints: [number, number] = [0, 1];
+  readonly bookingInitialBreakpoint = 1;
+  readonly bookingModalClass = 'app-form-modal';
 
   readonly filteredBookings = computed(() => {
     const query = this.query().trim().toLowerCase();
@@ -65,13 +84,6 @@ export class BookingsViewComponent implements OnDestroy {
     });
   });
 
-  ngOnDestroy(): void {
-    for (const timerId of this.toastTimers.values()) {
-      clearTimeout(timerId);
-    }
-    this.toastTimers.clear();
-  }
-
   onQueryInput(event: Event): void {
     const target = event.target as HTMLInputElement | null;
     this.query.set(target?.value ?? '');
@@ -81,54 +93,72 @@ export class BookingsViewComponent implements OnDestroy {
     this.activeFilter.set(filter);
   }
 
-  showInvoiceToast(): void {
-    const id = ++this.nextToastId;
-
-    this.invoiceToasts.update((toasts) => {
-      const next = [...toasts, { id, enter: true }];
-      while (next.length > BookingsViewComponent.MAX_TOASTS) {
-        const removed = next.shift();
-        if (removed) {
-          this.clearToastTimer(removed.id);
-        }
-      }
-      return next;
-    });
-
-    window.setTimeout(() => {
-      this.invoiceToasts.update((toasts) =>
-        toasts.map((toast) => (toast.id === id ? { ...toast, enter: false } : toast)),
-      );
-    }, 260);
-
-    this.toastTimers.set(
-      id,
-      setTimeout(() => this.dismissInvoiceToast(id), BookingsViewComponent.TOAST_DURATION_MS),
-    );
+  openNewBooking(): void {
+    this.isNewBookingOpen.set(true);
   }
 
-  stackDepth(index: number): number {
-    return this.invoiceToasts().length - 1 - index;
+  closeNewBooking(): void {
+    this.isNewBookingOpen.set(false);
+  }
+
+  onRoomChange(event: Event): void {
+    const target = event.target as HTMLSelectElement | null;
+    this.selectedRoom.set(target?.value ?? '');
+  }
+
+  onSourceChange(event: Event): void {
+    const target = event.target as HTMLSelectElement | null;
+    const value = target?.value as (typeof BOOKING_SOURCE_OPTIONS)[number];
+    if (value) {
+      this.selectedSource.set(value);
+    }
+  }
+
+  onPaymentChange(event: Event): void {
+    const target = event.target as HTMLSelectElement | null;
+    const value = target?.value as (typeof BOOKING_PAYMENT_OPTIONS)[number];
+    if (value) {
+      this.selectedPayment.set(value);
+    }
+  }
+
+  showInvoiceToast(): void {
+    void this.appToast.show('BOOKINGS.INVOICE_READY', 3200);
+  }
+
+  showSaveToast(): void {
+    void this.appToast.show('BOOKINGS.SHEET.SAVED');
+  }
+
+  sourceLabelKey(source: string): string {
+    switch (source) {
+      case 'Walk-in':
+        return 'BOOKINGS.FILTER.WALK_IN';
+      case 'Advance':
+        return 'BOOKINGS.FILTER.ADVANCE';
+      case 'Online':
+        return 'BOOKINGS.FILTER.ONLINE';
+      default:
+        return source;
+    }
+  }
+
+  paymentLabelKey(method: string): string {
+    switch (method) {
+      case 'Cash':
+        return 'DASHBOARD.METHOD.CASH';
+      case 'UPI':
+        return 'DASHBOARD.METHOD.UPI';
+      case 'Card':
+        return 'DASHBOARD.METHOD.CARD';
+      case 'Bank Transfer':
+        return 'DASHBOARD.METHOD.BANK';
+      default:
+        return method;
+    }
   }
 
   trackBooking(_: number, booking: BookingItem): string {
     return booking.id;
-  }
-
-  trackToast(_: number, toast: InvoiceToast): number {
-    return toast.id;
-  }
-
-  private dismissInvoiceToast(id: number): void {
-    this.clearToastTimer(id);
-    this.invoiceToasts.update((toasts) => toasts.filter((toast) => toast.id !== id));
-  }
-
-  private clearToastTimer(id: number): void {
-    const timerId = this.toastTimers.get(id);
-    if (timerId) {
-      clearTimeout(timerId);
-      this.toastTimers.delete(id);
-    }
   }
 }

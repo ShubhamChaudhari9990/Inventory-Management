@@ -6,15 +6,16 @@ import {
   BiometryErrorType,
 } from '@aparajita/capacitor-biometric-auth';
 import { Preferences } from '@capacitor/preferences';
-import { ToastController } from '@ionic/angular/standalone';
 import { TranslateService } from '@ngx-translate/core';
+
+import { AppToastService } from '../shared/services/app-toast.service';
 
 const PASSKEY_CREDENTIAL_KEY = 'passkey_credential_id';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private readonly router = inject(Router);
-  private readonly toastCtrl = inject(ToastController);
+  private readonly appToast = inject(AppToastService);
   private readonly translate = inject(TranslateService);
 
   async loginWithBiometric(): Promise<void> {
@@ -149,13 +150,7 @@ export class AuthService {
     key: string,
     color: 'success' | 'warning' | 'danger' = 'warning',
   ): Promise<void> {
-    const toast = await this.toastCtrl.create({
-      message: this.translate.instant(key),
-      duration: 2500,
-      color,
-      position: 'bottom',
-    });
-    await toast.present();
+    await this.appToast.show(key, 2500, color);
   }
 
   private bufferToBase64(buffer: ArrayBuffer): string {

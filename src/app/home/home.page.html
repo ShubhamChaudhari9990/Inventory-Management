@@ -74,7 +74,7 @@
 
         <section class="dashboard-page__bottom">
           <app-dashboard-section-card
-            class="dashboard-page__section dashboard-page__section--wide"
+            class="dashboard-page__section dashboard-page__section--bookings"
             title="DASHBOARD.RECENT_BOOKINGS"
             [noPadding]="true"
           >
@@ -119,7 +119,7 @@
               <ul class="detail-list">
                 @for (payment of recentPayments; track trackPayment($index, payment)) {
                   <li class="detail-list__item">
-                    <span class="detail-list__icon detail-list__icon--secondary">
+                    <span class="detail-list__icon detail-list__icon--payment">
                       <ion-icon name="cash-outline" aria-hidden="true"></ion-icon>
                     </span>
                     <div class="detail-list__content">

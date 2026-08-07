@@ -84,9 +84,13 @@
 .customers-grid {
   display: grid;
   gap: 12px;
+  align-items: stretch;
 }
 
 .customer-card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
   padding: 16px;
   border: 1px solid var(--border-color, #e5e7eb);
   border-radius: 18px;
@@ -224,7 +228,7 @@
   }
 }
 
-@media (min-width: 1280px) {
+@media (min-width: 1027px) {
   .customers-grid {
     grid-template-columns: repeat(3, minmax(0, 1fr));
   }

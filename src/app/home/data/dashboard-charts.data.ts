@@ -58,6 +58,7 @@ const HIDDEN_DATA_LABELS: ApexDataLabels = { enabled: false };
 
 const baseAxisChart = (overrides: Partial<ApexChart> & Pick<ApexChart, 'type' | 'height'>): ApexChart => ({
   toolbar: { show: false },
+  zoom: { enabled: false, allowMouseWheelZoom: false },
   fontFamily: 'var(--font-sans)',
   parentHeightOffset: 0,
   ...overrides,
@@ -137,6 +138,7 @@ export const ROOM_STATUS_CHART: DonutChartOptions = {
     type: 'donut',
     height: 260,
     toolbar: { show: false },
+    zoom: { enabled: false, allowMouseWheelZoom: false },
     fontFamily: 'var(--font-sans)',
   },
   labels: ROOM_STATUS_LEGEND.map((item) => item.label),

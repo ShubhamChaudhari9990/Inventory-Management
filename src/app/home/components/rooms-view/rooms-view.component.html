@@ -134,67 +134,62 @@
     </div>
   }
 
-  @if (isAddRoomOpen()) {
-    <div class="rooms-sheet-backdrop" (click)="closeAddRoom()"></div>
-    <div
-      class="rooms-sheet"
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="add-room-title"
-      (click)="$event.stopPropagation()"
-    >
-      <button
-        type="button"
-        class="rooms-sheet__close"
-        [attr.aria-label]="'COMMON.CLOSE' | translate"
-        (click)="closeAddRoom()"
-      >
-        <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-          <path d="M18 6 6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-          <path d="m6 6 12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
-        </svg>
-      </button>
-
-      <div class="rooms-sheet__header">
-        <h2 id="add-room-title" class="rooms-sheet__title">{{ 'ROOMS.SHEET.TITLE' | translate }}</h2>
-      </div>
-
-      <div class="rooms-sheet__grid">
-        <label class="rooms-sheet__field">
-          <span>{{ 'ROOMS.SHEET.NUMBER' | translate }}</span>
-          <input type="text" placeholder="401" />
-        </label>
-        <label class="rooms-sheet__field">
-          <span>{{ 'ROOMS.SHEET.FLOOR' | translate }}</span>
-          <input type="text" inputmode="numeric" placeholder="4" />
-        </label>
-        <label class="rooms-sheet__field">
-          <span>{{ 'ROOMS.SHEET.TYPE' | translate }}</span>
-          <input type="text" placeholder="Deluxe" />
-        </label>
-        <label class="rooms-sheet__field">
-          <span>{{ 'ROOMS.SHEET.PRICE' | translate }}</span>
-          <input type="text" inputmode="numeric" placeholder="1800" />
-        </label>
-      </div>
-
-      <div class="rooms-sheet__footer">
-        <button type="button" class="rooms-sheet__save" (click)="showSaveToast()">
-          {{ 'ROOMS.SHEET.SAVE' | translate }}
+  <ion-modal
+    [isOpen]="isAddRoomOpen()"
+    [breakpoints]="addRoomBreakpoints"
+    [initialBreakpoint]="addRoomInitialBreakpoint"
+    [handle]="false"
+    [expandToScroll]="false"
+    [cssClass]="addRoomModalClass"
+    (didDismiss)="closeAddRoom()"
+  >
+    <ng-template>
+      <div class="form-sheet" role="dialog" aria-labelledby="add-room-title">
+        <button
+          type="button"
+          class="form-sheet__close"
+          [attr.aria-label]="'COMMON.CLOSE' | translate"
+          (click)="closeAddRoom()"
+        >
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M18 6 6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="m6 6 12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
         </button>
-      </div>
 
-      @if (isSaveToastVisible()) {
-        <div class="rooms-sheet__toast" role="status" aria-live="polite">
-          <span class="rooms-sheet__toast-icon">
-            <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
-              <circle cx="12" cy="12" r="10" fill="currentColor" opacity="0.12"></circle>
-              <path d="m9 12 2 2 4-4" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"></path>
-            </svg>
-          </span>
-          <span>{{ 'ROOMS.SHEET.SAVED' | translate }}</span>
+        <div class="form-sheet__header">
+          <h2 id="add-room-title" class="form-sheet__title">{{ 'ROOMS.SHEET.TITLE' | translate }}</h2>
         </div>
-      }
-    </div>
-  }
+
+        <div class="form-sheet__grid">
+          <label class="form-sheet__field">
+            <span>{{ 'ROOMS.SHEET.NUMBER' | translate }}</span>
+            <input type="text" placeholder="401" value="401" />
+          </label>
+          <label class="form-sheet__field">
+            <span>{{ 'ROOMS.SHEET.FLOOR' | translate }}</span>
+            <input type="text" inputmode="numeric" placeholder="4" value="4" />
+          </label>
+          <label class="form-sheet__field">
+            <span>{{ 'ROOMS.SHEET.TYPE' | translate }}</span>
+            <select [value]="selectedRoomType()" (change)="onRoomTypeChange($event)">
+              @for (type of roomTypes; track type) {
+                <option [value]="type">{{ type }}</option>
+              }
+            </select>
+          </label>
+          <label class="form-sheet__field">
+            <span>{{ 'ROOMS.SHEET.PRICE' | translate }}</span>
+            <input type="text" inputmode="numeric" placeholder="1800" value="1800" />
+          </label>
+        </div>
+
+        <div class="form-sheet__footer">
+          <button type="button" class="form-sheet__save" (click)="showSaveToast()">
+            {{ 'ROOMS.SHEET.SAVE' | translate }}
+          </button>
+        </div>
+      </div>
+    </ng-template>
+  </ion-modal>
 </div>

@@ -41,3 +41,243 @@ body,
 ion-app {
   font-family: var(--font-sans);
 }
+
+/* Hide all scrollbars app-wide; scrolling still works */
+* {
+  scrollbar-width: none; /* Firefox */
+  -ms-overflow-style: none; /* IE / old Edge */
+}
+
+*::-webkit-scrollbar {
+  display: none !important;
+  width: 0 !important;
+  height: 0 !important;
+  background: transparent !important;
+}
+
+/* Ionic scroll containers */
+ion-content::part(scroll),
+ion-modal::part(content) {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+.hide-scrollbar,
+.dashboard-table,
+.bookings-table-wrap,
+.rooms-table-wrap,
+.rooms-filters,
+.bookings-filters,
+.shell-page__main,
+.sidebar__nav {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+    width: 0;
+    height: 0;
+  }
+}
+
+/*
+ * Shared Add Room / New Booking sheet
+ * Full-width bottom sheet (covers over sidebar area), rounded top — web + mobile.
+ */
+ion-modal.app-form-modal {
+  --width: 100%;
+  --max-width: 100%;
+  --height: auto;
+  --max-height: 92vh;
+  --border-radius: 24px 24px 0 0;
+  --box-shadow: 0 -10px 32px rgba(15, 23, 42, 0.14);
+  --backdrop-opacity: 0.55;
+  --background: #ffffff;
+  /* Keep sheet flush to the physical bottom (no grey strip under white). */
+  --ion-safe-area-bottom: 0px;
+}
+
+ion-modal.app-form-modal::part(content) {
+  border-radius: 24px 24px 0 0 !important;
+  border-bottom-left-radius: 0 !important;
+  border-bottom-right-radius: 0 !important;
+  margin-bottom: 0 !important;
+  bottom: 0 !important;
+  overflow: hidden;
+}
+
+ion-modal.app-form-modal::part(handle) {
+  background: #d1d5db;
+  width: 40px;
+}
+
+.app-form-modal .form-sheet {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 8px 0 0;
+  background: #ffffff;
+  font-family: var(--font-sans);
+  /* Extend white under the home-indicator / safe area */
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+.app-form-modal .form-sheet__close {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 2;
+  display: inline-flex;
+  width: 32px;
+  height: 32px;
+  align-items: center;
+  justify-content: center;
+  margin: 0;
+  padding: 0;
+  border: 1px solid #e5e7eb;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #6b7280;
+  cursor: pointer;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.06);
+}
+
+.app-form-modal .form-sheet__close:hover {
+  background: #f9fafb;
+  color: #111827;
+}
+
+.app-form-modal .form-sheet__close svg {
+  width: 16px;
+  height: 16px;
+}
+
+.app-form-modal .form-sheet__header {
+  padding: 20px 56px 8px 24px;
+  text-align: left;
+}
+
+.app-form-modal .form-sheet__title {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 600;
+  line-height: 1.3;
+  color: #111827;
+}
+
+.app-form-modal .form-sheet__grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 16px;
+  padding: 12px 24px 8px;
+}
+
+.app-form-modal .form-sheet__field {
+  display: grid;
+  gap: 8px;
+  min-width: 0;
+}
+
+.app-form-modal .form-sheet__field--full {
+  grid-column: 1 / -1;
+}
+
+.app-form-modal .form-sheet__field span {
+  font-size: 14px;
+  font-weight: 500;
+  color: #111827;
+}
+
+.app-form-modal .form-sheet__field input,
+.app-form-modal .form-sheet__field select {
+  width: 100%;
+  height: 48px;
+  padding: 0 14px;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  background: #ffffff;
+  color: #111827;
+  font: inherit;
+  font-size: 14px;
+  outline: none;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.04);
+  box-sizing: border-box;
+}
+
+.app-form-modal .form-sheet__field input:focus,
+.app-form-modal .form-sheet__field select:focus {
+  border-color: #94a3b8;
+}
+
+.app-form-modal .form-sheet__field select {
+  appearance: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='24' viewBox='0 0 24 24' fill='none' stroke='%236b7280' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='m6 9 6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat: no-repeat;
+  background-position: right 12px center;
+  background-size: 16px;
+  padding-right: 40px;
+  cursor: pointer;
+}
+
+.app-form-modal .form-sheet__footer {
+  padding: 16px 24px 20px;
+}
+
+.app-form-modal .form-sheet__save {
+  width: 100%;
+  height: 48px;
+  border: 0;
+  border-radius: 16px;
+  background: var(--brand-primary, #1d3e9f);
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 8px 20px rgba(29, 62, 159, 0.2);
+}
+
+.app-form-modal .form-sheet__save:hover {
+  filter: brightness(1.05);
+}
+
+@media (min-width: 640px) {
+  .app-form-modal .form-sheet__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px 20px;
+    padding: 12px 28px 8px;
+  }
+
+  .app-form-modal .form-sheet__header {
+    padding: 22px 64px 10px 28px;
+  }
+
+  .app-form-modal .form-sheet__footer {
+    padding: 16px 28px 28px;
+  }
+
+  .app-form-modal .form-sheet__close {
+    top: 18px;
+    right: 20px;
+  }
+}
+
+/* Hide scrollbars but keep scrolling (tables / chip rows on narrow widths) */
+.hide-scrollbar {
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+    width: 0;
+    height: 0;
+  }
+}
+
+/* Green success toast sits above shell chrome on web */
+ion-toast.app-toast--web {
+  --width: auto;
+  --max-width: min(420px, calc(100vw - 32px));
+  transform: translateY(12px);
+}

@@ -5,7 +5,7 @@
       <p class="bookings-page__subtitle">{{ subtitle | translate }}</p>
     </div>
 
-    <ion-button class="bookings-page__cta" fill="solid">
+    <ion-button class="bookings-page__cta" fill="solid" (click)="openNewBooking()">
       <ion-icon slot="start" name="add-outline"></ion-icon>
       {{ 'BOOKINGS.NEW_BOOKING' | translate }}
     </ion-button>
@@ -98,21 +98,103 @@
       </table>
     </div>
   </section>
-</div>
 
-@if (invoiceToasts().length) {
-  <div class="invoice-toast-stack" aria-live="polite" aria-relevant="additions">
-    @for (toast of invoiceToasts(); track trackToast($index, toast); let i = $index) {
-      <div
-        class="invoice-toast"
-        role="status"
-        [class.invoice-toast--front]="stackDepth(i) === 0"
-        [class.invoice-toast--enter]="toast.enter"
-        [style.--stack-depth]="stackDepth(i)"
-        [style.z-index]="i + 1"
-      >
-        {{ 'BOOKINGS.INVOICE_READY' | translate }}
+  <ion-modal
+    [isOpen]="isNewBookingOpen()"
+    [breakpoints]="bookingBreakpoints"
+    [initialBreakpoint]="bookingInitialBreakpoint"
+    [handle]="false"
+    [expandToScroll]="false"
+    [cssClass]="bookingModalClass"
+    (didDismiss)="closeNewBooking()"
+  >
+    <ng-template>
+      <div class="form-sheet" role="dialog" aria-labelledby="new-booking-title">
+        <button
+          type="button"
+          class="form-sheet__close"
+          [attr.aria-label]="'COMMON.CLOSE' | translate"
+          (click)="closeNewBooking()"
+        >
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M18 6 6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="m6 6 12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+
+        <div class="form-sheet__header">
+          <h2 id="new-booking-title" class="form-sheet__title">
+            {{ 'BOOKINGS.SHEET.TITLE' | translate }}
+          </h2>
+        </div>
+
+        <div class="form-sheet__grid">
+          <label class="form-sheet__field">
+            <span>{{ 'BOOKINGS.SHEET.GUEST' | translate }}</span>
+            <input type="text" [placeholder]="'BOOKINGS.SHEET.GUEST_PH' | translate" />
+          </label>
+
+          <label class="form-sheet__field">
+            <span>{{ 'BOOKINGS.SHEET.PHONE' | translate }}</span>
+            <input type="text" inputmode="tel" [placeholder]="'BOOKINGS.SHEET.PHONE_PH' | translate" />
+          </label>
+
+          <label class="form-sheet__field">
+            <span>{{ 'BOOKINGS.SHEET.ROOM' | translate }}</span>
+            <select [value]="selectedRoom()" (change)="onRoomChange($event)">
+              @for (room of availableRooms; track room.id) {
+                <option [value]="room.number">
+                  {{ room.number }} · {{ room.type }}
+                </option>
+              }
+            </select>
+          </label>
+
+          <label class="form-sheet__field">
+            <span>{{ 'BOOKINGS.SHEET.SOURCE' | translate }}</span>
+            <select [value]="selectedSource()" (change)="onSourceChange($event)">
+              @for (source of sourceOptions; track source) {
+                <option [value]="source">{{ sourceLabelKey(source) | translate }}</option>
+              }
+            </select>
+          </label>
+
+          <label class="form-sheet__field">
+            <span>{{ 'BOOKINGS.SHEET.CHECK_IN' | translate }}</span>
+            <input type="text" value="06 Aug" />
+          </label>
+
+          <label class="form-sheet__field">
+            <span>{{ 'BOOKINGS.SHEET.CHECK_OUT' | translate }}</span>
+            <input type="text" value="06 Aug" />
+          </label>
+
+          <label class="form-sheet__field">
+            <span>{{ 'BOOKINGS.SHEET.AMOUNT' | translate }}</span>
+            <input type="text" inputmode="numeric" placeholder="1800" />
+          </label>
+
+          <label class="form-sheet__field">
+            <span>{{ 'BOOKINGS.SHEET.ADVANCE' | translate }}</span>
+            <input type="text" inputmode="numeric" placeholder="0" />
+          </label>
+
+          <label class="form-sheet__field form-sheet__field--full">
+            <span>{{ 'BOOKINGS.SHEET.PAYMENT' | translate }}</span>
+            <select [value]="selectedPayment()" (change)="onPaymentChange($event)">
+              @for (method of paymentOptions; track method) {
+                <option [value]="method">{{ paymentLabelKey(method) | translate }}</option>
+              }
+            </select>
+          </label>
+        </div>
+
+        <div class="form-sheet__footer">
+          <button type="button" class="form-sheet__save" (click)="showSaveToast()">
+            {{ 'BOOKINGS.SHEET.SAVE' | translate }}
+          </button>
+        </div>
       </div>
-    }
-  </div>
-}
+    </ng-template>
+  </ion-modal>
+</div>
