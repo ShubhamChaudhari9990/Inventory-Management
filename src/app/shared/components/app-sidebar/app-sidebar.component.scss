@@ -39,20 +39,21 @@
 }
 
 .sidebar__logo {
-  width: 36px;
-  height: 36px;
+  width: 44px;
+  height: 44px;
   flex-shrink: 0;
-  background: var(--brand-primary, #6688ee);
-  color: #ffffff;
-  font-size: 13px;
-  font-weight: 700;
-  letter-spacing: 0.02em;
+  overflow: hidden;
+  background: #ffffff;
+  border: 1px solid rgba(17, 24, 39, 0.1);
 
-  span {
-    display: grid;
-    place-items: center;
+  img {
     width: 100%;
     height: 100%;
+    object-fit: contain;
+    display: block;
+    padding: 3px;
+    box-sizing: border-box;
+    image-rendering: -webkit-optimize-contrast;
   }
 }
 

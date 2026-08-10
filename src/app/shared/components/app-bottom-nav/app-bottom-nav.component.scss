@@ -7,7 +7,8 @@
   grid-template-columns: repeat(5, minmax(0, 1fr));
   max-width: 430px;
   margin: 0 auto;
-  padding: 6px 0 calc(6px + env(safe-area-inset-bottom, 0));
+  /* Bottom inset is on ion-app; avoid double padding here. */
+  padding: 6px 0;
   background: #ffffff;
   border: 0;
   box-shadow: none;

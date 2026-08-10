@@ -20,7 +20,6 @@ import {
   eyeOffOutline,
   eyeOutline,
   languageOutline,
-  leaf,
   lockClosedOutline,
   mailOutline,
   personOutline,
@@ -82,7 +81,6 @@ export class RegisterPage {
 
   constructor() {
     addIcons({
-      leaf,
       languageOutline,
       personOutline,
       mailOutline,
