@@ -18,7 +18,6 @@ import {
   fingerPrintOutline,
   informationCircleOutline,
   keyOutline,
-  leaf,
 } from 'ionicons/icons';
 
 import { AuthService } from '../services/auth.service';
@@ -50,7 +49,6 @@ export class LoginPage implements OnInit {
 
   constructor() {
     addIcons({
-      leaf,
       eyeOutline,
       eyeOffOutline,
       arrowForwardOutline,

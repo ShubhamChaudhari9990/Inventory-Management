@@ -9,7 +9,14 @@
     "build": "ng build",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
-    "lint": "ng lint"
+    "lint": "ng lint",
+    "build:android": "ng build && npx cap sync android && node scripts/ensure-offline-capacitor-config.js",
+    "apk:android": "npm run build:android && npm run assemble:android",
+    "assemble:android": "cd android && gradlew.bat assembleDebug",
+    "clean:android": "cd android && gradlew.bat --stop",
+    "open:android": "npx cap open android",
+    "serve-android": "ionic cap run android -l --external",
+    "apk:share": "npm run apk:android"
   },
   "private": true,
   "dependencies": {

@@ -42,6 +42,47 @@ ion-app {
   font-family: var(--font-sans);
 }
 
+/*
+ * Safe-area CSS vars (fallback for web / iOS).
+ * On Android the native MainActivity already pads the WebView for
+ * status bar, punch-hole, and nav buttons — do NOT also pad ion-app
+ * or content will be double-inset on some devices.
+ */
+:root {
+  --app-safe-top: var(--safe-area-inset-top, env(safe-area-inset-top, 0px));
+  --app-safe-right: var(--safe-area-inset-right, env(safe-area-inset-right, 0px));
+  --app-safe-bottom: var(--safe-area-inset-bottom, env(safe-area-inset-bottom, 0px));
+  --app-safe-left: var(--safe-area-inset-left, env(safe-area-inset-left, 0px));
+
+  --ion-safe-area-top: var(--app-safe-top);
+  --ion-safe-area-right: var(--app-safe-right);
+  --ion-safe-area-bottom: var(--app-safe-bottom);
+  --ion-safe-area-left: var(--app-safe-left);
+}
+
+html,
+body {
+  height: 100%;
+  width: 100%;
+  margin: 0;
+  overflow: hidden;
+  background: #ffffff;
+}
+
+ion-app {
+  background: #ffffff;
+  box-sizing: border-box;
+  /* iOS / web: pad with safe-area. Android uses MainActivity insets instead. */
+  padding-top: var(--app-safe-top);
+  padding-right: var(--app-safe-right);
+  padding-bottom: var(--app-safe-bottom);
+  padding-left: var(--app-safe-left);
+}
+
+html.native-android ion-app {
+  padding: 0;
+}
+
 /* Hide all scrollbars app-wide; scrolling still works */
 * {
   scrollbar-width: none; /* Firefox */
@@ -121,7 +162,7 @@ ion-modal.app-form-modal::part(handle) {
   background: #ffffff;
   font-family: var(--font-sans);
   /* Extend white under the home-indicator / safe area */
-  padding-bottom: env(safe-area-inset-bottom, 0px);
+  padding-bottom: var(--app-safe-bottom);
 }
 
 .app-form-modal .form-sheet__close {

@@ -7,7 +7,6 @@ import {
   checkmarkCircle,
   globeOutline,
   languageOutline,
-  leaf,
   textOutline,
 } from 'ionicons/icons';
 
@@ -55,7 +54,6 @@ export class LanguageSelectionPage implements OnInit {
 
   constructor() {
     addIcons({
-      leaf,
       languageOutline,
       globeOutline,
       textOutline,

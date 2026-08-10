@@ -24,16 +24,22 @@
 }
 
 .brand-logo {
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
-  background: var(--brand-primary);
-  display: grid;
-  place-items: center;
+  width: 56px;
+  height: 56px;
+  border-radius: 14px;
+  overflow: hidden;
+  flex-shrink: 0;
+  background: #ffffff;
+  border: 1px solid rgba(17, 24, 39, 0.1);
 
-  ion-icon {
-    color: #ffffff;
-    font-size: 20px;
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    display: block;
+    padding: 5px;
+    box-sizing: border-box;
+    image-rendering: -webkit-optimize-contrast;
   }
 }
 
