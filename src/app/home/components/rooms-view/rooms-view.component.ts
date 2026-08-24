@@ -16,6 +16,8 @@ import {
   RoomViewMode,
 } from '../../data/rooms.data';
 
+import { LodgeDataService } from '../../../services/lodge-data.service';
+
 @Component({
   selector: 'app-rooms-view',
   templateUrl: './rooms-view.component.html',
@@ -24,10 +26,11 @@ import {
 })
 export class RoomsViewComponent {
   private readonly appToast = inject(AppToastService);
+  private readonly lodgeData = inject(LodgeDataService);
 
   readonly subtitle = ROOM_VIEW_SUBTITLE;
   readonly filters = ROOM_STATUS_FILTERS;
-  readonly rooms = ROOM_ITEMS;
+  readonly rooms = this.lodgeData.rooms;
 
   readonly roomFilterLabelKey = roomFilterLabelKey;
   readonly statusLabelKey = statusLabelKey;
@@ -48,7 +51,7 @@ export class RoomsViewComponent {
     const query = this.query().trim().toLowerCase();
     const filter = this.activeFilter();
 
-    return this.rooms.filter((room) => {
+    return this.rooms().filter((room) => {
       const matchesFilter = filter === 'All' || room.status === filter;
       const matchesQuery =
         !query ||
@@ -91,8 +94,22 @@ export class RoomsViewComponent {
     }
   }
 
-  showSaveToast(): void {
-    void this.appToast.show('ROOMS.SHEET.SAVED');
+  async saveRoom(numInput: HTMLInputElement, floorInput: HTMLInputElement, priceInput: HTMLInputElement): Promise<void> {
+    const roomNumber = numInput?.value?.trim() || '401';
+    const floor = floorInput?.value?.trim() || '4';
+    const rawPrice = priceInput?.value?.trim() || '1800';
+    const price = rawPrice.startsWith('₹') ? rawPrice : `₹${rawPrice}`;
+
+    await this.lodgeData.addRoom({
+      number: roomNumber,
+      floor,
+      type: this.selectedRoomType(),
+      status: 'Available',
+      price,
+    });
+
+    this.closeAddRoom();
+    await this.appToast.show('ROOMS.SHEET.SAVED');
   }
 
   trackRoom(_: number, room: RoomItem): string {

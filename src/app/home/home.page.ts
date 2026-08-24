@@ -47,6 +47,8 @@ import {
 } from './data/dashboard.data';
 import { MORE_MENU_ITEMS, MoreMenuItem } from './data/more-menu.data';
 
+import { LodgeDataService } from '../services/lodge-data.service';
+
 @Component({
   selector: 'app-home',
   templateUrl: 'home.page.html',
@@ -76,18 +78,78 @@ import { MORE_MENU_ITEMS, MoreMenuItem } from './data/more-menu.data';
 })
 export class HomePage implements ViewWillEnter {
   private readonly router = inject(Router);
+  private readonly lodgeData = inject(LodgeDataService);
 
   readonly activeNavId = signal(DEFAULT_NAV_ID);
   readonly todayLabel = 'DASHBOARD.SUBTITLE';
-  readonly kpis = DASHBOARD_KPIS;
+
+  readonly dynamicKpis = computed(() => {
+    const rooms = this.lodgeData.rooms();
+    const inventory = this.lodgeData.inventory();
+    const staff = this.lodgeData.staff();
+    const bookings = this.lodgeData.bookings();
+
+    const availableCount = rooms.filter((r) => r.status === 'Available').length;
+    const occupiedCount = rooms.filter((r) => r.status === 'Occupied').length;
+    const lowStockCount = inventory.filter((i) => i.status === 'Low Stock Alerts' || i.quantity <= i.min).length;
+    const staffPresentCount = staff.filter((s) => s.status === 'Present').length;
+
+    return DASHBOARD_KPIS.map((kpi) => {
+      if (kpi.id === 'available') return { ...kpi, value: String(availableCount) };
+      if (kpi.id === 'occupied') return { ...kpi, value: String(occupiedCount) };
+      if (kpi.id === 'low-stock') return { ...kpi, value: String(lowStockCount) };
+      if (kpi.id === 'staff-present') return { ...kpi, value: String(staffPresentCount) };
+      return kpi;
+    });
+  });
+
+  get kpis() {
+    return this.dynamicKpis();
+  }
+
+  readonly dynamicRoomStatusChart = computed(() => {
+    const rooms = this.lodgeData.rooms();
+    const available = rooms.filter((r) => r.status === 'Available').length;
+    const occupied = rooms.filter((r) => r.status === 'Occupied').length;
+    const reserved = rooms.filter((r) => r.status === 'Reserved').length;
+    const cleaning = rooms.filter((r) => r.status === 'Cleaning').length;
+    const maintenance = rooms.filter((r) => r.status === 'Maintenance').length;
+
+    return {
+      ...ROOM_STATUS_CHART,
+      series: [available, occupied, reserved, cleaning, maintenance],
+    };
+  });
+
+  get roomStatusChart() {
+    return this.dynamicRoomStatusChart();
+  }
+
+  readonly dynamicRecentBookings = computed(() => {
+    const list = this.lodgeData.bookings();
+    if (list.length === 0) return RECENT_BOOKINGS;
+    return list
+      .filter((b) => b.status !== 'Cancelled')
+      .slice(0, 5)
+      .map((b) => ({
+        guest: b.guestName,
+        room: `Room ${b.room}`,
+        checkIn: b.checkIn,
+        amount: b.amount,
+        status: (b.status === 'Paid' ? 'Paid' : 'Due') as 'Paid' | 'Due',
+      }));
+  });
+
+  get recentBookings() {
+    return this.dynamicRecentBookings();
+  }
+
   readonly moreMenuItems = MORE_MENU_ITEMS;
   readonly quickActions = QUICK_ACTIONS;
-  readonly recentBookings = RECENT_BOOKINGS;
   readonly recentPayments = RECENT_PAYMENTS;
   readonly recentActivity = RECENT_ACTIVITY;
   readonly roomStatusLegend = ROOM_STATUS_LEGEND;
   readonly revenueExpenseChart = REVENUE_EXPENSE_CHART;
-  readonly roomStatusChart = ROOM_STATUS_CHART;
   readonly monthlyRevenueChart = MONTHLY_REVENUE_CHART;
   readonly occupancyRateChart = OCCUPANCY_RATE_CHART;
   readonly bookingTrendChart = BOOKING_TREND_CHART;

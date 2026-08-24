@@ -131,12 +131,12 @@
         <div class="form-sheet__grid">
           <label class="form-sheet__field">
             <span>{{ 'BOOKINGS.SHEET.GUEST' | translate }}</span>
-            <input type="text" [placeholder]="'BOOKINGS.SHEET.GUEST_PH' | translate" />
+            <input #guestInput type="text" [placeholder]="'BOOKINGS.SHEET.GUEST_PH' | translate" />
           </label>
 
           <label class="form-sheet__field">
             <span>{{ 'BOOKINGS.SHEET.PHONE' | translate }}</span>
-            <input type="text" inputmode="tel" [placeholder]="'BOOKINGS.SHEET.PHONE_PH' | translate" />
+            <input #phoneInput type="text" inputmode="tel" [placeholder]="'BOOKINGS.SHEET.PHONE_PH' | translate" />
           </label>
 
           <label class="form-sheet__field">
@@ -161,22 +161,22 @@
 
           <label class="form-sheet__field">
             <span>{{ 'BOOKINGS.SHEET.CHECK_IN' | translate }}</span>
-            <input type="text" value="06 Aug" />
+            <input #checkInInput type="text" value="Today" />
           </label>
 
           <label class="form-sheet__field">
             <span>{{ 'BOOKINGS.SHEET.CHECK_OUT' | translate }}</span>
-            <input type="text" value="06 Aug" />
+            <input #checkOutInput type="text" value="Tomorrow" />
           </label>
 
           <label class="form-sheet__field">
             <span>{{ 'BOOKINGS.SHEET.AMOUNT' | translate }}</span>
-            <input type="text" inputmode="numeric" placeholder="1800" />
+            <input #amountInput type="text" inputmode="numeric" placeholder="1800" />
           </label>
 
           <label class="form-sheet__field">
             <span>{{ 'BOOKINGS.SHEET.ADVANCE' | translate }}</span>
-            <input type="text" inputmode="numeric" placeholder="0" />
+            <input #advanceInput type="text" inputmode="numeric" placeholder="0" />
           </label>
 
           <label class="form-sheet__field form-sheet__field--full">
@@ -190,7 +190,11 @@
         </div>
 
         <div class="form-sheet__footer">
-          <button type="button" class="form-sheet__save" (click)="showSaveToast()">
+          <button
+            type="button"
+            class="form-sheet__save"
+            (click)="saveBooking(guestInput, phoneInput, checkInInput, checkOutInput, amountInput, advanceInput)"
+          >
             {{ 'BOOKINGS.SHEET.SAVE' | translate }}
           </button>
         </div>

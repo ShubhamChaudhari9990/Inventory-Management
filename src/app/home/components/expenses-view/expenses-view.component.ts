@@ -1,9 +1,8 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { IonButton, IonIcon } from '@ionic/angular/standalone';
 import { TranslatePipe } from '@ngx-translate/core';
 
 import {
-  EXPENSE_CATEGORIES,
   EXPENSE_KPIS,
   EXPENSE_REVENUE_CHART,
   EXPENSES_SUBTITLE,
@@ -12,6 +11,7 @@ import {
 import { DashboardAxisChartComponent } from '../dashboard-charts/dashboard-charts.component';
 import { DashboardKpiCardComponent } from '../dashboard-kpi-card/dashboard-kpi-card.component';
 import { DashboardSectionCardComponent } from '../dashboard-section-card/dashboard-section-card.component';
+import { LodgeDataService } from '../../../services/lodge-data.service';
 
 @Component({
   selector: 'app-expenses-view',
@@ -27,10 +27,15 @@ import { DashboardSectionCardComponent } from '../dashboard-section-card/dashboa
   ],
 })
 export class ExpensesViewComponent {
+  private readonly lodgeData = inject(LodgeDataService);
+
   readonly subtitle = EXPENSES_SUBTITLE;
   readonly kpis = EXPENSE_KPIS;
   readonly revenueChart = EXPENSE_REVENUE_CHART;
-  readonly categories = EXPENSE_CATEGORIES;
+  
+  get categories() {
+    return this.lodgeData.expenses();
+  }
 
   trackCategory(_: number, category: ExpenseCategory): string {
     return category.id;

@@ -1,13 +1,13 @@
-import { Component, computed, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { IonButton, IonIcon } from '@ionic/angular/standalone';
 import { TranslatePipe } from '@ngx-translate/core';
 
 import { statusLabelKey } from '../../../shared/i18n/label-keys';
 import {
-  CUSTOMER_ITEMS,
   CUSTOMER_VIEW_SUBTITLE,
   CustomerItem,
 } from '../../data/customers.data';
+import { LodgeDataService } from '../../../services/lodge-data.service';
 
 @Component({
   selector: 'app-customers-view',
@@ -16,8 +16,10 @@ import {
   imports: [IonButton, IonIcon, TranslatePipe],
 })
 export class CustomersViewComponent {
+  private readonly lodgeData = inject(LodgeDataService);
+
   readonly subtitle = CUSTOMER_VIEW_SUBTITLE;
-  readonly customers = CUSTOMER_ITEMS;
+  readonly customers = this.lodgeData.customers;
 
   readonly statusLabelKey = statusLabelKey;
 
@@ -25,11 +27,12 @@ export class CustomersViewComponent {
 
   readonly filteredCustomers = computed(() => {
     const query = this.query().trim().toLowerCase();
+    const list = this.customers();
     if (!query) {
-      return this.customers;
+      return list;
     }
 
-    return this.customers.filter(
+    return list.filter(
       (customer) =>
         customer.name.toLowerCase().includes(query) ||
         customer.phone.toLowerCase().includes(query) ||

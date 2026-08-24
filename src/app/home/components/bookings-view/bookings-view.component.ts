@@ -18,6 +18,8 @@ import {
 import { ROOM_ITEMS } from '../../data/rooms.data';
 import { DashboardKpiCardComponent } from '../dashboard-kpi-card/dashboard-kpi-card.component';
 
+import { LodgeDataService } from '../../../services/lodge-data.service';
+
 export const BOOKING_SOURCE_OPTIONS = ['Walk-in', 'Advance', 'Online'] as const;
 export const BOOKING_PAYMENT_OPTIONS = [
   'Cash',
@@ -34,16 +36,18 @@ export const BOOKING_PAYMENT_OPTIONS = [
 })
 export class BookingsViewComponent {
   private readonly appToast = inject(AppToastService);
+  private readonly lodgeData = inject(LodgeDataService);
 
   readonly subtitle = BOOKING_VIEW_SUBTITLE;
   readonly kpis = BOOKING_KPIS;
   readonly filters = BOOKING_CHANNEL_FILTERS;
-  readonly bookings = BOOKING_ITEMS;
+  readonly bookings = this.lodgeData.bookings;
   readonly sourceOptions = BOOKING_SOURCE_OPTIONS;
   readonly paymentOptions = BOOKING_PAYMENT_OPTIONS;
-  readonly availableRooms = ROOM_ITEMS.filter(
-    (room) => room.status === 'Available',
-  );
+  
+  get availableRooms() {
+    return this.lodgeData.rooms().filter((room) => room.status === 'Available');
+  }
 
   readonly bookingFilterLabelKey = bookingFilterLabelKey;
   readonly statusLabelKey = statusLabelKey;
@@ -52,7 +56,7 @@ export class BookingsViewComponent {
   readonly activeFilter = signal<BookingChannel>('All');
   readonly isNewBookingOpen = signal(false);
 
-  readonly selectedRoom = signal(this.availableRooms[0]?.number ?? '');
+  readonly selectedRoom = signal('');
   readonly selectedSource = signal<(typeof BOOKING_SOURCE_OPTIONS)[number]>(
     'Walk-in',
   );
@@ -69,7 +73,7 @@ export class BookingsViewComponent {
     const query = this.query().trim().toLowerCase();
     const filter = this.activeFilter();
 
-    return this.bookings.filter((booking) => {
+    return this.bookings().filter((booking) => {
       const matchesFilter = filter === 'All' || booking.channel === filter;
       const matchesQuery =
         !query ||
@@ -94,6 +98,10 @@ export class BookingsViewComponent {
   }
 
   openNewBooking(): void {
+    const avail = this.availableRooms;
+    if (avail.length > 0 && !this.selectedRoom()) {
+      this.selectedRoom.set(avail[0].number);
+    }
     this.isNewBookingOpen.set(true);
   }
 
@@ -126,8 +134,43 @@ export class BookingsViewComponent {
     void this.appToast.show('BOOKINGS.INVOICE_READY', 3200);
   }
 
-  showSaveToast(): void {
-    void this.appToast.show('BOOKINGS.SHEET.SAVED');
+  async saveBooking(
+    guestInput: HTMLInputElement,
+    phoneInput: HTMLInputElement,
+    checkInInput: HTMLInputElement,
+    checkOutInput: HTMLInputElement,
+    amountInput: HTMLInputElement,
+    advanceInput: HTMLInputElement,
+  ): Promise<void> {
+    const guestName = guestInput?.value?.trim() || 'Guest User';
+    const guestPhone = phoneInput?.value?.trim() || '9876543210';
+    const checkIn = checkInInput?.value?.trim() || 'Today';
+    const checkOut = checkOutInput?.value?.trim() || 'Tomorrow';
+    const rawAmt = amountInput?.value?.trim() || '1800';
+    const amount = rawAmt.startsWith('₹') ? rawAmt : `₹${rawAmt}`;
+    const rawAdv = advanceInput?.value?.trim() || '0';
+    const advance = rawAdv.startsWith('₹') ? rawAdv : `₹${rawAdv}`;
+    const roomNum = this.selectedRoom() || (this.availableRooms[0]?.number ?? '101');
+
+    await this.lodgeData.addBooking({
+      guestName,
+      guestPhone,
+      room: roomNum,
+      checkIn,
+      checkOut,
+      amount,
+      advance,
+      status: 'Paid',
+      channel: this.selectedSource(),
+    });
+
+    const targetRoom = this.lodgeData.rooms().find((r) => r.number === roomNum);
+    if (targetRoom) {
+      await this.lodgeData.updateRoomStatus(targetRoom.id, 'Occupied');
+    }
+
+    this.closeNewBooking();
+    await this.appToast.show('BOOKINGS.SHEET.SAVED');
   }
 
   sourceLabelKey(source: string): string {

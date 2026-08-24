@@ -9,6 +9,7 @@ import { Preferences } from '@capacitor/preferences';
 import { TranslateService } from '@ngx-translate/core';
 
 import { AppToastService } from '../shared/services/app-toast.service';
+import { FirebaseService } from './firebase.service';
 
 const PASSKEY_CREDENTIAL_KEY = 'passkey_credential_id';
 
@@ -17,6 +18,7 @@ export class AuthService {
   private readonly router = inject(Router);
   private readonly appToast = inject(AppToastService);
   private readonly translate = inject(TranslateService);
+  private readonly firebaseService = inject(FirebaseService);
 
   async loginWithBiometric(): Promise<void> {
     try {
@@ -68,7 +70,18 @@ export class AuthService {
     }
   }
 
-  async loginWithPassword(): Promise<void> {
+  async loginWithPassword(email?: string, password?: string): Promise<void> {
+    if (email && password) {
+      try {
+        await this.firebaseService.login(email, password);
+        await this.showToast('AUTH.LOGIN_SUCCESS', 'success');
+        await this.navigateToDashboard();
+        return;
+      } catch (error: any) {
+        await this.showToast('AUTH.LOGIN_FAILED', 'danger');
+        return;
+      }
+    }
     await this.showToast('AUTH.LOGIN_SUCCESS', 'success');
     await this.navigateToDashboard();
   }

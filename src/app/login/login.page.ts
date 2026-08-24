@@ -69,7 +69,7 @@ export class LoginPage implements OnInit {
   }
 
   onLogin(): void {
-    void this.authService.loginWithPassword();
+    void this.authService.loginWithPassword(this.email, this.password);
   }
 
   onPasskeyLogin(): void {

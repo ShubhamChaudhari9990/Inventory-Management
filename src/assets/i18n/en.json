@@ -85,7 +85,8 @@
     "PASSKEY_UNAVAILABLE": "Passkeys are not supported on this device or browser.",
     "PASSKEY_FAILED": "Passkey authentication failed. Please try again.",
     "PASSKEY_SETUP": "Setting up your passkey...",
-    "LOGIN_SUCCESS": "Login successful! Redirecting to dashboard..."
+    "LOGIN_SUCCESS": "Login successful! Redirecting to dashboard...",
+    "LOGIN_FAILED": "Login failed. Please check your credentials."
   },
   "NAV": {
     "DASHBOARD": "Dashboard",

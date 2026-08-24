@@ -164,11 +164,11 @@
         <div class="form-sheet__grid">
           <label class="form-sheet__field">
             <span>{{ 'ROOMS.SHEET.NUMBER' | translate }}</span>
-            <input type="text" placeholder="401" value="401" />
+            <input #numInput type="text" placeholder="401" value="401" />
           </label>
           <label class="form-sheet__field">
             <span>{{ 'ROOMS.SHEET.FLOOR' | translate }}</span>
-            <input type="text" inputmode="numeric" placeholder="4" value="4" />
+            <input #floorInput type="text" inputmode="numeric" placeholder="4" value="4" />
           </label>
           <label class="form-sheet__field">
             <span>{{ 'ROOMS.SHEET.TYPE' | translate }}</span>
@@ -180,12 +180,12 @@
           </label>
           <label class="form-sheet__field">
             <span>{{ 'ROOMS.SHEET.PRICE' | translate }}</span>
-            <input type="text" inputmode="numeric" placeholder="1800" value="1800" />
+            <input #priceInput type="text" inputmode="numeric" placeholder="1800" value="1800" />
           </label>
         </div>
 
         <div class="form-sheet__footer">
-          <button type="button" class="form-sheet__save" (click)="showSaveToast()">
+          <button type="button" class="form-sheet__save" (click)="saveRoom(numInput, floorInput, priceInput)">
             {{ 'ROOMS.SHEET.SAVE' | translate }}
           </button>
         </div>
