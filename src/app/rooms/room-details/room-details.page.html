@@ -1,0 +1,237 @@
+<app-shell
+  [activeNavId]="'rooms'"
+  [breadcrumb]="room() ? 'Room ' + room()!.number : 'Room Details'"
+  (activeNavIdChange)="onNavChange($event)"
+>
+  <div class="room-details-page">
+    <div class="room-details-page__inner">
+      @if (room(); as r) {
+        <header class="details-topbar">
+          <button type="button" class="back-btn" (click)="goBack()">
+            <ion-icon name="arrow-back-outline"></ion-icon>
+            All Rooms
+          </button>
+
+          <div class="topbar-right">
+            <select
+              class="op-select"
+              [ngModel]="opStatus()"
+              (ngModelChange)="onStatusChange($event)"
+            >
+              <option value="active">Active</option>
+              <option value="cleaning">Cleaning</option>
+              <option value="maintenance">Maintenance</option>
+              @if (!isStaff()) {
+                <option value="blocked">Blocked</option>
+                <option value="inactive">Inactive</option>
+              }
+            </select>
+            @if (!isStaff()) {
+              <ion-button fill="solid" class="edit-btn" (click)="goToEdit()">
+                <ion-icon slot="start" name="create-outline"></ion-icon>
+                Edit Room
+              </ion-button>
+            }
+          </div>
+        </header>
+
+        <!-- Hero Card -->
+        <section class="hero-box">
+          <div class="hero-box__img">
+            @if (r.primaryImageUrl || (r.images && r.images[0])) {
+              <img [src]="r.primaryImageUrl || r.images![0]" [alt]="'Room ' + r.number" />
+            } @else {
+              <div class="hero-box__fallback">
+                <ion-icon name="bed-outline"></ion-icon>
+              </div>
+            }
+          </div>
+
+          <div class="hero-box__info">
+            <div class="badges">
+              <span class="badge badge--lodge">{{ lodgeName() }}</span>
+              <span class="badge badge--type">{{ r.type }}</span>
+              <span class="badge badge--op">{{ opStatus() }}</span>
+              <span class="badge badge--life">{{ r.status }}</span>
+            </div>
+            <h1>Room {{ r.number }} {{ r.roomName ? '· ' + r.roomName : '' }}</h1>
+            <p>Floor {{ r.floor }} · Max {{ r.maximumOccupancy || r.capacity || 2 }} Guests · {{ r.beds || 1 }} {{ r.bedConfiguration || 'Bed' }} · {{ r.price }}/night</p>
+          </div>
+        </section>
+
+        <!-- 8 Tabs -->
+        <nav class="tabs-bar">
+          <button type="button" [class.active]="activeTab() === 'overview'" (click)="activeTab.set('overview')">Overview</button>
+          @if (canViewBookings()) {
+            <button type="button" [class.active]="activeTab() === 'bookings'" (click)="activeTab.set('bookings')">Bookings ({{ roomBookings().length }})</button>
+          }
+          @if (!isStaff()) {
+            <button type="button" [class.active]="activeTab() === 'pricing'" (click)="activeTab.set('pricing')">Pricing</button>
+          }
+          <button type="button" [class.active]="activeTab() === 'amenities'" (click)="activeTab.set('amenities')">Amenities</button>
+          <button type="button" [class.active]="activeTab() === 'gallery'" (click)="activeTab.set('gallery')">Gallery</button>
+          <button type="button" [class.active]="activeTab() === 'housekeeping'" (click)="activeTab.set('housekeeping')">Housekeeping</button>
+          <button type="button" [class.active]="activeTab() === 'maintenance'" (click)="activeTab.set('maintenance')">Maintenance</button>
+          <button type="button" [class.active]="activeTab() === 'activity'" (click)="activeTab.set('activity')">Activity</button>
+        </nav>
+
+        <!-- TAB: OVERVIEW -->
+        @if (activeTab() === 'overview') {
+          <section class="info-grid">
+            <div class="card card--full">
+              <h3>Room Description</h3>
+              <p>{{ r.description || 'No description provided.' }}</p>
+            </div>
+
+            <div class="card">
+              <h3>Capacity & Configuration</h3>
+              <dl class="kv">
+                <div><dt>Floor</dt><dd>{{ r.floor }}</dd></div>
+                <div><dt>Max Adults / Children</dt><dd>{{ r.maximumAdults || 2 }} / {{ r.maximumChildren || 0 }}</dd></div>
+                <div><dt>Max Occupancy</dt><dd>{{ r.maximumOccupancy || r.capacity || 2 }} Guests</dd></div>
+                <div><dt>Beds</dt><dd>{{ r.beds || 1 }} × {{ r.bedConfiguration || 'Standard' }}</dd></div>
+              </dl>
+            </div>
+
+            <div class="card">
+              <h3>Policies & Notes</h3>
+              <dl class="kv">
+                <div><dt>Room Size</dt><dd>{{ r.roomSize || '—' }}</dd></div>
+                <div><dt>Smoking Policy</dt><dd>{{ r.smokingPolicy || 'Non-Smoking' }}</dd></div>
+                <div><dt>Accessibility</dt><dd>{{ r.accessibilityInfo || '—' }}</dd></div>
+                <div><dt>Last Cleaned</dt><dd>{{ r.lastCleaned ? (r.lastCleaned | date:'medium') : '—' }}</dd></div>
+              </dl>
+            </div>
+          </section>
+        }
+
+        <!-- TAB: BOOKINGS -->
+        @if (activeTab() === 'bookings' && canViewBookings()) {
+          <section class="card">
+            <h3>Bookings for Room {{ r.number }}</h3>
+            @if (roomBookings().length > 0) {
+              <div class="table-wrap">
+                <table class="mini-table">
+                  <thead>
+                    <tr>
+                      <th>Booking ID</th>
+                      <th>Guest</th>
+                      <th>Check-in</th>
+                      <th>Check-out</th>
+                      <th>Amount</th>
+                      <th>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (b of roomBookings(); track b.id) {
+                      <tr>
+                        <td><strong>{{ b.id }}</strong></td>
+                        <td>{{ b.guestName }}</td>
+                        <td>{{ b.checkIn }}</td>
+                        <td>{{ b.checkOut }}</td>
+                        <td>{{ b.amount }}</td>
+                        <td><span class="status-tag">{{ b.status }}</span></td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            } @else {
+              <p class="muted">No bookings found for this room.</p>
+            }
+          </section>
+        }
+
+        <!-- TAB: PRICING -->
+        @if (activeTab() === 'pricing' && !isStaff()) {
+          <section class="card">
+            <h3>Pricing Configuration</h3>
+            <dl class="kv">
+              <div><dt>Base Rate</dt><dd>{{ r.price }}</dd></div>
+              <div><dt>Weekday Rate</dt><dd>₹{{ (r.weekdayPrice || r.basePrice || 0).toLocaleString('en-IN') }}</dd></div>
+              <div><dt>Weekend Rate</dt><dd>₹{{ (r.weekendPrice || r.basePrice || 0).toLocaleString('en-IN') }}</dd></div>
+              <div><dt>Extra Adult Charge</dt><dd>₹{{ r.extraAdultCharge || 0 }}</dd></div>
+              <div><dt>Extra Child Charge</dt><dd>₹{{ r.extraChildCharge || 0 }}</dd></div>
+              <div><dt>Tax Rate</dt><dd>{{ r.taxConfiguration?.taxRate ?? 12 }}% ({{ r.taxConfiguration?.taxInclusive ? 'Inclusive' : 'Exclusive' }})</dd></div>
+            </dl>
+          </section>
+        }
+
+        <!-- TAB: AMENITIES -->
+        @if (activeTab() === 'amenities') {
+          <section class="card">
+            <h3>Amenities</h3>
+            <div class="chip-wrap">
+              @for (a of (r.amenities || []); track a) {
+                <span class="chip">{{ a }}</span>
+              } @empty {
+                <p class="muted">No amenities listed.</p>
+              }
+            </div>
+          </section>
+        }
+
+        <!-- TAB: GALLERY -->
+        @if (activeTab() === 'gallery') {
+          <section class="card">
+            <h3>Room Gallery</h3>
+            @if ((r.images && r.images.length > 0)) {
+              <div class="gal-grid">
+                @for (url of r.images!; track url) {
+                  <img [src]="url" [alt]="'Room ' + r.number" />
+                }
+              </div>
+            } @else {
+              <p class="muted">No images uploaded for this room.</p>
+            }
+          </section>
+        }
+
+        <!-- TAB: HOUSEKEEPING -->
+        @if (activeTab() === 'housekeeping') {
+          <section class="card">
+            <h3>Housekeeping Schedule</h3>
+            @for (h of roomHousekeeping(); track h.id) {
+              <div class="list-row">
+                <strong>{{ h.status }} · {{ h.priority }}</strong>
+                <span>Assigned to: {{ h.assignedTo || h.assignee || 'Unassigned' }} · {{ h.time }}</span>
+              </div>
+            } @empty {
+              <p class="muted">No housekeeping tasks logged for this room.</p>
+            }
+          </section>
+        }
+
+        <!-- TAB: MAINTENANCE -->
+        @if (activeTab() === 'maintenance') {
+          <section class="card">
+            <h3>Maintenance Status</h3>
+            <p>Current Operational Status: <strong>{{ opStatus() }}</strong></p>
+            @if (r.internalNotes) {
+              <p class="muted">Notes: {{ r.internalNotes }}</p>
+            }
+          </section>
+        }
+
+        <!-- TAB: ACTIVITY -->
+        @if (activeTab() === 'activity') {
+          <section class="card">
+            <h3>Activity History</h3>
+            @for (act of activity(); track act.id) {
+              <div class="list-row">
+                <strong>{{ act.action }}</strong>
+                <span>{{ act.details }} · {{ act.performedBy }} ({{ act.timestamp | date:'short' }})</span>
+              </div>
+            } @empty {
+              <p class="muted">No recent activity recorded.</p>
+            }
+          </section>
+        }
+      } @else {
+        <div class="card">
+          <p class="muted">Loading room details...</p>
+        </div>
+      }
+    </div>
+  </div>
+</app-shell>

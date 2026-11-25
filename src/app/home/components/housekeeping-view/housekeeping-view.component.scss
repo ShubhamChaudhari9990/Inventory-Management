@@ -7,8 +7,23 @@
   gap: 16px;
 }
 
+.hk-page__hero {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
 .hk-page__hero-copy {
   min-width: 0;
+}
+
+.hk-page__cta {
+  --background: linear-gradient(135deg, #1d3e9f 0%, #2563eb 100%);
+  --border-radius: 12px;
+  font-weight: 600;
+  margin: 0;
 }
 
 .hk-page__title {
@@ -122,6 +137,57 @@
   color: #c2410c;
 }
 
+.hk-status--verified {
+  background: #eff6ff;
+  color: #1d4ed8;
+}
+
+.hk-list__actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.hk-action-buttons {
+  display: flex;
+  gap: 6px;
+}
+
+.btn-hk-act {
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  border: 1px solid #cbd5e1;
+  background: #ffffff;
+  color: #334155;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  &:hover {
+    background: #f1f5f9;
+  }
+
+  &.btn-done {
+    color: #15803d;
+    border-color: #86efac;
+    &:hover { background: #dcfce7; }
+  }
+
+  &.btn-verify {
+    color: #1d4ed8;
+    border-color: #93c5fd;
+    &:hover { background: #eff6ff; }
+  }
+}
+
+.empty-hk {
+  padding: 24px;
+  text-align: center;
+  color: #94a3b8;
+  font-size: 0.88rem;
+}
+
 .hk-check {
   display: grid;
   gap: 12px;
@@ -161,6 +227,24 @@
   line-height: 1.35;
   color: var(--text-primary, #111827);
   cursor: pointer;
+}
+
+@media (max-width: 640px) {
+  .hk-page__hero {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .hk-page__title {
+    white-space: normal;
+    font-size: 19px;
+  }
+
+  .hk-page__cta {
+    width: 100%;
+    margin: 0;
+  }
 }
 
 @media (min-width: 640px) {

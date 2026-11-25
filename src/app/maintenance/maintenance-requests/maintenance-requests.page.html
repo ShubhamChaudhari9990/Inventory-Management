@@ -1,0 +1,172 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar class="ops-toolbar">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/operations"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Maintenance Requests</ion-title>
+    <ion-buttons slot="end">
+      <button class="btn-add" (click)="showForm.set(!showForm())">
+        <ion-icon [name]="showForm() ? 'close-outline' : 'add-outline'"></ion-icon>
+        {{ showForm() ? 'Close' : 'Report Issue' }}
+      </button>
+    </ion-buttons>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ops-content">
+  <div class="ops-container">
+    @if (showForm()) {
+      <section class="form-card">
+        <h3>Report Maintenance Request</h3>
+        <div class="form-grid">
+          <div class="field">
+            <label>Lodge *</label>
+            <select [ngModel]="formLodgeId()" (ngModelChange)="formLodgeId.set($event); formRoomId.set('')">
+              <option value="">Select lodge...</option>
+              @for (prop of accessibleProperties(); track prop.id) {
+                <option [value]="prop.id">{{ prop.name }}</option>
+              }
+            </select>
+          </div>
+          <div class="field">
+            <label>Room (leave blank for Common Area)</label>
+            <select [ngModel]="formRoomId()" (ngModelChange)="formRoomId.set($event)">
+              <option value="">Common Area / Non-Room</option>
+              @for (r of roomsForFormLodge(); track r.id) {
+                <option [value]="r.id">Room {{ r.number }} ({{ r.type }})</option>
+              }
+            </select>
+          </div>
+          @if (!formRoomId()) {
+            <div class="field">
+              <label>Common Area Name</label>
+              <input type="text" placeholder="e.g., Lobby, Corridor 2F" [ngModel]="formAreaName()" (ngModelChange)="formAreaName.set($event)" />
+            </div>
+          }
+          <div class="field">
+            <label>Category *</label>
+            <select [ngModel]="formCategory()" (ngModelChange)="formCategory.set($event)">
+              @for (c of categories; track c) {
+                <option [value]="c">{{ c }}</option>
+              }
+            </select>
+          </div>
+          <div class="field">
+            <label>Priority *</label>
+            <select [ngModel]="formPriority()" (ngModelChange)="formPriority.set($event)">
+              @for (p of priorities; track p) {
+                <option [value]="p">{{ p }}</option>
+              }
+            </select>
+          </div>
+          <div class="field">
+            <label>Issue Title *</label>
+            <input type="text" placeholder="e.g., AC compressor not cooling" [ngModel]="formTitle()" (ngModelChange)="formTitle.set($event)" />
+          </div>
+        </div>
+
+        <div class="field">
+          <label>Description *</label>
+          <textarea rows="3" placeholder="Detailed description of the issue..." [ngModel]="formDescription()" (ngModelChange)="formDescription.set($event)"></textarea>
+        </div>
+
+        <div class="field">
+          <label>Notes</label>
+          <input type="text" placeholder="Optional access notes..." [ngModel]="formNotes()" (ngModelChange)="formNotes.set($event)" />
+        </div>
+
+        @if (formRoomId() && (roleService.isOwner() || roleService.isManager())) {
+          <label class="checkbox-row">
+            <input type="checkbox" [ngModel]="formBlockRoom()" (ngModelChange)="formBlockRoom.set($event)" />
+            Mark Room Out of Service / Blocked (serious safety/operational issue only)
+          </label>
+        }
+
+        <div class="upload-row">
+          <label class="upload-btn">
+            <ion-icon name="camera-outline"></ion-icon>
+            {{ uploading() ? 'Uploading...' : 'Attach Photo' }}
+            <input type="file" accept="image/jpeg,image/png,image/webp" hidden [disabled]="uploading()" (change)="onFileSelected($event)" />
+          </label>
+          @if (formPhotos().length > 0) {
+            <span class="photo-count">{{ formPhotos().length }} photo(s) attached</span>
+          }
+        </div>
+
+        <div class="form-actions">
+          <button class="btn-secondary" (click)="showForm.set(false)">Cancel</button>
+          <button class="btn-primary" [disabled]="saving()" (click)="submitRequest()">
+            {{ saving() ? 'Submitting...' : 'Submit Request' }}
+          </button>
+        </div>
+      </section>
+    }
+
+    <!-- Filters -->
+    <div class="filters-bar">
+      <div class="search-box">
+        <ion-icon name="search-outline"></ion-icon>
+        <input type="text" placeholder="Search title, room, area..." [ngModel]="searchQuery()" (ngModelChange)="searchQuery.set($event); page.set(1)" />
+      </div>
+      <select class="filter-select" [ngModel]="lodgeFilter()" (ngModelChange)="lodgeFilter.set($event); page.set(1)">
+        <option value="all">All Lodges</option>
+        @for (prop of accessibleProperties(); track prop.id) {
+          <option [value]="prop.id">{{ prop.name }}</option>
+        }
+      </select>
+      <select class="filter-select" [ngModel]="categoryFilter()" (ngModelChange)="categoryFilter.set($event); page.set(1)">
+        <option value="all">All Categories</option>
+        @for (c of categories; track c) {
+          <option [value]="c">{{ c }}</option>
+        }
+      </select>
+      <select class="filter-select" [ngModel]="priorityFilter()" (ngModelChange)="priorityFilter.set($event); page.set(1)">
+        <option value="all">All Priorities</option>
+        @for (p of priorities; track p) {
+          <option [value]="p">{{ p }}</option>
+        }
+      </select>
+      <select class="filter-select" [ngModel]="statusFilter()" (ngModelChange)="statusFilter.set($event); page.set(1)">
+        <option value="all">All Statuses</option>
+        @for (s of statuses; track s) {
+          <option [value]="s">{{ s }}</option>
+        }
+      </select>
+      <select class="filter-select" [ngModel]="sortBy()" (ngModelChange)="sortBy.set($event)">
+        <option value="date">Sort: Newest</option>
+        <option value="priority">Sort: Priority</option>
+      </select>
+    </div>
+
+    @if (pagedRequests().length === 0) {
+      <div class="empty-state">No maintenance requests match the current filters.</div>
+    } @else {
+      <div class="req-list">
+        @for (req of pagedRequests(); track req.id) {
+          <div class="req-card" (click)="openDetail(req.id)">
+            <div>
+              <div class="req-title">
+                {{ req.title }}
+                <span class="prio prio-{{ req.priority.toLowerCase() }}">{{ req.priority }}</span>
+              </div>
+              <div class="req-meta">
+                {{ req.category }} ·
+                {{ req.roomNumber ? 'Room ' + req.roomNumber : req.areaName || 'Common Area' }} ·
+                {{ getLodgeName(req.propertyId) }} · Reported by {{ req.reportedBy }} ({{ req.reportedAt | date: 'short' }})
+              </div>
+            </div>
+            <span class="status-pill">{{ req.status }}</span>
+          </div>
+        }
+      </div>
+
+      @if (totalPages() > 1) {
+        <div class="pagination">
+          <button [disabled]="page() <= 1" (click)="page.set(page() - 1)">Prev</button>
+          <span>Page {{ page() }} of {{ totalPages() }}</span>
+          <button [disabled]="page() >= totalPages()" (click)="page.set(page() + 1)">Next</button>
+        </div>
+      }
+    }
+  </div>
+</ion-content>

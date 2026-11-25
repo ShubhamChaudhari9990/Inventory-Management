@@ -1,0 +1,69 @@
+<app-shell
+  [activeNavId]="'rooms'"
+  [breadcrumb]="'Room Amenities'"
+  (activeNavIdChange)="onNavChange($event)"
+>
+  <div class="sub-page">
+    <div class="sub-page__inner">
+      <header class="sub-header">
+        <button type="button" class="back-btn" (click)="goBack()">
+          <ion-icon name="arrow-back-outline"></ion-icon>
+          Rooms
+        </button>
+        <div>
+          <h1>Room Amenities</h1>
+          <p>Manage standard & custom in-room amenities across your rooms</p>
+        </div>
+      </header>
+
+      @if (!isStaff()) {
+        <section class="sub-card">
+          <h2>Add Custom Amenity</h2>
+          <div class="add-row">
+            <input type="text" [(ngModel)]="customInput" placeholder="e.g. Coffee Maker, Mini Bar" />
+            <ion-button fill="solid" (click)="addCustomAmenity()">
+              <ion-icon slot="start" name="add-outline"></ion-icon>
+              Add Amenity
+            </ion-button>
+          </div>
+        </section>
+      }
+
+      <section class="sub-card">
+        <h2>Amenity Coverage ({{ allAmenities().length }})</h2>
+        <div class="chip-wrap">
+          @for (am of allAmenities(); track am) {
+            <span class="room-chip">{{ am }} · {{ getRoomCountWithAmenity(am) }} Rooms</span>
+          }
+        </div>
+      </section>
+
+      <section class="sub-card">
+        <h2>Per-Room Amenity Matrix</h2>
+        @for (room of rooms(); track room.id) {
+          <div class="matrix-row">
+            <div class="matrix-row__title">
+              <strong>Room {{ room.number }}</strong>
+              <span>{{ room.type }}</span>
+            </div>
+            <div class="chip-wrap">
+              @for (am of allAmenities(); track am) {
+                <button
+                  type="button"
+                  class="am-chip"
+                  [class.active]="(room.amenities || []).includes(am)"
+                  [disabled]="isStaff()"
+                  (click)="toggleRoomAmenity(room, am)"
+                >
+                  {{ am }}
+                </button>
+              }
+            </div>
+          </div>
+        } @empty {
+          <p class="muted">No rooms available.</p>
+        }
+      </section>
+    </div>
+  </div>
+</app-shell>

@@ -32,12 +32,14 @@
   <div class="sidebar__header">
     <div class="sidebar__brand">
       <ion-avatar class="sidebar__logo" aria-hidden="true">
-        <span>{{ brandInitials() }}</span>
+        <img src="assets/branding/lemonwood-lodge-icon.png" alt="Lemonwood Lodge" class="sidebar__logo-img" />
       </ion-avatar>
       <div class="sidebar__brand-text">
         <ion-label>
           <h2 class="sidebar__brand-name">{{ brandName() }}</h2>
-          <p class="sidebar__brand-subtitle">{{ brandSubtitle() | translate }}</p>
+          <div class="sidebar__role-pill sidebar__role-pill--{{ currentRole() }}">
+            {{ roleBadgeText() }}
+          </div>
         </ion-label>
       </div>
     </div>
@@ -58,4 +60,11 @@
       </ion-item>
     }
   </ion-list>
+
+  <div class="sidebar__footer">
+    <button type="button" class="sidebar__logout-btn" (click)="onLogout()">
+      <ion-icon name="log-out-outline" aria-hidden="true"></ion-icon>
+      <span>{{ 'AUTH.LOGOUT' | translate }}</span>
+    </button>
+  </div>
 </div>

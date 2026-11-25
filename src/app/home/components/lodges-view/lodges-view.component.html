@@ -1,0 +1,433 @@
+<div class="lodges-page">
+  <header class="lodges-page__hero">
+    <div class="lodges-page__hero-copy">
+      <div class="lodges-executive-badge">
+        <ion-icon name="business-outline"></ion-icon>
+        <span>Owner Dashboard · Executive View</span>
+      </div>
+      <h1 class="lodges-page__title">{{ 'LODGE.MANAGE_TITLE' | translate }}</h1>
+      <p class="lodges-page__subtitle">
+        Comprehensive operational & financial metrics across your lodge portfolio.
+      </p>
+    </div>
+
+    @if (isOwner()) {
+      <ion-button class="lodges-page__cta" fill="solid" (click)="openAddModal()">
+        <ion-icon slot="start" name="add-outline"></ion-icon>
+        {{ 'LODGE.ADD_NEW' | translate }}
+      </ion-button>
+    }
+  </header>
+
+  <!-- All Lodges KPI Summary Cards -->
+  <section class="lodges-summary-grid">
+    <div class="lodges-kpi-card lodges-kpi-card--primary">
+      <div class="lodges-kpi-card__icon">
+        <ion-icon name="business-outline"></ion-icon>
+      </div>
+      <div class="lodges-kpi-card__content">
+        <span class="lodges-kpi-card__value">{{ totalLodgesCount() }}</span>
+        <span class="lodges-kpi-card__label">Total Lodges</span>
+        <span class="lodges-kpi-card__meta">Portfolio Properties</span>
+      </div>
+    </div>
+
+    <div class="lodges-kpi-card lodges-kpi-card--success">
+      <div class="lodges-kpi-card__icon">
+        <ion-icon name="checkmark-circle-outline"></ion-icon>
+      </div>
+      <div class="lodges-kpi-card__content">
+        <span class="lodges-kpi-card__value">{{ activeLodgesCount() }}</span>
+        <span class="lodges-kpi-card__label">Active Lodges</span>
+        <span class="lodges-kpi-card__meta">Operational Status</span>
+      </div>
+    </div>
+
+    <div class="lodges-kpi-card lodges-kpi-card--indigo">
+      <div class="lodges-kpi-card__icon">
+        <ion-icon name="bed-outline"></ion-icon>
+      </div>
+      <div class="lodges-kpi-card__content">
+        <span class="lodges-kpi-card__value">{{ totalRoomsCount() }}</span>
+        <span class="lodges-kpi-card__label">Total Rooms</span>
+        <span class="lodges-kpi-card__meta">Total Accommodations</span>
+      </div>
+    </div>
+
+    <div class="lodges-kpi-card lodges-kpi-card--amber">
+      <div class="lodges-kpi-card__icon">
+        <ion-icon name="location-outline"></ion-icon>
+      </div>
+      <div class="lodges-kpi-card__content">
+        <span class="lodges-kpi-card__value">{{ totalCitiesCount() }}</span>
+        <span class="lodges-kpi-card__label">Locations</span>
+        <span class="lodges-kpi-card__meta">Cities Covered</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Property Scope Filter Bar -->
+  <section class="lodges-scope-bar">
+    <div class="scope-label">
+      <ion-icon name="apps-outline"></ion-icon>
+      <span>Property Scope:</span>
+    </div>
+    <div class="scope-pills">
+      <button
+        type="button"
+        class="scope-pill"
+        [class.scope-pill--active]="selectedScopeId() === 'all'"
+        (click)="setScopeFilter('all')"
+      >
+        <ion-icon name="business-outline"></ion-icon>
+        All Lodges ({{ properties().length }})
+      </button>
+      @for (prop of properties(); track prop.id) {
+        <button
+          type="button"
+          class="scope-pill"
+          [class.scope-pill--active]="selectedScopeId() === prop.id"
+          (click)="setScopeFilter(prop.id)"
+        >
+          <span
+            class="scope-pill-dot"
+            [class.scope-pill-dot--active]="prop.status === 'active'"
+          ></span>
+          {{ prop.name }}
+        </button>
+      }
+    </div>
+  </section>
+
+  <!-- Search Filter -->
+  <div class="lodges-search-bar">
+    <label class="search-field">
+      <ion-icon name="search-outline"></ion-icon>
+      <input
+        type="search"
+        placeholder="Search lodge name, code, or city..."
+        [value]="searchQuery()"
+        (input)="searchQuery.set($any($event.target).value)"
+      />
+    </label>
+  </div>
+
+  <!-- Add Lodge Modal -->
+  @if (isAddModalOpen()) {
+    <div class="lodge-modal-backdrop" (click)="closeAddModal()">
+      <div class="lodge-modal-card" (click)="$event.stopPropagation()">
+        <div class="lodge-modal-header">
+          <h2>{{ 'LODGE.ADD_NEW' | translate }}</h2>
+          <button type="button" class="close-btn" (click)="closeAddModal()">✕</button>
+        </div>
+
+        <div class="lodge-form">
+          <ion-item lines="none" class="form-item">
+            <ion-label position="stacked">{{ 'LODGE.NAME' | translate }} *</ion-label>
+            <ion-input [(ngModel)]="newLodgeName" placeholder="e.g. LemonWood Hilltop Resort"></ion-input>
+          </ion-item>
+
+          <ion-item lines="none" class="form-item">
+            <ion-label position="stacked">Tagline / Subtitle</ion-label>
+            <ion-input [(ngModel)]="newLodgeTagline" placeholder="e.g. Scenic Hillside Lodging"></ion-input>
+          </ion-item>
+
+          <div class="form-row">
+            <ion-item lines="none" class="form-item">
+              <ion-label position="stacked">{{ 'LODGE.CODE' | translate }}</ion-label>
+              <ion-input [(ngModel)]="newLodgeCode" placeholder="LWH-04"></ion-input>
+            </ion-item>
+            <ion-item lines="none" class="form-item">
+              <ion-label position="stacked">{{ 'LODGE.ROOMS' | translate }}</ion-label>
+              <ion-input type="number" [(ngModel)]="newLodgeTotalRooms" placeholder="12"></ion-input>
+            </ion-item>
+          </div>
+
+          <div class="form-row">
+            <ion-item lines="none" class="form-item">
+              <ion-label position="stacked">{{ 'LODGE.CITY' | translate }} *</ion-label>
+              <ion-input [(ngModel)]="newLodgeCity" placeholder="e.g. Kolhapur"></ion-input>
+            </ion-item>
+            <ion-item lines="none" class="form-item">
+              <ion-label position="stacked">{{ 'LODGE.PHONE' | translate }}</ion-label>
+              <ion-input [(ngModel)]="newLodgePhone" placeholder="0231 200 0000"></ion-input>
+            </ion-item>
+          </div>
+
+          <ion-item lines="none" class="form-item">
+            <ion-label position="stacked">{{ 'LODGE.ADDRESS' | translate }}</ion-label>
+            <ion-input [(ngModel)]="newLodgeAddress" placeholder="Street / Area"></ion-input>
+          </ion-item>
+
+          <!-- Amenities Selection -->
+          <div class="form-amenities-section">
+            <span class="form-section-title">Amenities & Facilities</span>
+            <p class="form-section-hint">Select amenities available at this lodge:</p>
+            <div class="amenities-picker">
+              @for (amenity of availableAmenities; track amenity) {
+                <button
+                  type="button"
+                  class="amenity-picker-chip"
+                  [class.amenity-picker-chip--selected]="newLodgeAmenities().includes(amenity)"
+                  (click)="toggleNewLodgeAmenity(amenity)"
+                >
+                  <ion-icon
+                    [name]="newLodgeAmenities().includes(amenity) ? 'checkmark-circle' : 'add-circle-outline'"
+                  ></ion-icon>
+                  <span>{{ amenity }}</span>
+                </button>
+              }
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <ion-button fill="outline" (click)="closeAddModal()">
+              <ion-icon slot="start" name="close-outline"></ion-icon>
+              {{ 'COMMON.CANCEL' | translate }}
+            </ion-button>
+            <ion-button fill="solid" (click)="saveNewLodge()">
+              <ion-icon slot="start" name="checkmark-circle-outline"></ion-icon>
+              {{ 'COMMON.SAVE' | translate }}
+            </ion-button>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Edit Lodge Modal -->
+  @if (isEditModalOpen()) {
+    <div class="lodge-modal-backdrop" (click)="closeEditModal()">
+      <div class="lodge-modal-card" (click)="$event.stopPropagation()">
+        <div class="lodge-modal-header">
+          <h2>Edit Lodge Details</h2>
+          <button type="button" class="close-btn" (click)="closeEditModal()">✕</button>
+        </div>
+
+        <div class="lodge-form">
+          <ion-item lines="none" class="form-item">
+            <ion-label position="stacked">{{ 'LODGE.NAME' | translate }} *</ion-label>
+            <ion-input [(ngModel)]="editLodgeName"></ion-input>
+          </ion-item>
+
+          <ion-item lines="none" class="form-item">
+            <ion-label position="stacked">Tagline / Subtitle</ion-label>
+            <ion-input [(ngModel)]="editLodgeTagline"></ion-input>
+          </ion-item>
+
+          <div class="form-row">
+            <ion-item lines="none" class="form-item">
+              <ion-label position="stacked">{{ 'LODGE.CODE' | translate }}</ion-label>
+              <ion-input [(ngModel)]="editLodgeCode"></ion-input>
+            </ion-item>
+            <ion-item lines="none" class="form-item">
+              <ion-label position="stacked">{{ 'LODGE.ROOMS' | translate }}</ion-label>
+              <ion-input type="number" [(ngModel)]="editLodgeTotalRooms"></ion-input>
+            </ion-item>
+          </div>
+
+          <div class="form-row">
+            <ion-item lines="none" class="form-item">
+              <ion-label position="stacked">{{ 'LODGE.CITY' | translate }} *</ion-label>
+              <ion-input [(ngModel)]="editLodgeCity"></ion-input>
+            </ion-item>
+            <ion-item lines="none" class="form-item">
+              <ion-label position="stacked">{{ 'LODGE.PHONE' | translate }}</ion-label>
+              <ion-input [(ngModel)]="editLodgePhone"></ion-input>
+            </ion-item>
+          </div>
+
+          <ion-item lines="none" class="form-item">
+            <ion-label position="stacked">{{ 'LODGE.ADDRESS' | translate }}</ion-label>
+            <ion-input [(ngModel)]="editLodgeAddress"></ion-input>
+          </ion-item>
+
+          <!-- Amenities Selection -->
+          <div class="form-amenities-section">
+            <span class="form-section-title">Amenities & Facilities</span>
+            <p class="form-section-hint">Select amenities available at this lodge:</p>
+            <div class="amenities-picker">
+              @for (amenity of availableAmenities; track amenity) {
+                <button
+                  type="button"
+                  class="amenity-picker-chip"
+                  [class.amenity-picker-chip--selected]="editLodgeAmenities().includes(amenity)"
+                  (click)="toggleEditLodgeAmenity(amenity)"
+                >
+                  <ion-icon
+                    [name]="editLodgeAmenities().includes(amenity) ? 'checkmark-circle' : 'add-circle-outline'"
+                  ></ion-icon>
+                  <span>{{ amenity }}</span>
+                </button>
+              }
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <ion-button fill="outline" (click)="closeEditModal()">
+              <ion-icon slot="start" name="close-outline"></ion-icon>
+              {{ 'COMMON.CANCEL' | translate }}
+            </ion-button>
+            <ion-button fill="solid" (click)="saveEditLodge()">
+              <ion-icon slot="start" name="checkmark-circle-outline"></ion-icon>
+              {{ 'COMMON.SAVE' | translate }}
+            </ion-button>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- View Details Modal -->
+  @if (isDetailsModalOpen() && activeLodge(); as active) {
+    <div class="lodge-modal-backdrop" (click)="closeDetailsModal()">
+      <div class="lodge-modal-card details-card" (click)="$event.stopPropagation()">
+        <div class="lodge-modal-header">
+          <h2>{{ active.name }}</h2>
+          <button type="button" class="close-btn" (click)="closeDetailsModal()">✕</button>
+        </div>
+
+        <div class="lodge-details-body">
+          <div class="detail-row">
+            <span class="detail-label">Lodge Code:</span>
+            <span class="detail-val">{{ active.code }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Status:</span>
+            <span class="detail-val status-val" [class.active]="active.status === 'active'">{{ active.status | uppercase }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Total Rooms:</span>
+            <span class="detail-val">{{ active.totalRooms }} Rooms</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Location:</span>
+            <span class="detail-val">{{ active.address }}, {{ active.city }}, {{ active.state || 'Maharashtra' }}</span>
+          </div>
+          <div class="detail-row">
+            <span class="detail-label">Contact:</span>
+            <span class="detail-val">{{ active.phone }} | {{ active.email || 'contact@lemonwood.com' }}</span>
+          </div>
+          <div class="detail-amenities-section">
+            <p class="section-title">Amenities & Facilities:</p>
+            <div class="amenities-list">
+              @for (am of active.amenities || []; track am) {
+                <span class="amenity-chip">{{ am }}</span>
+              }
+            </div>
+          </div>
+        </div>
+
+        <div class="form-actions">
+          <ion-button fill="solid" (click)="closeDetailsModal()">
+            <ion-icon slot="start" name="close-outline"></ion-icon>
+            Close
+          </ion-button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Lodges Grid -->
+  <div class="lodges-grid">
+    @for (lodge of filteredProperties(); track lodge.id) {
+      <div
+        class="lodge-card"
+        [class.lodge-card--selected]="selectedPropertyId() === lodge.id"
+        (click)="selectLodge(lodge.id)"
+      >
+        <div class="lodge-card__header">
+          <div class="lodge-card__icon">
+            <ion-icon name="business-outline"></ion-icon>
+          </div>
+          <div class="lodge-card__info">
+            <h3 class="lodge-card__name">{{ lodge.name }}</h3>
+            <span class="lodge-card__code">{{ lodge.code }} · {{ lodge.city }}</span>
+          </div>
+          <span
+            class="status-badge"
+            [class.status-badge--active]="lodge.status === 'active'"
+            [class.status-badge--inactive]="lodge.status !== 'active'"
+          >
+            {{ lodge.status | uppercase }}
+          </span>
+        </div>
+
+        <p class="lodge-card__tagline">{{ lodge.tagline || lodge.address }}</p>
+
+        <div class="lodge-card__metrics">
+          <div class="metric-pill">
+            <ion-icon name="bed-outline"></ion-icon>
+            <span>{{ lodge.totalRooms }} {{ 'NAV.ROOMS' | translate }}</span>
+          </div>
+          <div class="metric-pill">
+            <ion-icon name="call-outline"></ion-icon>
+            <span>{{ lodge.phone }}</span>
+          </div>
+        </div>
+
+        <div class="lodge-card__amenities">
+          @for (amenity of lodge.amenities || []; track amenity) {
+            <span class="amenity-tag">{{ amenity }}</span>
+          }
+        </div>
+
+        <div class="lodge-card__footer">
+          <div class="primary-actions">
+            <button
+              type="button"
+              class="manage-btn"
+              [class.manage-btn--current]="selectedPropertyId() === lodge.id"
+            >
+              <ion-icon [name]="selectedPropertyId() === lodge.id ? 'checkmark-circle' : 'radio-button-off-outline'"></ion-icon>
+              <span>{{ selectedPropertyId() === lodge.id ? ('LODGE.CURRENTLY_ACTIVE' | translate) : ('LODGE.SELECT_LODGE' | translate) }}</span>
+            </button>
+            <button
+              type="button"
+              class="icon-action-btn"
+              title="View Lodge Details"
+              (click)="openDetailsModal(lodge, $event)"
+            >
+              <ion-icon name="information-circle-outline"></ion-icon>
+            </button>
+            @if (isOwner()) {
+              <button
+                type="button"
+                class="icon-action-btn"
+                title="Edit Lodge"
+                (click)="openEditModal(lodge, $event)"
+              >
+                <ion-icon name="create-outline"></ion-icon>
+              </button>
+            }
+          </div>
+
+          @if (isOwner()) {
+            <div class="owner-controls">
+              <button
+                type="button"
+                class="status-toggle-btn"
+                (click)="toggleStatus(lodge, $event)"
+              >
+                <ion-icon [name]="lodge.status === 'active' ? 'pause-circle-outline' : 'play-circle-outline'"></ion-icon>
+                <span>{{ lodge.status === 'active' ? ('LODGE.DEACTIVATE' | translate) : ('LODGE.ACTIVATE' | translate) }}</span>
+              </button>
+              <button
+                type="button"
+                class="archive-toggle-btn"
+                title="Archive / Unarchive"
+                (click)="archiveLodge(lodge, $event)"
+              >
+                <ion-icon [name]="lodge.status === 'inactive' ? 'file-tray-full-outline' : 'archive-outline'"></ion-icon>
+              </button>
+            </div>
+          }
+        </div>
+      </div>
+    } @empty {
+      <div class="empty-lodges">
+        <p>No lodges found matching "{{ searchQuery() }}"</p>
+      </div>
+    }
+  </div>
+</div>

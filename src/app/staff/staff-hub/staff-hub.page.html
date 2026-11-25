@@ -1,0 +1,114 @@
+<app-shell
+  [activeNavId]="'staff'"
+  [breadcrumb]="'Staff Management'"
+  (activeNavIdChange)="onNavChange($event)"
+>
+  <div class="hub-page">
+    <div class="hub-page__inner">
+      <header class="hub-header">
+        <div>
+          <h1>Staff & Employee Management</h1>
+          <p>Manage team directory, pending approvals, lodge assignments & RBAC permissions</p>
+        </div>
+
+        <div class="hub-actions">
+          <button type="button" class="sub-btn" (click)="goTo('/staff/employees')">
+            <ion-icon name="people-outline"></ion-icon>
+            Employee Directory
+          </button>
+          @if (isOwner()) {
+            <button type="button" class="sub-btn" (click)="goTo('/staff/approvals')">
+              <ion-icon name="time-outline"></ion-icon>
+              Pending Approvals ({{ pendingApprovalsCount() }})
+            </button>
+            <button type="button" class="sub-btn" (click)="goTo('/staff/permissions')">
+              <ion-icon name="key-outline"></ion-icon>
+              Permissions Matrix
+            </button>
+            <ion-button fill="solid" class="add-cta" (click)="goTo('/staff/employees/new')">
+              <ion-icon slot="start" name="add-outline"></ion-icon>
+              Add Employee
+            </ion-button>
+          }
+        </div>
+      </header>
+
+      <!-- 5 Statistics Cards -->
+      <section class="stats-grid">
+        <div class="stat-box"><span>Total Employees</span><strong>{{ totalEmployees() }}</strong></div>
+        <div class="stat-box stat-box--green"><span>Active Employees</span><strong>{{ activeEmployees() }}</strong></div>
+        <div class="stat-box stat-box--amber"><span>Pending Approvals</span><strong>{{ pendingApprovalsCount() }}</strong></div>
+        <div class="stat-box stat-box--blue"><span>Managers</span><strong>{{ managersCount() }}</strong></div>
+        <div class="stat-box stat-box--indigo"><span>Staff Members</span><strong>{{ staffMembersCount() }}</strong></div>
+      </section>
+
+      <section class="panels-grid">
+        <!-- Pending Access Requests -->
+        @if (isOwner()) {
+          <div class="panel-card">
+            <div class="panel-head">
+              <h3>Pending Access Requests ({{ pendingApprovalsCount() }})</h3>
+              <button type="button" class="link-btn" (click)="goTo('/staff/approvals')">Review All</button>
+            </div>
+            @for (u of pendingUsers().slice(0, 5); track u.uid) {
+              <div class="list-row">
+                <div>
+                  <strong>{{ u.name || 'New User' }}</strong>
+                  <span>{{ u.email }} · {{ u.createdAt | date:'shortDate' }}</span>
+                </div>
+                <button type="button" class="mini-act" (click)="goTo('/staff/approvals')">Assign Role</button>
+              </div>
+            } @empty {
+              <p class="muted">No pending user registrations.</p>
+            }
+          </div>
+        }
+
+        <!-- Employees by Lodge -->
+        <div class="panel-card">
+          <h3>Employees by Lodge</h3>
+          @for (item of employeesByLodge(); track item.id) {
+            <div class="list-row">
+              <strong>{{ item.name }}</strong>
+              <span class="badge">{{ item.count }} Assigned</span>
+            </div>
+          } @empty {
+            <p class="muted">No lodges found.</p>
+          }
+        </div>
+
+        <!-- Recent Employee Registrations -->
+        <div class="panel-card">
+          <h3>Recent Registrations</h3>
+          @for (emp of recentRegistrations(); track emp.uid) {
+            <div class="list-row">
+              <div>
+                <strong>{{ emp.name }}</strong>
+                <span>{{ emp.role || 'Unassigned' }} · {{ emp.designation }}</span>
+              </div>
+              <span class="st-pill st-pill--{{ emp.employmentStatus }}">{{ emp.employmentStatus }}</span>
+            </div>
+          } @empty {
+            <p class="muted">No employees registered yet.</p>
+          }
+        </div>
+
+        <!-- Recent Staff Activity -->
+        <div class="panel-card">
+          <h3>Recent RBAC & Staff Activity</h3>
+          @for (log of auditLogs().slice(0, 6); track log.id) {
+            <div class="list-row">
+              <div>
+                <strong>{{ log.action }}</strong>
+                <span>{{ log.summary }} · {{ log.actorName }}</span>
+              </div>
+              <span class="time">{{ log.timestamp | date:'short' }}</span>
+            </div>
+          } @empty {
+            <p class="muted">No audit activity recorded yet.</p>
+          }
+        </div>
+      </section>
+    </div>
+  </div>
+</app-shell>

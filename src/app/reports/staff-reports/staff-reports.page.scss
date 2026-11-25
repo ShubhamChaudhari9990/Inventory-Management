@@ -1,0 +1,12 @@
+.rep-toolbar { --background: #ffffff; --color: #0f172a; border-bottom: 1px solid #e2e8f0; }
+.rep-content { --background: #f8fafc; }
+.rep-container { max-width: 1200px; margin: 0 auto; padding: 16px; }
+.exp-btns { display: flex; gap: 6px; padding-right: 8px; }
+.btn-exp { background: #0f172a; color: #ffffff; border: none; border-radius: 6px; padding: 6px 10px; font-size: 0.78rem; font-weight: 600; cursor: pointer; }
+.panel { background: #ffffff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 14px; }
+.panel h3 { margin: 0 0 10px; font-size: 0.96rem; }
+.empty-box { padding: 20px; text-align: center; color: #64748b; background: #f8fafc; border-radius: 8px; }
+.table-wrap { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+th, td { padding: 9px 10px; border-bottom: 1px solid #f1f5f9; text-align: left; }
+th { color: #475569; font-weight: 600; }

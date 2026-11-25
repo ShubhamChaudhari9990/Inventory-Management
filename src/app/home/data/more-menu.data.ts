@@ -1,9 +1,7 @@
 import { NAV_ITEMS } from '../../shared/data/nav-items';
-import { NavItem } from '../../shared/models/nav-item.model';
+import { MoreMenuItem } from '../../interface';
 
-export interface MoreMenuItem extends NavItem {
-  destructive?: boolean;
-}
+export type { MoreMenuItem };
 
 /** More-screen staff icon keeps the existing More UI look. */
 const MORE_ICON_OVERRIDES: Readonly<Record<string, string>> = {

@@ -8,57 +8,93 @@ import {
   signal,
 } from '@angular/core';
 import { Router } from '@angular/router';
-import {
-  IonButton,
-  IonIcon,
-  IonItem,
-  IonLabel,
-  IonList,
-} from '@ionic/angular/standalone';
+import { IonIcon } from '@ionic/angular/standalone';
 import { TranslatePipe } from '@ngx-translate/core';
+import { addIcons } from 'ionicons';
+import {
+  appsOutline,
+  businessOutline,
+  checkmarkOutline,
+  chevronDownOutline,
+  globeOutline,
+  languageOutline,
+  logOutOutline,
+  menuOutline,
+  personOutline,
+  settingsOutline,
+} from 'ionicons/icons';
 
 import {
   LANGUAGE_OPTIONS,
   LanguageOption,
   LanguageService,
 } from '../../../services/language.service';
-import { APP_NOTIFICATIONS } from '../../data/notifications';
-import { AppNotification } from '../../models/notification.model';
+import { Property, UserRole } from '../../../interface';
+import { PropertyService } from '../../../services/property.service';
+import { RoleService } from '../../../services/role.service';
 
-type HeaderMenu = 'language' | 'notifications' | 'profile';
+type HeaderMenu = 'language' | 'profile' | 'lodge';
 
 @Component({
   selector: 'app-header',
   templateUrl: './app-header.component.html',
   styleUrls: ['./app-header.component.scss'],
-  imports: [IonButton, IonIcon, IonList, IonItem, IonLabel, TranslatePipe],
+  imports: [IonIcon, TranslatePipe],
 })
 export class AppHeaderComponent {
   private readonly languageService = inject(LanguageService);
+  private readonly propertyService = inject(PropertyService);
+  private readonly roleService = inject(RoleService);
   private readonly router = inject(Router);
 
-  readonly title = input.required<string>();
-  readonly profileInitials = input('GK');
-  readonly profileName = input('Ganesh Kadam');
-  readonly profileRole = input('Super Admin');
+  readonly title = input<string>('');
+  readonly breadcrumb = input<string>('');
+  readonly profileInitials = input('PO');
+  readonly profileName = input('Property Owner');
+  readonly profileRole = input('OWNER');
 
   readonly menuClick = output<void>();
   readonly settingsClick = output<void>();
   readonly logoutClick = output<void>();
-  readonly notificationClick = output<AppNotification>();
 
   readonly languageOptions = LANGUAGE_OPTIONS;
-  readonly notifications = APP_NOTIFICATIONS;
-  readonly hasNotifications = computed(() => this.notifications.length > 0);
   /** Shared with Settings via LanguageService — stays in sync both ways. */
   readonly currentLanguage = this.languageService.currentLanguage;
   readonly openMenu = signal<HeaderMenu | null>(null);
 
   readonly isLanguageMenuOpen = computed(() => this.openMenu() === 'language');
-  readonly isNotificationsMenuOpen = computed(
-    () => this.openMenu() === 'notifications',
-  );
   readonly isProfileMenuOpen = computed(() => this.openMenu() === 'profile');
+  readonly isLodgeMenuOpen = computed(() => this.openMenu() === 'lodge');
+
+  // Multi-Lodge & Role States
+  readonly isOwner = this.roleService.isOwner;
+  readonly isManager = this.roleService.isManager;
+  readonly isStaff = this.roleService.isStaff;
+  readonly currentRole = this.roleService.currentRole;
+  readonly currentDesignation = this.roleService.currentDesignation;
+  readonly selectedPropertyId = this.propertyService.selectedPropertyId;
+  readonly accessibleProperties = this.propertyService.accessibleProperties;
+  readonly selectedPropertyName = this.propertyService.selectedPropertyName;
+
+  // Single assigned property for Manager / Staff
+  readonly assignedProperty = computed<Property | null>(() => {
+    return this.propertyService.currentProperty() || this.accessibleProperties()[0] || null;
+  });
+
+  constructor() {
+    addIcons({
+      appsOutline,
+      businessOutline,
+      checkmarkOutline,
+      chevronDownOutline,
+      globeOutline,
+      languageOutline,
+      logOutOutline,
+      menuOutline,
+      personOutline,
+      settingsOutline,
+    });
+  }
 
   @HostListener('document:click')
   onDocumentClick(): void {
@@ -67,6 +103,19 @@ export class AppHeaderComponent {
 
   onMenuClick(): void {
     this.menuClick.emit();
+  }
+
+  onLodgeButtonClick(event: Event): void {
+    // Only Owners can toggle lodge selection dropdown
+    if (this.isOwner()) {
+      this.toggleMenu('lodge', event);
+    }
+  }
+
+  onSelectLodge(id: string, event: Event): void {
+    event.stopPropagation();
+    this.propertyService.switchProperty(id);
+    this.openMenu.set(null);
   }
 
   onLanguageButtonClick(event: Event): void {
@@ -82,18 +131,26 @@ export class AppHeaderComponent {
     this.openMenu.set(null);
   }
 
-  onNotificationsButtonClick(event: Event): void {
-    this.toggleMenu('notifications', event);
-  }
-
-  onNotificationClick(notification: AppNotification, event: Event): void {
-    event.stopPropagation();
-    this.openMenu.set(null);
-    this.notificationClick.emit(notification);
-  }
-
   onProfileButtonClick(event: Event): void {
     this.toggleMenu('profile', event);
+  }
+
+  onSwitchRole(role: UserRole, event: Event): void {
+    event.stopPropagation();
+    this.roleService.switchRole(role);
+    if (role === 'owner') {
+      this.propertyService.switchProperty('all');
+      void this.router.navigate(['/owner/dashboard']);
+    } else if (role === 'manager') {
+      const allowed = this.roleService.assignedPropertyIds();
+      this.propertyService.switchProperty(allowed[0] || '');
+      void this.router.navigate(['/manager/dashboard']);
+    } else {
+      const allowed = this.roleService.assignedPropertyIds();
+      this.propertyService.switchProperty(allowed[0] || '');
+      void this.router.navigate(['/staff/dashboard']);
+    }
+    this.openMenu.set(null);
   }
 
   onSettingsClick(event: Event): void {

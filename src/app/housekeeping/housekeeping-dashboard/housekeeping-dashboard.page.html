@@ -1,0 +1,262 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar class="hk-toolbar">
+    <ion-buttons slot="start">
+      <ion-back-button [defaultHref]="backHref()"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Housekeeping Management</ion-title>
+    <div slot="end" class="toolbar-actions">
+      <select
+        class="lodge-select"
+        [ngModel]="selectedLodgeFilter()"
+        (ngModelChange)="selectedLodgeFilter.set($event)"
+      >
+        <option value="all">All Accessible Lodges</option>
+        @for (prop of accessibleProperties(); track prop.id) {
+          <option [value]="prop.id">{{ prop.name }}</option>
+        }
+      </select>
+    </div>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="hk-content">
+  <div class="hk-container">
+    <!-- Quick Sub-navigation -->
+    <nav class="hk-subnav">
+      <a class="nav-pill active" routerLink="/housekeeping">Dashboard</a>
+      <a class="nav-pill" routerLink="/housekeeping/rooms">Room Status Board</a>
+      <a class="nav-pill" routerLink="/housekeeping/tasks">All Tasks</a>
+      <a class="nav-pill" routerLink="/housekeeping/my-tasks">My Tasks</a>
+      <a class="nav-pill" routerLink="/housekeeping/inspection">
+        Inspection Queue
+        @if (kpis().inspectionPending > 0) {
+          <span class="pill-badge">{{ kpis().inspectionPending }}</span>
+        }
+      </a>
+      <a class="nav-pill" routerLink="/housekeeping/reports">Reports</a>
+    </nav>
+
+    <!-- 8 KPI Cards -->
+    <section class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-icon blue"><ion-icon name="bed-outline"></ion-icon></div>
+        <div>
+          <div class="kpi-value">{{ kpis().totalRooms }}</div>
+          <div class="kpi-label">Total Rooms</div>
+        </div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-icon green"><ion-icon name="checkmark-circle-outline"></ion-icon></div>
+        <div>
+          <div class="kpi-value">{{ kpis().cleanRooms }}</div>
+          <div class="kpi-label">Clean / Inspected</div>
+        </div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-icon red"><ion-icon name="alert-circle-outline"></ion-icon></div>
+        <div>
+          <div class="kpi-value">{{ kpis().dirtyRooms }}</div>
+          <div class="kpi-label">Dirty Rooms</div>
+        </div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-icon amber"><ion-icon name="sparkles-outline"></ion-icon></div>
+        <div>
+          <div class="kpi-value">{{ kpis().cleaningRooms }}</div>
+          <div class="kpi-label">Under Cleaning</div>
+        </div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-icon purple"><ion-icon name="shield-checkmark-outline"></ion-icon></div>
+        <div>
+          <div class="kpi-value">{{ kpis().inspectionPending }}</div>
+          <div class="kpi-label">Inspection Pending</div>
+        </div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-icon slate"><ion-icon name="construct-outline"></ion-icon></div>
+        <div>
+          <div class="kpi-value">{{ kpis().outOfService }}</div>
+          <div class="kpi-label">Out of Service</div>
+        </div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-icon indigo"><ion-icon name="clipboard-outline"></ion-icon></div>
+        <div>
+          <div class="kpi-value">{{ kpis().pendingTasks }}</div>
+          <div class="kpi-label">Pending Tasks</div>
+        </div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-icon rose"><ion-icon name="time-outline"></ion-icon></div>
+        <div>
+          <div class="kpi-value">{{ kpis().overdueTasks }}</div>
+          <div class="kpi-label">Overdue Tasks</div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Action Bar -->
+    <section class="action-banner">
+      <div class="banner-info">
+        <h2>Daily Operations Overview</h2>
+        <p>
+          {{ awaitingInspection().length }} rooms awaiting inspection ·
+          {{ urgentTasks().length }} urgent tasks ·
+          {{ openMaintenanceCount() }} open maintenance issues
+        </p>
+      </div>
+      <div class="banner-buttons">
+        @if (canAssign()) {
+          <a class="btn-primary" routerLink="/housekeeping/tasks">
+            <ion-icon name="add-outline"></ion-icon>
+            Assign Cleaning Task
+          </a>
+        }
+        <a class="btn-secondary" routerLink="/housekeeping/my-tasks">
+          My Cleaning Tasks
+        </a>
+        <a class="btn-secondary" routerLink="/housekeeping/inspection">
+          Inspect Rooms
+        </a>
+      </div>
+    </section>
+
+    <!-- Main Dashboard Grid -->
+    <div class="dashboard-grid">
+      <!-- Today's Cleaning Schedule -->
+      <section class="panel">
+        <div class="panel-header">
+          <h3>Today's Cleaning Schedule</h3>
+          <a routerLink="/housekeeping/tasks" class="link-more">View All</a>
+        </div>
+        @if (todaysSchedule().length === 0) {
+          <div class="empty-state">No cleaning tasks scheduled right now.</div>
+        } @else {
+          <div class="task-list">
+            @for (task of todaysSchedule(); track task.id) {
+              <div class="task-row" (click)="openTask(task)">
+                <div class="task-main">
+                  <div class="task-title">
+                    Room {{ task.room }}
+                    <span class="chip priority-{{ (task.priority || 'Medium').toLowerCase() }}">
+                      {{ task.priority || 'Medium' }}
+                    </span>
+                  </div>
+                  <div class="task-meta">
+                    {{ task.taskType || task.type }} · {{ getLodgeName(task.propertyId) }} ·
+                    Assigned: {{ task.assignedTo || 'Unassigned' }}
+                  </div>
+                </div>
+                <span class="status-badge">{{ task.status }}</span>
+              </div>
+            }
+          </div>
+        }
+      </section>
+
+      <!-- Staff Task Assignments -->
+      <section class="panel">
+        <div class="panel-header">
+          <h3>Staff Task Assignments</h3>
+          <span class="muted-count">{{ staffAssignments().length }} assignees</span>
+        </div>
+        @if (staffAssignments().length === 0) {
+          <div class="empty-state">No active staff assignments found.</div>
+        } @else {
+          <div class="staff-table">
+            @for (staff of staffAssignments(); track staff.name) {
+              <div class="staff-row">
+                <div class="staff-name">
+                  <ion-icon name="people-outline"></ion-icon>
+                  {{ staff.name }}
+                </div>
+                <div class="staff-stats">
+                  <span class="stat-pill active">{{ staff.active }} active</span>
+                  <span class="stat-pill inspect">{{ staff.pendingInspection }} inspect</span>
+                  <span class="stat-pill done">{{ staff.completed }} done</span>
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </section>
+
+      <!-- Urgent Cleaning Requests -->
+      <section class="panel">
+        <div class="panel-header">
+          <h3>Urgent & High Priority</h3>
+          <span class="badge-danger">{{ urgentTasks().length }}</span>
+        </div>
+        @if (urgentTasks().length === 0) {
+          <div class="empty-state">No urgent cleaning requests pending.</div>
+        } @else {
+          <div class="task-list">
+            @for (task of urgentTasks(); track task.id) {
+              <div class="task-row urgent" (click)="openTask(task)">
+                <div class="task-main">
+                  <div class="task-title">
+                    <ion-icon name="warning-outline"></ion-icon>
+                    Room {{ task.room }} — {{ task.taskType || 'Cleaning' }}
+                  </div>
+                  <div class="task-meta">
+                    {{ getLodgeName(task.propertyId) }} · {{ task.assignedTo || 'Unassigned' }}
+                  </div>
+                </div>
+                <span class="status-badge">{{ task.status }}</span>
+              </div>
+            }
+          </div>
+        }
+      </section>
+
+      <!-- Awaiting Inspection & Recently Completed -->
+      <section class="panel">
+        <div class="panel-header">
+          <h3>Rooms Awaiting Inspection</h3>
+          <a routerLink="/housekeeping/inspection" class="link-more">Inspect</a>
+        </div>
+        @if (awaitingInspection().length === 0) {
+          <div class="empty-state">No rooms currently awaiting inspection.</div>
+        } @else {
+          <div class="task-list">
+            @for (task of awaitingInspection(); track task.id) {
+              <div class="task-row" (click)="openTask(task)">
+                <div class="task-main">
+                  <div class="task-title">Room {{ task.room }}</div>
+                  <div class="task-meta">
+                    Cleaned by {{ task.assignedTo || 'Staff' }} · {{ getLodgeName(task.propertyId) }}
+                  </div>
+                </div>
+                <span class="status-badge inspect">Inspect</span>
+              </div>
+            }
+          </div>
+        }
+
+        <div class="panel-header sub-header">
+          <h3>Recently Completed</h3>
+        </div>
+        @if (recentlyCompleted().length === 0) {
+          <div class="empty-state">No completed tasks yet.</div>
+        } @else {
+          <div class="task-list compact">
+            @for (task of recentlyCompleted(); track task.id) {
+              <div class="task-row" (click)="openTask(task)">
+                <div class="task-main">
+                  <div class="task-title">
+                    <ion-icon name="checkmark-done-outline"></ion-icon>
+                    Room {{ task.room }}
+                  </div>
+                  <div class="task-meta">
+                    {{ task.assignedTo || 'Staff' }} · {{ task.status }}
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </section>
+    </div>
+  </div>
+</ion-content>

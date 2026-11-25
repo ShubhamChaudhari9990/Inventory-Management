@@ -1,0 +1,290 @@
+<app-shell
+  [activeNavId]="'rooms'"
+  [breadcrumb]="pageTitle()"
+  (activeNavIdChange)="onNavChange($event)"
+>
+  <div class="room-form-page">
+    <div class="room-form-page__inner">
+      <header class="form-topbar">
+        <button type="button" class="back-btn" (click)="onCancel()">
+          <ion-icon name="arrow-back-outline"></ion-icon>
+          Back
+        </button>
+        <div>
+          <h1>{{ pageTitle() }}</h1>
+          <p>Configure room identity, occupancy, pricing, amenities, and images</p>
+        </div>
+      </header>
+
+      <form [formGroup]="form" (ngSubmit)="onSubmit()" class="room-form" novalidate>
+        <!-- SECTION A: BASIC INFORMATION -->
+        <section class="form-card">
+          <h2>A. Basic Information</h2>
+          <div class="form-grid">
+            <div class="field">
+              <label>Lodge *</label>
+              <select formControlName="propertyId" (change)="onLodgeChange($any($event.target).value)">
+                @for (p of accessibleLodges(); track p.id) {
+                  <option [value]="p.id">{{ p.name }}</option>
+                }
+              </select>
+            </div>
+
+            <div class="field">
+              <label>Room Number *</label>
+              <input
+                type="text"
+                formControlName="number"
+                placeholder="e.g. 101"
+                (blur)="checkRoomNumber()"
+              />
+              @if (duplicateError()) {
+                <span class="err">{{ duplicateError() }}</span>
+              }
+            </div>
+
+            <div class="field">
+              <label>Room Name</label>
+              <input type="text" formControlName="roomName" placeholder="e.g. Garden View Suite" />
+            </div>
+
+            <div class="field">
+              <label>Room Code</label>
+              <input type="text" formControlName="roomCode" placeholder="e.g. RM-101" />
+            </div>
+
+            <div class="field">
+              <label>Floor *</label>
+              @if (floorsForLodge().length > 0) {
+                <select formControlName="floorId" (change)="onFloorSelect($any($event.target).value)">
+                  <option value="">Select Floor...</option>
+                  @for (fl of floorsForLodge(); track fl.id) {
+                    <option [value]="fl.id">{{ fl.floorName }} (Floor {{ fl.floorNumber }})</option>
+                  }
+                </select>
+              } @else {
+                <input type="text" formControlName="floor" placeholder="e.g. 1" />
+              }
+            </div>
+
+            <div class="field">
+              <label>Room Type *</label>
+              @if (typesForLodge().length > 0) {
+                <select formControlName="roomTypeId" (change)="onRoomTypeSelect($any($event.target).value)">
+                  <option value="">Select Room Type...</option>
+                  @for (rt of typesForLodge(); track rt.id) {
+                    <option [value]="rt.id">{{ rt.name }} (₹{{ rt.basePrice }})</option>
+                  }
+                </select>
+              } @else {
+                <input type="text" formControlName="type" placeholder="Deluxe Room" />
+              }
+            </div>
+
+            <div class="field">
+              <label>Operational Status *</label>
+              <select formControlName="operationalStatus">
+                <option value="active">Active (Bookable)</option>
+                <option value="cleaning">Cleaning</option>
+                <option value="maintenance">Maintenance</option>
+                <option value="blocked">Blocked</option>
+                <option value="inactive">Inactive</option>
+              </select>
+            </div>
+
+            <div class="field field--full">
+              <label>Description</label>
+              <textarea rows="2" formControlName="description" placeholder="Room features, view, and highlights..."></textarea>
+            </div>
+          </div>
+        </section>
+
+        <!-- SECTION B: OCCUPANCY -->
+        <section class="form-card">
+          <h2>B. Occupancy & Beds</h2>
+          <div class="form-grid">
+            <div class="field">
+              <label>Maximum Adults *</label>
+              <input type="number" formControlName="maximumAdults" min="1" />
+            </div>
+            <div class="field">
+              <label>Maximum Children</label>
+              <input type="number" formControlName="maximumChildren" min="0" />
+            </div>
+            <div class="field">
+              <label>Maximum Total Occupancy *</label>
+              <input type="number" formControlName="maximumOccupancy" min="1" />
+            </div>
+            <div class="field">
+              <label>Number of Beds *</label>
+              <input type="number" formControlName="beds" min="1" />
+            </div>
+            <div class="field">
+              <label>Bed Configuration *</label>
+              <select formControlName="bedConfiguration">
+                @for (b of bedTypes; track b) {
+                  <option [value]="b">{{ b }}</option>
+                }
+              </select>
+            </div>
+          </div>
+        </section>
+
+        <!-- SECTION C: PRICING -->
+        <section class="form-card">
+          <h2>C. Pricing & Tax</h2>
+          <div class="form-grid">
+            <div class="field">
+              <label>Base Price / Night *</label>
+              <input type="number" formControlName="basePrice" min="0" />
+            </div>
+            <div class="field">
+              <label>Weekday Price</label>
+              <input type="number" formControlName="weekdayPrice" min="0" />
+            </div>
+            <div class="field">
+              <label>Weekend Price</label>
+              <input type="number" formControlName="weekendPrice" min="0" />
+            </div>
+            <div class="field">
+              <label>Extra Adult Charge</label>
+              <input type="number" formControlName="extraAdultCharge" min="0" />
+            </div>
+            <div class="field">
+              <label>Extra Child Charge</label>
+              <input type="number" formControlName="extraChildCharge" min="0" />
+            </div>
+            <div class="field">
+              <label>Tax Rate (%)</label>
+              <input type="number" formControlName="taxRate" min="0" max="100" />
+            </div>
+          </div>
+        </section>
+
+        <!-- SECTION D: AMENITIES -->
+        <section class="form-card">
+          <h2>D. Room Amenities</h2>
+          <div class="chip-grid">
+            @for (am of allAmenityOptions(); track am) {
+              <button
+                type="button"
+                class="am-chip"
+                [class.active]="selectedAmenities().includes(am)"
+                (click)="toggleAmenity(am)"
+              >
+                <ion-icon [name]="selectedAmenities().includes(am) ? 'checkmark-circle-outline' : 'add-outline'"></ion-icon>
+                {{ am }}
+              </button>
+            }
+          </div>
+          <div class="custom-am-row">
+            <input
+              type="text"
+              [(ngModel)]="customAmenityName"
+              [ngModelOptions]="{ standalone: true }"
+              placeholder="Add custom amenity..."
+              (keyup.enter)="addCustomAmenity()"
+            />
+            <button type="button" class="mini-btn" (click)="addCustomAmenity()">Add</button>
+          </div>
+        </section>
+
+        <!-- SECTION E: ROOM IMAGES (FIREBASE STORAGE) -->
+        <section class="form-card">
+          <h2>E. Room Images</h2>
+          <div class="media-row">
+            <div class="media-box">
+              <label>Primary Image</label>
+              @if (primaryImageUrl()) {
+                <div class="preview-box">
+                  <img [src]="primaryImageUrl()" alt="Room primary image" />
+                  <div class="preview-actions">
+                    <label class="mini-btn">
+                      Replace
+                      <input type="file" accept="image/jpeg,image/png,image/webp" hidden (change)="onPrimarySelected($event)" />
+                    </label>
+                    <button type="button" class="mini-btn danger" (click)="removePrimary()">Remove</button>
+                  </div>
+                </div>
+              } @else {
+                <label class="dropzone">
+                  <ion-icon name="cloud-upload-outline"></ion-icon>
+                  <span>Upload Primary Image</span>
+                  <input type="file" accept="image/jpeg,image/png,image/webp" hidden (change)="onPrimarySelected($event)" />
+                </label>
+              }
+              @if (primaryProgress() !== null) {
+                <ion-progress-bar [value]="(primaryProgress() || 0) / 100"></ion-progress-bar>
+              }
+            </div>
+
+            <div class="media-box">
+              <div class="gal-head">
+                <label>Gallery Images ({{ galleryImages().length }})</label>
+                <label class="mini-btn primary">
+                  + Add Photos
+                  <input type="file" multiple accept="image/jpeg,image/png,image/webp" hidden (change)="onGallerySelected($event)" />
+                </label>
+              </div>
+              @if (galleryProgress() !== null) {
+                <ion-progress-bar [value]="(galleryProgress() || 0) / 100"></ion-progress-bar>
+              }
+              <div class="gal-thumbs">
+                @for (img of galleryImages(); track img.id) {
+                  <div class="gal-thumb">
+                    <img [src]="img.url" alt="Room gallery" />
+                    <button type="button" (click)="removeGalleryImage(img)">
+                      <ion-icon name="close-outline"></ion-icon>
+                    </button>
+                  </div>
+                }
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- SECTION F: ADDITIONAL INFORMATION -->
+        <section class="form-card">
+          <h2>F. Additional Information</h2>
+          <div class="form-grid">
+            <div class="field">
+              <label>Room Size</label>
+              <input type="text" formControlName="roomSize" placeholder="e.g. 320 sq ft" />
+            </div>
+            <div class="field">
+              <label>Smoking Policy</label>
+              <select formControlName="smokingPolicy">
+                <option value="Non-Smoking">Non-Smoking</option>
+                <option value="Balcony Only">Balcony Only</option>
+                <option value="Smoking Allowed">Smoking Allowed</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Accessibility Information</label>
+              <input type="text" formControlName="accessibilityInfo" placeholder="e.g. Wheelchair accessible" />
+            </div>
+            <div class="field field--full">
+              <label>Internal Notes</label>
+              <textarea rows="2" formControlName="internalNotes" placeholder="Staff-only maintenance or setup notes..."></textarea>
+            </div>
+          </div>
+        </section>
+
+        <footer class="form-actions">
+          <ion-button fill="outline" color="medium" type="button" (click)="onCancel()" [disabled]="isSaving()">
+            Cancel
+          </ion-button>
+          <ion-button fill="solid" type="submit" [disabled]="isSaving()">
+            @if (isSaving()) {
+              <ion-spinner slot="start" name="crescent"></ion-spinner>
+              Saving...
+            } @else {
+              <ion-icon slot="start" name="save-outline"></ion-icon>
+              {{ isEditMode() ? 'Save Room' : 'Create Room' }}
+            }
+          </ion-button>
+        </footer>
+      </form>
+    </div>
+  </div>
+</app-shell>

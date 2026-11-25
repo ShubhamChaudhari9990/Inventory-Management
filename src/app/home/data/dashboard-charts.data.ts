@@ -15,6 +15,11 @@ import {
   ApexYAxis,
 } from 'ng-apexcharts';
 
+import { PaymentRecord } from '../../interface/payment.interface';
+import { ExpenseItem } from '../../interface/expense.interface';
+import { ExtendedBookingItem } from '../../interface/booking.interface';
+import { RoomItem } from '../../interface/room.interface';
+
 export type AxisChartOptions = {
   series: ApexAxisChartSeries;
   chart: ApexChart;
@@ -237,3 +242,247 @@ export const BOOKING_TREND_CHART: AxisChartOptions = {
   tooltip: LIGHT_TOOLTIP,
   responsive: [],
 };
+
+/**
+ * Dynamically computes a 6-month Revenue vs Expense comparison chart from live Firestore records.
+ */
+export function buildDynamicRevenueExpenseChart(
+  payments: PaymentRecord[],
+  expenses: ExpenseItem[],
+): AxisChartOptions {
+  const now = new Date();
+  const months: { label: string; yearMonth: string; revenue: number; expense: number }[] = [];
+
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    const label = d.toLocaleString('en-US', { month: 'short' });
+    const yearMonth = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+    months.push({ label, yearMonth, revenue: 0, expense: 0 });
+  }
+
+  // Aggregate payments (Revenue)
+  for (const p of payments) {
+    if (p.status === 'Paid') {
+      const dateStr = p.createdAt || '';
+      for (const m of months) {
+        if (dateStr.startsWith(m.yearMonth)) {
+          m.revenue += p.numericAmount || 0;
+          break;
+        }
+      }
+    }
+  }
+
+  // Aggregate active expenses
+  for (const e of expenses) {
+    if (!e.isReversed) {
+      const dateStr = e.expenseDate || e.createdAt || '';
+      for (const m of months) {
+        if (dateStr.startsWith(m.yearMonth)) {
+          m.expense += e.numericAmount || 0;
+          break;
+        }
+      }
+    }
+  }
+
+  const maxVal = Math.max(
+    ...months.map((m) => m.revenue),
+    ...months.map((m) => m.expense),
+    1000,
+  );
+
+  return {
+    ...REVENUE_EXPENSE_CHART,
+    series: [
+      { name: 'Revenue', data: months.map((m) => Math.round(m.revenue)) },
+      { name: 'Expense', data: months.map((m) => Math.round(m.expense)) },
+    ],
+    xaxis: plainXaxis(months.map((m) => m.label)),
+    yaxis: {
+      ...yaxisWithFormatter(
+        (value) => {
+          if (value >= 100000) return `₹${(value / 100000).toFixed(1)}L`;
+          if (value >= 1000) return `₹${Math.round(value / 1000)}k`;
+          return `₹${Math.round(value)}`;
+        },
+        0,
+        Math.ceil(maxVal * 1.15),
+      ),
+      forceNiceScale: true,
+    },
+  };
+}
+
+/**
+ * Dynamically computes a 6-month Revenue area chart from live Firestore payments.
+ */
+export function buildDynamicMonthlyRevenueChart(
+  payments: PaymentRecord[],
+): AxisChartOptions {
+  const now = new Date();
+  const months: { label: string; yearMonth: string; revenue: number }[] = [];
+
+  for (let i = 5; i >= 0; i--) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    const label = d.toLocaleString('en-US', { month: 'short' });
+    const yearMonth = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`;
+    months.push({ label, yearMonth, revenue: 0 });
+  }
+
+  for (const p of payments) {
+    if (p.status === 'Paid') {
+      const dateStr = p.createdAt || '';
+      for (const m of months) {
+        if (dateStr.startsWith(m.yearMonth)) {
+          m.revenue += p.numericAmount || 0;
+          break;
+        }
+      }
+    }
+  }
+
+  const maxVal = Math.max(...months.map((m) => m.revenue), 1000);
+
+  return {
+    ...MONTHLY_REVENUE_CHART,
+    series: [{ name: 'Revenue', data: months.map((m) => Math.round(m.revenue)) }],
+    xaxis: plainXaxis(months.map((m) => m.label)),
+    yaxis: {
+      ...yaxisWithFormatter(
+        (value) => {
+          if (value >= 100000) return `₹${(value / 100000).toFixed(1)}L`;
+          if (value >= 1000) return `₹${Math.round(value / 1000)}k`;
+          return `₹${Math.round(value)}`;
+        },
+        0,
+        Math.ceil(maxVal * 1.15),
+      ),
+      forceNiceScale: true,
+    },
+  };
+}
+
+/**
+ * Dynamically computes a 7-day Occupancy Rate line chart from live rooms & reservations.
+ */
+export function buildDynamicOccupancyRateChart(
+  rooms: RoomItem[],
+  bookings: ExtendedBookingItem[],
+): AxisChartOptions {
+  const now = new Date();
+  const days: { label: string; dateStr: string; rate: number }[] = [];
+  const totalRooms = rooms.length;
+
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(now);
+    d.setDate(now.getDate() - i);
+    const label = d.toLocaleString('en-US', { weekday: 'short' });
+    const dateStr = d.toISOString().slice(0, 10);
+    days.push({ label, dateStr, rate: 0 });
+  }
+
+  for (const day of days) {
+    if (totalRooms === 0) {
+      day.rate = 0;
+      continue;
+    }
+    const occupiedOnDay = bookings.filter((b) => {
+      if (b.status === 'Cancelled') return false;
+      const start = b.checkIn || '';
+      const end = b.checkOut || start;
+      return day.dateStr >= start && day.dateStr <= end;
+    }).length;
+
+    day.rate = Math.min(100, Math.round((occupiedOnDay / totalRooms) * 100));
+  }
+
+  return {
+    ...OCCUPANCY_RATE_CHART,
+    series: [{ name: 'Occupancy', data: days.map((d) => d.rate) }],
+    xaxis: plainXaxis(days.map((d) => d.label)),
+    yaxis: yaxisWithFormatter((val) => `${Math.round(val)}%`, 0, 100),
+  };
+}
+
+/**
+ * Dynamically computes a 7-day Booking Trend stacked bar chart from live reservations.
+ */
+export function buildDynamicBookingTrendChart(
+  bookings: ExtendedBookingItem[],
+): AxisChartOptions {
+  const now = new Date();
+  const days: { label: string; dateStr: string; direct: number; ota: number; walkIn: number }[] = [];
+
+  for (let i = 6; i >= 0; i--) {
+    const d = new Date(now);
+    d.setDate(now.getDate() - i);
+    const label = d.toLocaleString('en-US', { weekday: 'short' });
+    const dateStr = d.toISOString().slice(0, 10);
+    days.push({ label, dateStr, direct: 0, ota: 0, walkIn: 0 });
+  }
+
+  for (const b of bookings) {
+    if (b.status === 'Cancelled') continue;
+    const bDate = (b.createdAt || b.checkIn || '').slice(0, 10);
+    for (const day of days) {
+      if (bDate === day.dateStr) {
+        const ch = (b.channel || '').toLowerCase();
+        if (ch.includes('ota') || ch.includes('booking') || ch.includes('agoda') || ch.includes('makemytrip')) {
+          day.ota++;
+        } else if (ch.includes('walk') || ch.includes('phone')) {
+          day.walkIn++;
+        } else {
+          day.direct++;
+        }
+        break;
+      }
+    }
+  }
+
+  const maxTotal = Math.max(
+    ...days.map((d) => d.direct + d.ota + d.walkIn),
+    5,
+  );
+
+  return {
+    ...BOOKING_TREND_CHART,
+    series: [
+      { name: 'Direct', data: days.map((d) => d.direct) },
+      { name: 'OTA', data: days.map((d) => d.ota) },
+      { name: 'Walk-in', data: days.map((d) => d.walkIn) },
+    ],
+    xaxis: plainXaxis(days.map((d) => d.label)),
+    yaxis: {
+      show: true,
+      min: 0,
+      max: Math.ceil(maxTotal * 1.2),
+      tickAmount: 4,
+      labels: {
+        style: { colors: '#6b7280', fontSize: '12px' },
+        formatter: (val) => String(Math.round(val)),
+      },
+      forceNiceScale: true,
+    },
+  };
+}
+
+/**
+ * Dynamically computes room status legend items matching live room counts.
+ */
+export function buildDynamicRoomStatusLegend(rooms: RoomItem[]): RoomStatusLegendItem[] {
+  const available = rooms.filter((r) => r.status === 'Available').length;
+  const occupied = rooms.filter((r) => r.status === 'Occupied').length;
+  const cleaning = rooms.filter((r) => r.status === 'Cleaning').length;
+  const reserved = rooms.filter((r) => r.status === 'Reserved').length;
+  const maintenance = rooms.filter((r) => r.status === 'Maintenance').length;
+
+  return [
+    { label: 'STATUS.AVAILABLE', value: available, color: '#60a5fa' },
+    { label: 'STATUS.OCCUPIED', value: occupied, color: '#1d3e9f' },
+    { label: 'STATUS.CLEANING', value: cleaning, color: '#22c55e' },
+    { label: 'STATUS.RESERVED', value: reserved, color: '#94a3b8' },
+    { label: 'STATUS.MAINTENANCE', value: maintenance, color: '#ef4444' },
+  ];
+}
+

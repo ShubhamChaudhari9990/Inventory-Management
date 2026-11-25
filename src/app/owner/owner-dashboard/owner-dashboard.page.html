@@ -1,0 +1,383 @@
+<app-shell
+  [activeNavId]="activeNavId()"
+  [breadcrumb]="'Owner Enterprise'"
+  (activeNavIdChange)="navigateTo($event)"
+>
+  @if (isDashboardActive()) {
+    <div class="owner-dash">
+      <div class="owner-dash__inner">
+        <!-- Top Hero Bar -->
+        <section class="owner-dash__hero">
+          <div class="owner-dash__hero-copy">
+            <h1 class="owner-dash__title">{{ 'DASHBOARD.TITLE' | translate }}</h1>
+            <p class="owner-dash__subtitle">
+              {{ selectedPropertyName() | translate }}
+            </p>
+          </div>
+
+          <div class="owner-dash__hero-actions">
+            <ion-button class="owner-dash__cta owner-dash__cta--primary" fill="solid" (click)="navigateTo('bookings')">
+              <ion-icon slot="start" name="calendar-outline"></ion-icon>
+              {{ 'DASHBOARD.NEW_BOOKING' | translate }}
+            </ion-button>
+          </div>
+        </section>
+
+        <!-- Custom Date Range Inputs if Custom Selected -->
+        @if (selectedDateFilter() === 'custom') {
+          <div class="custom-date-box">
+            <div class="date-field">
+              <label>From:</label>
+              <input type="date" [ngModel]="customStartDate()" (ngModelChange)="customStartDate.set($event)" />
+            </div>
+            <div class="date-field">
+              <label>To:</label>
+              <input type="date" [ngModel]="customEndDate()" (ngModelChange)="customEndDate.set($event)" />
+            </div>
+            <button class="apply-date-btn" (click)="setDateFilter('custom')">Apply Range</button>
+          </div>
+        }
+
+        <!-- Important Alerts Banner -->
+        @if (importantAlerts().length > 0) {
+          <section class="owner-dash__alerts">
+            <div class="alerts-banner">
+              <div class="alerts-banner__header">
+                <ion-icon name="alert-circle-outline"></ion-icon>
+                <span>Attention Required ({{ importantAlerts().length }} Important Alerts)</span>
+              </div>
+              <div class="alerts-banner__grid">
+                @for (alert of importantAlerts(); track alert.id) {
+                  <div class="alert-item alert-item--{{ alert.severity }}">
+                    <div class="alert-item__content">
+                      <strong class="alert-item__title">{{ alert.title }}</strong>
+                      <p class="alert-item__desc">{{ alert.description }}</p>
+                    </div>
+                    @if (alert.actionLabel && alert.actionId) {
+                      <button class="alert-item__btn" (click)="navigateTo(alert.actionId)">
+                        {{ alert.actionLabel }}
+                      </button>
+                    }
+                  </div>
+                }
+              </div>
+            </div>
+          </section>
+        }
+
+        <!-- 12 KPI Cards Grid -->
+        <section class="owner-dash__kpis">
+          @for (kpi of ownerKpis(); track kpi.id) {
+            <app-dashboard-kpi-card [kpi]="kpi" />
+          }
+        </section>
+
+        <!-- Charts Grid (4 Visualizations) -->
+        <section class="owner-dash__charts">
+          <app-dashboard-section-card
+            class="dash-section dash-section--wide"
+            title="DASHBOARD.CHART.REVENUE_VS_EXPENSE"
+          >
+            <app-dashboard-axis-chart [options]="revenueExpenseChart" />
+          </app-dashboard-section-card>
+
+          <app-dashboard-section-card
+            class="dash-section"
+            title="DASHBOARD.CHART.ROOM_STATUS"
+          >
+            <app-dashboard-donut-chart [options]="dynamicRoomStatusChart()" />
+            <div class="status-legend">
+              @for (item of roomStatusLegend; track item.label) {
+                <div class="status-legend__item">
+                  <span class="status-legend__dot" [style.background]="item.color"></span>
+                  <span class="status-legend__label">{{ item.label | translate }}</span>
+                  <span class="status-legend__value">{{ item.value }}</span>
+                </div>
+              }
+            </div>
+          </app-dashboard-section-card>
+
+          <app-dashboard-section-card
+            class="dash-section"
+            title="DASHBOARD.CHART.MONTHLY_REVENUE"
+          >
+            <app-dashboard-axis-chart [options]="monthlyRevenueChart" />
+          </app-dashboard-section-card>
+
+          <app-dashboard-section-card
+            class="dash-section"
+            title="DASHBOARD.CHART.BOOKING_TREND"
+          >
+            <app-dashboard-axis-chart [options]="bookingTrendChart" />
+          </app-dashboard-section-card>
+        </section>
+
+        <!-- Lodge-Wise Performance Comparison Widget -->
+        <app-dashboard-section-card
+          class="dash-section dash-section--full"
+          title="Lodge-Wise Performance Comparison"
+        >
+          <div class="lodge-perf-table-wrapper">
+            <table class="lodge-perf-table">
+              <thead>
+                <tr>
+                  <th>Lodge Name</th>
+                  <th>City</th>
+                  <th>Total Rooms</th>
+                  <th>Occupied</th>
+                  <th>Occupancy Rate</th>
+                  <th>Revenue (MTD)</th>
+                  <th>Expenses</th>
+                  <th>Net Profit</th>
+                  <th>Pending Dues</th>
+                  <th>Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (item of lodgePerformance(); track item.id) {
+                  <tr [class.lodge-perf-table__row--active]="selectedPropertyId() === item.id">
+                    <td>
+                      <div class="lodge-cell">
+                        <ion-icon name="business-outline"></ion-icon>
+                        <div>
+                          <strong>{{ item.name }}</strong>
+                          <span class="lodge-code">{{ item.code }}</span>
+                        </div>
+                      </div>
+                    </td>
+                    <td>{{ item.city }}</td>
+                    <td>{{ item.totalRooms }}</td>
+                    <td>{{ item.occupiedRooms }}</td>
+                    <td>
+                      <div class="occupancy-progress">
+                        <div class="progress-bar">
+                          <div class="progress-bar__fill" [style.width.%]="item.occupancyRate"></div>
+                        </div>
+                        <span class="rate-val">{{ item.occupancyRate }}%</span>
+                      </div>
+                    </td>
+                    <td class="num-cell">₹{{ item.monthlyRevenue.toLocaleString('en-IN') }}</td>
+                    <td class="num-cell">₹{{ item.monthlyExpenses.toLocaleString('en-IN') }}</td>
+                    <td class="num-cell font-semibold" [class.text-green]="item.netProfit >= 0" [class.text-red]="item.netProfit < 0">
+                      ₹{{ item.netProfit.toLocaleString('en-IN') }}
+                    </td>
+                    <td class="num-cell text-warm">₹{{ item.pendingDues.toLocaleString('en-IN') }}</td>
+                    <td>
+                      <button class="focus-btn" (click)="setLodgeFilter(item.id)">
+                        <ion-icon name="eye-outline"></ion-icon>
+                        Focus
+                      </button>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </app-dashboard-section-card>
+
+        <!-- Bottom Operational Widgets Grid -->
+        <section class="owner-dash__bottom-grid">
+          <!-- Upcoming Check-ins -->
+          <app-dashboard-section-card title="Upcoming Check-ins">
+            <div class="dash-list">
+              @for (item of upcomingCheckins(); track item.id) {
+                <div class="dash-list-item">
+                  <div class="dash-list-item__icon dash-list-item__icon--in">
+                    <ion-icon name="log-in-outline"></ion-icon>
+                  </div>
+                  <div class="dash-list-item__details">
+                    <span class="name">{{ item.guestName }}</span>
+                    <span class="sub">Room {{ item.roomNumber }} · {{ item.roomType }} · {{ item.scheduledTime }}</span>
+                  </div>
+                  <div class="dash-list-item__badge">
+                    <span class="status-pill status-pill--{{ item.paymentStatus.toLowerCase() }}">
+                      {{ item.paymentStatus }}
+                    </span>
+                  </div>
+                </div>
+              }
+            </div>
+          </app-dashboard-section-card>
+
+          <!-- Upcoming Check-outs -->
+          <app-dashboard-section-card title="Upcoming Check-outs">
+            <div class="dash-list">
+              @for (item of upcomingCheckouts(); track item.id) {
+                <div class="dash-list-item">
+                  <div class="dash-list-item__icon dash-list-item__icon--out">
+                    <ion-icon name="log-out-outline"></ion-icon>
+                  </div>
+                  <div class="dash-list-item__details">
+                    <span class="name">{{ item.guestName }}</span>
+                    <span class="sub">Room {{ item.roomNumber }} · Departure {{ item.scheduledTime }}</span>
+                  </div>
+                  <div class="dash-list-item__badge">
+                    @if (item.amountDue > 0) {
+                      <span class="status-pill status-pill--due">₹{{ item.amountDue }} Due</span>
+                    } @else {
+                      <span class="status-pill status-pill--paid">Cleared</span>
+                    }
+                  </div>
+                </div>
+              }
+            </div>
+          </app-dashboard-section-card>
+
+          <!-- Recent Bookings -->
+          <app-dashboard-section-card title="Recent Bookings">
+            <div class="dash-list">
+              @for (booking of recentBookings(); track booking.id) {
+                <div class="dash-list-item">
+                  <div class="dash-list-item__icon">
+                    <ion-icon name="calendar-outline"></ion-icon>
+                  </div>
+                  <div class="dash-list-item__details">
+                    <span class="name">{{ booking.guest }}</span>
+                    <span class="sub">{{ booking.room }} · {{ booking.checkIn }}</span>
+                  </div>
+                  <div class="dash-list-item__meta">
+                    <span class="amount">{{ booking.amount }}</span>
+                    <span class="status-pill status-pill--{{ booking.status.toLowerCase() }}">
+                      {{ booking.status }}
+                    </span>
+                  </div>
+                </div>
+              }
+            </div>
+          </app-dashboard-section-card>
+
+          <!-- Recent Payments -->
+          <app-dashboard-section-card title="Recent Payments">
+            <div class="dash-list">
+              @for (payment of recentPayments(); track payment.id) {
+                <div class="dash-list-item">
+                  <div class="dash-list-item__icon dash-list-item__icon--pay">
+                    <ion-icon name="cash-outline"></ion-icon>
+                  </div>
+                  <div class="dash-list-item__details">
+                    <span class="name">{{ payment.guest }}</span>
+                    <span class="sub">{{ payment.method }} · {{ payment.time }}</span>
+                  </div>
+                  <div class="dash-list-item__meta">
+                    <span class="amount font-semibold text-green">{{ payment.amount }}</span>
+                  </div>
+                </div>
+              }
+            </div>
+          </app-dashboard-section-card>
+
+          <!-- Recent Activities Feed -->
+          <app-dashboard-section-card class="dash-section--full" title="Recent Activity Audit">
+            <div class="activity-feed">
+              @for (act of recentActivities(); track act.id) {
+                <div class="activity-feed__item">
+                  <div class="activity-feed__icon">
+                    <ion-icon [name]="act.icon"></ion-icon>
+                  </div>
+                  <div class="activity-feed__body">
+                    <strong>{{ act.title }}</strong>
+                    <p>{{ act.text }}</p>
+                  </div>
+                  <span class="activity-feed__time">{{ act.time }}</span>
+                </div>
+              }
+            </div>
+          </app-dashboard-section-card>
+        </section>
+      </div>
+    </div>
+  }
+
+  <!-- Secondary Views for Owner -->
+  @if (isLodgesActive()) {
+    <div class="owner-dash">
+      <div class="owner-dash__inner">
+        <app-lodges-view />
+      </div>
+    </div>
+  }
+  @if (isRoomsActive()) {
+    <div class="owner-dash">
+      <div class="owner-dash__inner">
+        <app-rooms-view />
+      </div>
+    </div>
+  }
+  @if (isBookingsActive()) {
+    <div class="owner-dash">
+      <div class="owner-dash__inner">
+        <app-bookings-view />
+      </div>
+    </div>
+  }
+  @if (isPaymentsActive()) {
+    <div class="owner-dash">
+      <div class="owner-dash__inner">
+        <app-payments-view />
+      </div>
+    </div>
+  }
+  @if (isCustomersActive()) {
+    <div class="owner-dash">
+      <div class="owner-dash__inner">
+        <app-customers-view />
+      </div>
+    </div>
+  }
+  @if (isInventoryActive()) {
+    <div class="owner-dash">
+      <div class="owner-dash__inner">
+        <app-inventory-view />
+      </div>
+    </div>
+  }
+  @if (isRevenueActive()) {
+    <div class="owner-dash">
+      <div class="owner-dash__inner">
+        <app-revenue-view />
+      </div>
+    </div>
+  }
+  @if (isExpensesActive()) {
+    <div class="owner-dash">
+      <div class="owner-dash__inner">
+        <app-expenses-view />
+      </div>
+    </div>
+  }
+  @if (isStaffActive()) {
+    <div class="owner-dash">
+      <div class="owner-dash__inner">
+        <app-staff-view />
+      </div>
+    </div>
+  }
+  @if (isHousekeepingActive()) {
+    <div class="owner-dash">
+      <div class="owner-dash__inner">
+        <app-housekeeping-view />
+      </div>
+    </div>
+  }
+  @if (isReportsActive()) {
+    <div class="owner-dash">
+      <div class="owner-dash__inner">
+        <app-reports-view />
+      </div>
+    </div>
+  }
+  @if (isSettingsActive()) {
+    <div class="owner-dash">
+      <div class="owner-dash__inner">
+        <app-settings-view />
+      </div>
+    </div>
+  }
+  @if (isMoreActive()) {
+    <div class="owner-dash">
+      <div class="owner-dash__inner">
+        <app-more-menu-view [items]="moreMenuItems" />
+      </div>
+    </div>
+  }
+</app-shell>

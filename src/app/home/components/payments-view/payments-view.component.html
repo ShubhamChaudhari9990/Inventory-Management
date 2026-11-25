@@ -1,0 +1,381 @@
+<div class="payments-page">
+  <header class="payments-page__hero">
+    <div class="payments-page__hero-copy">
+      <h1 class="payments-page__title">{{ 'PAYMENT_MGMT.TITLE' | translate }}</h1>
+      <p class="payments-page__subtitle">{{ 'PAYMENT_MGMT.SUBTITLE' | translate }}</p>
+    </div>
+
+    <ion-button class="payments-page__cta" fill="solid" (click)="openRecordModal()">
+      <ion-icon slot="start" name="add-circle-outline"></ion-icon>
+      {{ 'PAYMENT_MGMT.RECORD' | translate }}
+    </ion-button>
+  </header>
+
+  <!-- KPI Section -->
+  <section class="payments-page__kpis" aria-label="Payment KPIs">
+    @for (kpi of kpis(); track kpi.id) {
+      <app-dashboard-kpi-card [kpi]="kpi" />
+    }
+  </section>
+
+  <!-- Toolbar: Search & Filter Chips -->
+  <div class="payments-toolbar">
+    <label class="payments-search">
+      <ion-icon name="search-outline" aria-hidden="true"></ion-icon>
+      <input
+        type="search"
+        [placeholder]="'PAYMENT_MGMT.SEARCH' | translate"
+        [value]="query()"
+        (input)="query.set($any($event.target).value)"
+      />
+    </label>
+
+    <div class="payments-filters-row">
+      <div class="payments-filters" aria-label="Payment method filters">
+        <button
+          type="button"
+          class="payments-filters__chip"
+          [class.payments-filters__chip--active]="selectedMethodFilter() === 'All'"
+          (click)="selectedMethodFilter.set('All')"
+        >
+          {{ 'PAYMENT_MGMT.ALL_METHODS' | translate }}
+        </button>
+        @for (m of methods; track m) {
+          <button
+            type="button"
+            class="payments-filters__chip"
+            [class.payments-filters__chip--active]="selectedMethodFilter() === m"
+            (click)="selectedMethodFilter.set(m)"
+          >
+            {{ m }}
+          </button>
+        }
+      </div>
+
+      <div class="payments-filters payments-filters--status" aria-label="Payment status filters">
+        <button
+          type="button"
+          class="payments-filters__chip"
+          [class.payments-filters__chip--active]="selectedStatusFilter() === 'All'"
+          (click)="selectedStatusFilter.set('All')"
+        >
+          {{ 'PAYMENT_MGMT.ALL_STATUSES' | translate }}
+        </button>
+        @for (st of ['Paid', 'Partially Paid', 'Pending', 'Refunded']; track st) {
+          <button
+            type="button"
+            class="payments-filters__chip"
+            [class.payments-filters__chip--active]="selectedStatusFilter() === st"
+            (click)="selectedStatusFilter.set(st)"
+          >
+            {{ st }}
+          </button>
+        }
+      </div>
+    </div>
+  </div>
+
+  <!-- Data Table -->
+  <section class="payments-table-card">
+    <div class="payments-table-wrap">
+      <table class="payments-table">
+        <thead>
+          <tr>
+            <th>{{ 'PAYMENT_MGMT.TABLE.TXN_ID' | translate }}</th>
+            <th>{{ 'PAYMENT_MGMT.TABLE.GUEST' | translate }}</th>
+            <th>{{ 'PAYMENT_MGMT.TABLE.METHOD' | translate }}</th>
+            <th>{{ 'PAYMENT_MGMT.TABLE.TYPE' | translate }}</th>
+            <th class="payments-table__amount">{{ 'PAYMENT_MGMT.TABLE.AMOUNT' | translate }}</th>
+            <th>{{ 'PAYMENT_MGMT.TABLE.STATUS' | translate }}</th>
+            <th>{{ 'PAYMENT_MGMT.TABLE.DATE' | translate }}</th>
+            <th class="payments-table__actions">{{ 'PAYMENT_MGMT.TABLE.ACTIONS' | translate }}</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (payment of filteredPayments(); track trackPayment($index, payment)) {
+            <tr>
+              <td class="payments-table__code">
+                <span class="code-badge">{{ payment.transactionId || ('#' + payment.id.slice(0, 8)) }}</span>
+              </td>
+              <td>
+                <p class="payments-table__guest">{{ payment.guestName }}</p>
+                <p class="payments-table__phone">{{ payment.guestPhone || '—' }}</p>
+              </td>
+              <td>
+                <span class="method-tag method-tag--{{ payment.method.toLowerCase().replace(' ', '-') }}">
+                  {{ payment.method }}
+                </span>
+              </td>
+              <td>
+                <span class="type-tag">{{ payment.type }}</span>
+              </td>
+              <td class="payments-table__amount payments-table__strong" [class.text-danger]="payment.type === 'Refund'">
+                {{ payment.type === 'Refund' ? '-' : '' }}₹{{ payment.numericAmount.toLocaleString('en-IN') }}
+              </td>
+              <td>
+                <span
+                  class="payment-status"
+                  [class.payment-status--paid]="payment.status === 'Paid'"
+                  [class.payment-status--partially-paid]="payment.status === 'Partially Paid'"
+                  [class.payment-status--pending]="payment.status === 'Pending'"
+                  [class.payment-status--refunded]="payment.status === 'Refunded'"
+                  [class.payment-status--failed]="payment.status === 'Failed'"
+                >
+                  <span class="payment-status__dot"></span>
+                  {{ payment.status }}
+                </span>
+              </td>
+              <td class="payments-table__date">
+                {{ payment.createdAt ? (payment.createdAt | date:'mediumDate') : '—' }}
+              </td>
+              <td class="payments-table__actions">
+                <button
+                  type="button"
+                  class="payments-table__btn-receipt"
+                  (click)="openReceiptModal(payment, $event)"
+                  title="View Receipt"
+                >
+                  <ion-icon name="receipt-outline" aria-hidden="true"></ion-icon>
+                  {{ 'PAYMENT_MGMT.TABLE.RECEIPT' | translate }}
+                </button>
+                @if (payment.status === 'Paid' && payment.type !== 'Refund') {
+                  <button
+                    type="button"
+                    class="payments-table__btn-refund"
+                    (click)="openRefundModal(payment, $event)"
+                    title="Process Refund"
+                  >
+                    <ion-icon name="arrow-undo-outline" aria-hidden="true"></ion-icon>
+                    {{ 'PAYMENT_MGMT.TABLE.REFUND' | translate }}
+                  </button>
+                }
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="8" class="payments-table__empty">
+                <ion-icon name="card-outline" class="empty-icon"></ion-icon>
+                <p>No payment transactions found matching your criteria.</p>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Modal: Record Payment -->
+  <ion-modal [isOpen]="isRecordModalOpen()" (didDismiss)="closeRecordModal()" cssClass="app-form-modal">
+    <ng-template>
+      <div class="form-sheet" role="dialog" aria-labelledby="record-payment-title">
+        <button
+          type="button"
+          class="form-sheet__close"
+          [attr.aria-label]="'COMMON.CLOSE' | translate"
+          (click)="closeRecordModal()"
+        >
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M18 6 6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="m6 6 12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+
+        <div class="form-sheet__header">
+          <h2 id="record-payment-title" class="form-sheet__title">
+            {{ 'PAYMENT_MGMT.MODAL.TITLE' | translate }}
+          </h2>
+        </div>
+
+        <div class="form-sheet__grid">
+          <label class="form-sheet__field">
+            <span>{{ 'PAYMENT_MGMT.MODAL.GUEST_NAME' | translate }}</span>
+            <input type="text" [(ngModel)]="formGuestName" placeholder="e.g. Rahul Sharma" />
+          </label>
+
+          <label class="form-sheet__field">
+            <span>{{ 'PAYMENT_MGMT.MODAL.GUEST_PHONE' | translate }}</span>
+            <input type="tel" [(ngModel)]="formGuestPhone" placeholder="e.g. +91 9876543210" />
+          </label>
+
+          <label class="form-sheet__field">
+            <span>{{ 'PAYMENT_MGMT.MODAL.AMOUNT' | translate }}</span>
+            <input type="number" [(ngModel)]="formAmount" min="1" placeholder="Amount in ₹" />
+          </label>
+
+          <label class="form-sheet__field">
+            <span>{{ 'PAYMENT_MGMT.MODAL.METHOD' | translate }}</span>
+            <select [(ngModel)]="formMethod">
+              @for (m of methods; track m) {
+                <option [value]="m">{{ m }}</option>
+              }
+            </select>
+          </label>
+
+          <label class="form-sheet__field">
+            <span>{{ 'PAYMENT_MGMT.MODAL.TYPE' | translate }}</span>
+            <select [(ngModel)]="formType">
+              <option value="Full">Full Payment</option>
+              <option value="Advance">Advance Deposit</option>
+              <option value="Partial">Partial Payment</option>
+              <option value="Settlement">Final Settlement</option>
+            </select>
+          </label>
+
+          <label class="form-sheet__field">
+            <span>{{ 'PAYMENT_MGMT.MODAL.TXN_ID' | translate }}</span>
+            <input type="text" [(ngModel)]="formTransactionId" placeholder="e.g. UPI/2384910283 or Slip #" />
+          </label>
+
+          <label class="form-sheet__field form-sheet__field--full">
+            <span>{{ 'PAYMENT_MGMT.MODAL.NOTES' | translate }}</span>
+            <input type="text" [(ngModel)]="formNotes" placeholder="Optional payment remarks or room ref" />
+          </label>
+        </div>
+
+        <div class="form-sheet__footer">
+          <button type="button" class="form-sheet__cancel" (click)="closeRecordModal()">
+            <ion-icon name="close-outline"></ion-icon>
+            <span>{{ 'PAYMENT_MGMT.MODAL.CANCEL' | translate }}</span>
+          </button>
+          <button type="button" class="form-sheet__save" (click)="submitPayment()">
+            <ion-icon name="checkmark-circle-outline"></ion-icon>
+            <span>{{ 'PAYMENT_MGMT.MODAL.SAVE' | translate }}</span>
+          </button>
+        </div>
+      </div>
+    </ng-template>
+  </ion-modal>
+
+  <!-- Modal: Process Refund -->
+  <ion-modal [isOpen]="isRefundModalOpen()" (didDismiss)="closeRefundModal()" cssClass="app-form-modal">
+    <ng-template>
+      <div class="form-sheet" role="dialog" aria-labelledby="refund-title">
+        <button
+          type="button"
+          class="form-sheet__close"
+          [attr.aria-label]="'COMMON.CLOSE' | translate"
+          (click)="closeRefundModal()"
+        >
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M18 6 6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="m6 6 12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+
+        <div class="form-sheet__header">
+          <h2 id="refund-title" class="form-sheet__title">
+            {{ 'PAYMENT_MGMT.REFUND_MODAL.TITLE' | translate }}
+          </h2>
+          @if (activeRefundPayment(); as p) {
+            <p class="form-sheet__sub">Refunding payment to {{ p.guestName }} (Orig. ₹{{ p.numericAmount }})</p>
+          }
+        </div>
+
+        <div class="form-sheet__grid">
+          <label class="form-sheet__field form-sheet__field--full">
+            <span>{{ 'PAYMENT_MGMT.REFUND_MODAL.AMOUNT' | translate }}</span>
+            <input type="number" [(ngModel)]="refundAmount" min="1" />
+          </label>
+
+          <label class="form-sheet__field form-sheet__field--full">
+            <span>{{ 'PAYMENT_MGMT.REFUND_MODAL.REASON' | translate }}</span>
+            <input type="text" [(ngModel)]="refundReason" placeholder="e.g. Booking cancellation or excess advance" />
+          </label>
+        </div>
+
+        <div class="form-sheet__footer">
+          <button type="button" class="form-sheet__cancel" (click)="closeRefundModal()">
+            <ion-icon name="close-outline"></ion-icon>
+            <span>{{ 'PAYMENT_MGMT.REFUND_MODAL.CANCEL' | translate }}</span>
+          </button>
+          <button type="button" class="form-sheet__save btn-danger" (click)="submitRefund()">
+            <ion-icon name="checkmark-circle-outline"></ion-icon>
+            <span>{{ 'PAYMENT_MGMT.REFUND_MODAL.CONFIRM' | translate }}</span>
+          </button>
+        </div>
+      </div>
+    </ng-template>
+  </ion-modal>
+
+  <!-- Modal: View Receipt -->
+  <ion-modal [isOpen]="isReceiptModalOpen()" (didDismiss)="closeReceiptModal()">
+    <ng-template>
+      <div class="form-sheet receipt-sheet" role="dialog" aria-labelledby="receipt-title">
+        <button
+          type="button"
+          class="form-sheet__close"
+          [attr.aria-label]="'COMMON.CLOSE' | translate"
+          (click)="closeReceiptModal()"
+        >
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M18 6 6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="m6 6 12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+
+        <div class="receipt-card">
+          <div class="receipt-header">
+            <div class="receipt-logo">
+              <ion-icon name="business-outline"></ion-icon>
+              <span>{{ selectedPropertyName() }}</span>
+            </div>
+            <div class="receipt-meta">
+              <span class="receipt-tag">{{ activeReceiptPayment()?.status }}</span>
+              <p class="receipt-date">{{ activeReceiptPayment()?.createdAt | date:'medium' }}</p>
+            </div>
+          </div>
+
+          <div class="receipt-divider"></div>
+
+          @if (activeReceiptPayment(); as rec) {
+            <div class="receipt-body">
+              <div class="receipt-row">
+                <span class="lbl">{{ 'PAYMENT_MGMT.RECEIPT_MODAL.RECEIPT_NO' | translate }}</span>
+                <span class="val">{{ rec.transactionId || ('RCPT-' + rec.id.slice(0, 8).toUpperCase()) }}</span>
+              </div>
+              <div class="receipt-row">
+                <span class="lbl">{{ 'PAYMENT_MGMT.RECEIPT_MODAL.GUEST' | translate }}</span>
+                <span class="val font-bold">{{ rec.guestName }}</span>
+              </div>
+              @if (rec.guestPhone) {
+                <div class="receipt-row">
+                  <span class="lbl">{{ 'PAYMENT_MGMT.RECEIPT_MODAL.PHONE' | translate }}</span>
+                  <span class="val">{{ rec.guestPhone }}</span>
+                </div>
+              }
+              <div class="receipt-row">
+                <span class="lbl">{{ 'PAYMENT_MGMT.RECEIPT_MODAL.METHOD' | translate }}</span>
+                <span class="val">{{ rec.method }}</span>
+              </div>
+              <div class="receipt-row">
+                <span class="lbl">{{ 'PAYMENT_MGMT.RECEIPT_MODAL.TYPE' | translate }}</span>
+                <span class="val">{{ rec.type }}</span>
+              </div>
+              <div class="receipt-row receipt-total-row">
+                <span class="lbl">{{ 'PAYMENT_MGMT.RECEIPT_MODAL.AMOUNT_PAID' | translate }}</span>
+                <span class="val total-val">₹{{ rec.numericAmount.toLocaleString('en-IN') }}</span>
+              </div>
+              @if (rec.notes) {
+                <div class="receipt-notes">
+                  <p class="notes-lbl">Notes:</p>
+                  <p class="notes-val">{{ rec.notes }}</p>
+                </div>
+              }
+            </div>
+          }
+
+          <div class="receipt-footer-actions">
+            <button type="button" class="btn-receipt-action" (click)="printReceipt()">
+              <ion-icon name="print-outline"></ion-icon>
+              {{ 'PAYMENT_MGMT.RECEIPT_MODAL.PRINT' | translate }}
+            </button>
+            <button type="button" class="btn-receipt-action btn-primary" (click)="downloadReceipt()">
+              <ion-icon name="download-outline"></ion-icon>
+              {{ 'PAYMENT_MGMT.RECEIPT_MODAL.DOWNLOAD' | translate }}
+            </button>
+          </div>
+        </div>
+      </div>
+    </ng-template>
+  </ion-modal>
+</div>

@@ -1,0 +1,389 @@
+<app-shell
+  [activeNavId]="activeNavId()"
+  [breadcrumb]="'Staff Portal'"
+  (activeNavIdChange)="activeNavId.set($event)"
+>
+  @if (isDashboardActive() || isTasksActive()) {
+    <div class="staff-dash">
+      <div class="staff-dash__inner">
+        <!-- Top Welcome & Schedule Banner -->
+        <section class="staff-dash__banner">
+          <div class="staff-dash__profile">
+            <div class="staff-dash__avatar">
+              <ion-icon name="person-outline"></ion-icon>
+            </div>
+            <div class="staff-dash__copy">
+              <div class="staff-dash__tags">
+                <span class="designation-badge">{{ staffDesignation() }}</span>
+                <span class="lodge-badge">
+                  <ion-icon name="business-outline"></ion-icon>
+                  {{ assignedLodgeName() | translate }}
+                </span>
+              </div>
+              <h1 class="staff-dash__welcome">Welcome back, {{ staffName() }}</h1>
+              <p class="staff-dash__schedule">
+                <ion-icon name="time-outline"></ion-icon>
+                <span>Today's Shift: 08:00 AM – 04:00 PM · Station: Primary Floor</span>
+              </p>
+            </div>
+          </div>
+
+          <div class="staff-dash__quick-act">
+            <button class="report-defect-btn" (click)="openMaintModal()">
+              <ion-icon name="build-outline"></ion-icon>
+              Report Defect
+            </button>
+          </div>
+        </section>
+
+        <!-- 4 Task Counters -->
+        <section class="staff-dash__counters">
+          <div class="counter-card counter-card--total">
+            <span class="counter-card__label">Total Tasks</span>
+            <span class="counter-card__num">{{ totalTaskCount() }}</span>
+            <span class="counter-card__sub">Assigned Today</span>
+          </div>
+
+          <div class="counter-card counter-card--pending">
+            <span class="counter-card__label">Pending</span>
+            <span class="counter-card__num">{{ pendingCount() }}</span>
+            <span class="counter-card__sub">Action Required</span>
+          </div>
+
+          <div class="counter-card counter-card--progress">
+            <span class="counter-card__label">In Progress</span>
+            <span class="counter-card__num">{{ inProgressCount() }}</span>
+            <span class="counter-card__sub">Ongoing Now</span>
+          </div>
+
+          <div class="counter-card counter-card--completed">
+            <span class="counter-card__label">Completed</span>
+            <span class="counter-card__num">{{ completedCount() }}</span>
+            <span class="counter-card__sub">Finished Tasks</span>
+          </div>
+        </section>
+
+        <!-- Role View Selector Switcher -->
+        <section class="staff-dash__view-switch">
+          <div class="tab-pills">
+            <button
+              class="tab-pill"
+              [class.tab-pill--active]="selectedTab() === 'auto'"
+              (click)="selectedTab.set('auto')"
+            >
+              My Role View ({{ staffDesignation() }})
+            </button>
+            <button
+              class="tab-pill"
+              [class.tab-pill--active]="selectedTab() === 'reception'"
+              (click)="selectedTab.set('reception')"
+            >
+              Reception
+            </button>
+            <button
+              class="tab-pill"
+              [class.tab-pill--active]="selectedTab() === 'housekeeping'"
+              (click)="selectedTab.set('housekeeping')"
+            >
+              Housekeeping
+            </button>
+            <button
+              class="tab-pill"
+              [class.tab-pill--active]="selectedTab() === 'maintenance'"
+              (click)="selectedTab.set('maintenance')"
+            >
+              Maintenance
+            </button>
+            <button
+              class="tab-pill"
+              [class.tab-pill--active]="selectedTab() === 'general'"
+              (click)="selectedTab.set('general')"
+            >
+              Daily Checklist
+            </button>
+          </div>
+        </section>
+
+        <!-- Dynamic View 1: Receptionist -->
+        @if (activeView() === 'reception') {
+          <section class="staff-dash__reception-grid">
+            <!-- Search & Today's Checkins -->
+            <app-dashboard-section-card title="Front Desk · Today's Arrivals">
+              <div class="search-box">
+                <ion-icon name="search-outline"></ion-icon>
+                <input
+                  type="text"
+                  placeholder="Search guest name, room number, or phone..."
+                  [ngModel]="guestSearchQuery()"
+                  (ngModelChange)="guestSearchQuery.set($event)"
+                />
+              </div>
+
+              <div class="staff-list">
+                @for (item of todayArrivals(); track item.id) {
+                  <div class="staff-list-item">
+                    <div class="staff-list-item__details">
+                      <strong>{{ item.guestName }}</strong>
+                      <span>Room {{ item.room }} · {{ item.roomType }} · {{ item.guestPhone || item.contact || '' }}</span>
+                    </div>
+                    <div class="staff-list-item__action">
+                      @if (item.status === 'Paid') {
+                        <span class="badge badge--success">Checked In</span>
+                      } @else {
+                        <button class="action-btn action-btn--checkin" (click)="onCheckInGuest(item.guestName, item.room)">
+                          Check In
+                        </button>
+                      }
+                    </div>
+                  </div>
+                }
+              </div>
+            </app-dashboard-section-card>
+
+            <!-- Today's Departures -->
+            <app-dashboard-section-card title="Front Desk · Today's Departures">
+              <div class="staff-list">
+                @for (item of todayDepartures(); track item.id) {
+                  <div class="staff-list-item">
+                    <div class="staff-list-item__details">
+                      <strong>{{ item.guestName }}</strong>
+                      <span>Room {{ item.room }} · Departure Check</span>
+                    </div>
+                    <div class="staff-list-item__action">
+                      <button class="action-btn action-btn--checkout" (click)="onCheckOutGuest(item.guestName, item.room)">
+                        Check Out
+                      </button>
+                    </div>
+                  </div>
+                }
+              </div>
+            </app-dashboard-section-card>
+          </section>
+        }
+
+        <!-- Dynamic View 2: Housekeeping -->
+        @if (activeView() === 'housekeeping') {
+          <section class="staff-dash__hk-grid">
+            <!-- Assigned Rooms -->
+            <app-dashboard-section-card title="My Assigned Rooms">
+              <div class="assigned-rooms-grid">
+                @for (room of assignedRooms(); track room.number) {
+                  <div
+                    class="room-card"
+                    [class.room-card--clean]="room.status === 'Available'"
+                    [class.room-card--dirty]="room.status === 'Cleaning'"
+                    [class.room-card--occupied]="room.status === 'Occupied'"
+                  >
+                    <span class="room-card__num">Room {{ room.number }}</span>
+                    <span class="room-card__type">{{ room.type }}</span>
+                    <span class="room-card__status">{{ room.status }}</span>
+                    <button class="defect-link" (click)="openMaintModal(room.number)">
+                      Report Issue
+                    </button>
+                  </div>
+                }
+              </div>
+            </app-dashboard-section-card>
+
+            <!-- Cleaning Schedule Tasks -->
+            <app-dashboard-section-card title="Cleaning Task Queue">
+              <div class="tasks-queue">
+                @for (task of cleaningSchedule(); track task.id) {
+                  <div class="task-queue-item">
+                    <div class="task-queue-item__info">
+                      <div class="task-queue-item__title">
+                        <strong>Room {{ task.room }}</strong>
+                        <span class="type-pill">{{ task.type }}</span>
+                      </div>
+                      <span class="sub">Priority: {{ task.priority }} · {{ task.time }}</span>
+                    </div>
+                    <div class="task-queue-item__btns">
+                      @if (task.status === 'Pending') {
+                        <button class="queue-btn queue-btn--start" (click)="updateCleaningStatus(task, 'In Progress')">
+                          Start
+                        </button>
+                      }
+                      @if (task.status === 'In Progress') {
+                        <button class="queue-btn queue-btn--done" (click)="updateCleaningStatus(task, 'Completed')">
+                          Mark Cleaned
+                        </button>
+                      }
+                      @if (task.status === 'Completed') {
+                        <span class="completed-tag">✓ Clean</span>
+                      }
+                    </div>
+                  </div>
+                }
+              </div>
+            </app-dashboard-section-card>
+          </section>
+        }
+
+        <!-- Dynamic View 3: Maintenance -->
+        @if (activeView() === 'maintenance') {
+          <section class="staff-dash__maint-grid">
+            <app-dashboard-section-card class="full-width" title="Assigned Maintenance Work Orders">
+              <div class="maint-list">
+                @for (req of repairRequests(); track req.id) {
+                  <div class="maint-card">
+                    <div class="maint-card__header">
+                      <div class="maint-card__room">
+                        <ion-icon name="build-outline"></ion-icon>
+                        <strong>Room {{ req.room }} · {{ req.category }}</strong>
+                      </div>
+                      <span class="priority-badge priority-badge--{{ req.priority }}">{{ req.priority }}</span>
+                    </div>
+
+                    <p class="maint-card__desc">{{ req.issue }}</p>
+
+                    <div class="maint-card__footer">
+                      <span class="time">Reported: {{ req.reportedTime }}</span>
+                      <div class="maint-card__actions">
+                        @if (req.status === 'Pending') {
+                          <button class="maint-btn maint-btn--start" (click)="updateRepairStatus(req.id, 'In Progress')">
+                            Start Repair
+                          </button>
+                        }
+                        @if (req.status === 'In Progress') {
+                          <button class="maint-btn maint-btn--done" (click)="updateRepairStatus(req.id, 'Resolved')">
+                            Mark Resolved
+                          </button>
+                        }
+                        @if (req.status === 'Resolved') {
+                          <span class="resolved-tag">✓ Resolved</span>
+                        }
+                      </div>
+                    </div>
+                  </div>
+                }
+              </div>
+            </app-dashboard-section-card>
+          </section>
+        }
+
+        <!-- Dynamic View 4: General Checklist -->
+        @if (activeView() === 'general') {
+          <section class="staff-dash__general-grid">
+            <app-dashboard-section-card class="full-width" title="Daily Operational Checklist">
+              <div class="checklist">
+                @for (task of generalTasks(); track task.id) {
+                  <div class="checklist-item" [class.checklist-item--done]="task.done" (click)="toggleGeneralTask(task.id)">
+                    <div class="checkbox-box">
+                      <ion-icon [name]="task.done ? 'checkmark-circle-outline' : 'time-outline'"></ion-icon>
+                    </div>
+                    <div class="checklist-text">
+                      <span class="title">{{ task.title }}</span>
+                      <span class="time">{{ task.time }}</span>
+                    </div>
+                  </div>
+                }
+              </div>
+            </app-dashboard-section-card>
+          </section>
+        }
+
+        <!-- Notifications & Announcements -->
+        <app-dashboard-section-card title="Notice Board & Team Alerts">
+          <div class="announcements-list">
+            @for (note of announcements(); track note.id) {
+              <div class="announcement-item" [class.announcement-item--urgent]="note.urgent">
+                <div class="announcement-item__icon">
+                  <ion-icon [name]="note.urgent ? 'alert-circle-outline' : 'notifications-outline'"></ion-icon>
+                </div>
+                <div class="announcement-item__content">
+                  <strong class="title">{{ note.title }}</strong>
+                  <p class="desc">{{ note.text }}</p>
+                </div>
+                <span class="time">{{ note.time }}</span>
+              </div>
+            }
+          </div>
+        </app-dashboard-section-card>
+      </div>
+    </div>
+
+    <!-- Maintenance Reporting Modal -->
+    @if (isMaintModalOpen()) {
+      <div class="modal-backdrop" (click)="closeMaintModal()">
+        <div class="modal-box" (click)="$event.stopPropagation()">
+          <div class="modal-box__header">
+            <h3>Report Room Maintenance Defect</h3>
+            <button class="modal-close" (click)="closeMaintModal()">✕</button>
+          </div>
+
+          <div class="modal-box__body">
+            <div class="form-group">
+              <label>Room Number</label>
+              <input type="text" [(ngModel)]="maintRoom" placeholder="e.g. 204" />
+            </div>
+
+            <div class="form-group">
+              <label>Category</label>
+              <select [(ngModel)]="maintCategory">
+                <option value="Plumbing">Plumbing (Tap, Shower, Flush)</option>
+                <option value="Electrical">Electrical (Lights, Power, Fan)</option>
+                <option value="HVAC">HVAC (AC, Remote, Filter)</option>
+                <option value="Carpentry">Carpentry (Door, Window, Latch)</option>
+                <option value="General">General / Other</option>
+              </select>
+            </div>
+
+            <div class="form-group">
+              <label>Defect Description</label>
+              <textarea [(ngModel)]="maintIssue" rows="3" placeholder="Describe the defect or repair needed..."></textarea>
+            </div>
+          </div>
+
+          <div class="modal-box__footer">
+            <button class="btn btn--cancel" (click)="closeMaintModal()">Cancel</button>
+            <button class="btn btn--submit" (click)="submitMaintenanceTicket()">Submit Ticket</button>
+          </div>
+        </div>
+      </div>
+    }
+  }
+
+  <!-- Secondary Views for Staff -->
+  @if (isRoomsActive()) {
+    <div class="staff-dash">
+      <div class="staff-dash__inner">
+        <app-rooms-view />
+      </div>
+    </div>
+  }
+  @if (isBookingsActive()) {
+    <div class="staff-dash">
+      <div class="staff-dash__inner">
+        <app-bookings-view />
+      </div>
+    </div>
+  }
+  @if (isHousekeepingActive()) {
+    <div class="staff-dash">
+      <div class="staff-dash__inner">
+        <app-housekeeping-view />
+      </div>
+    </div>
+  }
+  @if (isMaintenanceActive()) {
+    <div class="staff-dash">
+      <div class="staff-dash__inner">
+        <app-housekeeping-view />
+      </div>
+    </div>
+  }
+  @if (isSettingsActive()) {
+    <div class="staff-dash">
+      <div class="staff-dash__inner">
+        <app-settings-view />
+      </div>
+    </div>
+  }
+  @if (isMoreActive()) {
+    <div class="staff-dash">
+      <div class="staff-dash__inner">
+        <app-more-menu-view [items]="moreMenuItems" />
+      </div>
+    </div>
+  }
+</app-shell>

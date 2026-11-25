@@ -40,17 +40,27 @@
 }
 
 .customers-page__cta {
-  --background: var(--brand-primary, #1d3e9f);
-  --background-hover: var(--brand-primary-dark, #152f7a);
-  --background-activated: var(--brand-primary-dark, #152f7a);
-  --border-radius: 18px;
-  --box-shadow: 0 8px 20px rgba(29, 62, 159, 0.2);
+  --background: linear-gradient(135deg, #1d3e9f 0%, #2563eb 100%);
+  --background-hover: linear-gradient(135deg, #173282 0%, #1d4ed8 100%);
+  --background-activated: linear-gradient(135deg, #152f7a 0%, #1e40af 100%);
+  --border-radius: 12px;
+  --box-shadow: 0 4px 14px rgba(29, 62, 159, 0.25);
   --color: #ffffff;
   height: 44px;
   margin: 0;
   font-size: 14px;
   font-weight: 600;
   text-transform: none;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+
+  &:hover {
+    --box-shadow: 0 6px 18px rgba(29, 62, 159, 0.35);
+    transform: translateY(-1px);
+  }
+
+  &:active {
+    transform: scale(0.99);
+  }
 }
 
 .customers-search {
@@ -95,7 +105,14 @@
   border: 1px solid var(--border-color, #e5e7eb);
   border-radius: 18px;
   background: var(--surface, #ffffff);
-  box-shadow: 0 8px 24px rgba(17, 24, 39, 0.04);
+  box-shadow: 0 4px 12px rgba(17, 24, 39, 0.03);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+
+  &:hover {
+    border-color: #cbd5e1;
+    box-shadow: 0 8px 24px rgba(17, 24, 39, 0.08);
+    transform: translateY(-1px);
+  }
 }
 
 .customer-card__header {
@@ -120,6 +137,192 @@
 .customer-card__copy {
   min-width: 0;
   flex: 1;
+}
+
+.customer-card__top-right {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.customer-icon-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  color: #475569;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  &:hover {
+    background: #f1f5f9;
+    color: #1e293b;
+    border-color: #cbd5e1;
+  }
+}
+
+.empty-customers {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 48px;
+  color: #64748b;
+
+  ion-icon {
+    font-size: 2.2rem;
+    color: #94a3b8;
+  }
+
+  p {
+    margin: 8px 0 0;
+  }
+}
+
+.customer-detail-sheet {
+  max-width: 520px;
+}
+
+.profile-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 20px;
+
+  .profile-avatar {
+    width: 50px;
+    height: 50px;
+    border-radius: 16px;
+    background: #e0e7ff;
+    color: #3730a3;
+    font-weight: 700;
+    font-size: 1.1rem;
+    display: grid;
+    place-items: center;
+  }
+
+  .profile-info {
+    flex: 1;
+
+    h2 {
+      margin: 0;
+      font-size: 1.25rem;
+      color: #0f172a;
+    }
+
+    p {
+      margin: 2px 0 0;
+      font-size: 0.85rem;
+      color: #64748b;
+    }
+  }
+
+  .profile-status {
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    background: #fef2f2;
+    color: #b91c1c;
+
+    &.paid {
+      background: #ecfdf5;
+      color: #047857;
+    }
+  }
+}
+
+.profile-stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-bottom: 20px;
+
+  .stat-box {
+    background: #f8fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 10px;
+    text-align: center;
+
+    .lbl {
+      display: block;
+      font-size: 0.72rem;
+      color: #64748b;
+      margin-bottom: 4px;
+    }
+
+    .val {
+      font-size: 0.95rem;
+      font-weight: 600;
+      color: #0f172a;
+    }
+  }
+}
+
+.profile-history-section {
+  h3 {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: #1e293b;
+    margin: 0 0 10px;
+  }
+
+  .history-list {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    max-height: 200px;
+    overflow-y: auto;
+  }
+
+  .history-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 8px 12px;
+    background: #f8fafc;
+    border-radius: 8px;
+    font-size: 0.82rem;
+
+    .booking-id {
+      font-weight: 600;
+      color: #1e3a8a;
+      margin-right: 8px;
+    }
+
+    .room-ref {
+      color: #475569;
+    }
+
+    .amt {
+      font-weight: 600;
+      margin-right: 8px;
+    }
+
+    .badge {
+      font-size: 0.72rem;
+      padding: 2px 6px;
+      border-radius: 4px;
+      background: #fef2f2;
+      color: #b91c1c;
+
+      &.badge-paid {
+        background: #ecfdf5;
+        color: #047857;
+      }
+    }
+  }
+
+  .no-history {
+    font-size: 0.85rem;
+    color: #94a3b8;
+    text-align: center;
+    margin: 16px 0;
+  }
 }
 
 .customer-card__name {
@@ -207,6 +410,25 @@
 
   svg {
     flex-shrink: 0;
+  }
+}
+
+@media (max-width: 640px) {
+  .customers-page__hero {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .customers-page__title {
+    white-space: normal;
+    font-size: 19px;
+  }
+
+  .customers-page__cta {
+    width: 100%;
+    margin: 0;
   }
 }
 

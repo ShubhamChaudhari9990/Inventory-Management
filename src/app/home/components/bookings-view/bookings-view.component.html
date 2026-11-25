@@ -12,7 +12,7 @@
   </header>
 
   <section class="bookings-page__kpis" aria-label="Booking summary">
-    @for (kpi of kpis; track kpi.id) {
+    @for (kpi of dynamicKpis(); track kpi.id) {
       <app-dashboard-kpi-card [kpi]="kpi" />
     }
   </section>
@@ -59,13 +59,15 @@
         </thead>
         <tbody>
           @for (booking of filteredBookings(); track trackBooking($index, booking)) {
-            <tr>
-              <td>{{ booking.id }}</td>
+            <tr (click)="openDetails(booking, $event)">
+              <td class="booking-id-cell">{{ booking.id }}</td>
               <td>
                 <p class="bookings-table__guest">{{ booking.guestName }}</p>
                 <p class="bookings-table__phone">{{ booking.guestPhone }}</p>
               </td>
-              <td>{{ booking.room }}</td>
+              <td>
+                <span class="room-pill">Room {{ booking.room }}</span>
+              </td>
               <td>{{ booking.checkIn }}</td>
               <td>{{ booking.checkOut }}</td>
               <td class="bookings-table__amount bookings-table__strong">
@@ -82,15 +84,48 @@
                   {{ statusLabelKey(booking.status) | translate }}
                 </span>
               </td>
-              <td class="bookings-table__actions">
+              <td class="bookings-table__actions" (click)="$event.stopPropagation()">
                 <button
                   type="button"
-                  class="bookings-table__view"
-                  (click)="showInvoiceToast()"
+                  class="btn-action-sm"
+                  title="View Details"
+                  (click)="openDetails(booking, $event)"
                 >
-                  <ion-icon name="receipt-outline" aria-hidden="true"></ion-icon>
-                  {{ 'COMMON.VIEW' | translate }}
+                  <ion-icon name="eye-outline"></ion-icon>
                 </button>
+                @if (booking.status !== 'Cancelled') {
+                  <button
+                    type="button"
+                    class="btn-action-sm btn-checkin"
+                    title="Check In"
+                    (click)="checkInGuest(booking, $event)"
+                  >
+                    <ion-icon name="log-in-outline"></ion-icon>
+                  </button>
+                  <button
+                    type="button"
+                    class="btn-action-sm btn-checkout"
+                    title="Check Out"
+                    (click)="checkoutGuest(booking, $event)"
+                  >
+                    <ion-icon name="log-out-outline"></ion-icon>
+                  </button>
+                  <button
+                    type="button"
+                    class="btn-action-sm btn-cancel"
+                    title="Cancel Booking"
+                    (click)="cancelBooking(booking, $event)"
+                  >
+                    <ion-icon name="close-circle-outline"></ion-icon>
+                  </button>
+                }
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="8" class="empty-cell">
+                <ion-icon name="calendar-outline"></ion-icon>
+                <p>No bookings found matching your search.</p>
               </td>
             </tr>
           }
@@ -99,12 +134,9 @@
     </div>
   </section>
 
+  <!-- New Booking Modal -->
   <ion-modal
     [isOpen]="isNewBookingOpen()"
-    [breakpoints]="bookingBreakpoints"
-    [initialBreakpoint]="bookingInitialBreakpoint"
-    [handle]="false"
-    [expandToScroll]="false"
     [cssClass]="bookingModalClass"
     (didDismiss)="closeNewBooking()"
   >
@@ -128,6 +160,39 @@
           </h2>
         </div>
 
+        <!-- Existing Customer Lookup & Quick-Create -->
+        <div style="margin-bottom: 12px; padding: 10px; background: #f8fafc; border: 1px solid #e2e8f0; border-radius: 10px;">
+          <div style="display: flex; gap: 8px; align-items: center; flex-wrap: wrap;">
+            <input
+              type="text"
+              placeholder="Search existing customer (name, phone, email)..."
+              [ngModel]="customerSearchQuery()"
+              (ngModelChange)="customerSearchQuery.set($event)"
+              style="flex: 1 1 200px; padding: 7px 10px; border: 1px solid #cbd5e1; border-radius: 8px; font-size: 0.85rem;"
+            />
+            <button
+              type="button"
+              (click)="quickCreateCustomerForBooking(guestInput, phoneInput)"
+              style="padding: 7px 10px; border-radius: 8px; border: 1px solid #1d3e9f; background: #eff6ff; color: #1d3e9f; font-size: 0.78rem; font-weight: 600; cursor: pointer;"
+            >
+              + Save New Customer
+            </button>
+          </div>
+          @if (matchedCustomers().length > 0) {
+            <div style="display: flex; flex-direction: column; gap: 4px; margin-top: 6px;">
+              @for (mc of matchedCustomers(); track mc.id) {
+                <button
+                  type="button"
+                  (click)="selectCustomerForBooking(mc, guestInput, phoneInput)"
+                  style="text-align: left; padding: 6px 8px; border-radius: 6px; border: 1px solid #e2e8f0; background: #ffffff; font-size: 0.82rem; cursor: pointer;"
+                >
+                  <strong>{{ mc.name }}</strong> · {{ mc.phone }} {{ mc.email ? '· ' + mc.email : '' }}
+                </button>
+              }
+            </div>
+          }
+        </div>
+
         <div class="form-sheet__grid">
           <label class="form-sheet__field">
             <span>{{ 'BOOKINGS.SHEET.GUEST' | translate }}</span>
@@ -144,7 +209,7 @@
             <select [value]="selectedRoom()" (change)="onRoomChange($event)">
               @for (room of availableRooms; track room.id) {
                 <option [value]="room.number">
-                  {{ room.number }} · {{ room.type }}
+                  Room {{ room.number }} · {{ room.type }}
                 </option>
               }
             </select>
@@ -195,7 +260,103 @@
             class="form-sheet__save"
             (click)="saveBooking(guestInput, phoneInput, checkInInput, checkOutInput, amountInput, advanceInput)"
           >
-            {{ 'BOOKINGS.SHEET.SAVE' | translate }}
+            <ion-icon name="checkmark-circle-outline"></ion-icon>
+            <span>{{ 'BOOKINGS.SHEET.SAVE' | translate }}</span>
+          </button>
+        </div>
+      </div>
+    </ng-template>
+  </ion-modal>
+
+  <!-- Booking Details & Invoice Modal -->
+  <ion-modal
+    [isOpen]="isDetailsModalOpen()"
+    [cssClass]="bookingModalClass"
+    (didDismiss)="closeDetails()"
+  >
+    <ng-template>
+      <div class="form-sheet details-sheet" role="dialog" aria-labelledby="booking-detail-title">
+        <button
+          type="button"
+          class="form-sheet__close"
+          [attr.aria-label]="'COMMON.CLOSE' | translate"
+          (click)="closeDetails()"
+        >
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M18 6 6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="m6 6 12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+
+        @if (activeDetailBooking(); as b) {
+          <div class="form-sheet__header">
+            <h2 id="booking-detail-title" class="form-sheet__title">
+              Booking #{{ b.id }}
+            </h2>
+            <span class="booking-detail-badge" [class.badge-cancelled]="b.status === 'Cancelled'">
+              {{ b.status }}
+            </span>
+          </div>
+
+          <div class="booking-detail-content">
+            <div class="detail-grid">
+              <div class="detail-box">
+                <span class="lbl">Guest Name</span>
+                <span class="val font-semibold">{{ b.guestName }}</span>
+              </div>
+              <div class="detail-box">
+                <span class="lbl">Phone Number</span>
+                <span class="val">{{ b.guestPhone }}</span>
+              </div>
+              <div class="detail-box">
+                <span class="lbl">Room</span>
+                <span class="val font-semibold">Room {{ b.room }}</span>
+              </div>
+              <div class="detail-box">
+                <span class="lbl">Booking Channel</span>
+                <span class="val">{{ b.channel }}</span>
+              </div>
+              <div class="detail-box">
+                <span class="lbl">Check-In</span>
+                <span class="val">{{ b.checkIn }}</span>
+              </div>
+              <div class="detail-box">
+                <span class="lbl">Check-Out</span>
+                <span class="val">{{ b.checkOut }}</span>
+              </div>
+              <div class="detail-box">
+                <span class="lbl">Advance Paid</span>
+                <span class="val text-success">{{ b.advance || '₹0' }}</span>
+              </div>
+              <div class="detail-box">
+                <span class="lbl">Total Charges</span>
+                <span class="val font-bold text-primary">{{ b.amount }}</span>
+              </div>
+              @let ledger = getBookingLedger(b);
+              <div class="detail-box">
+                <span class="lbl">Net Paid</span>
+                <span class="val text-success">₹{{ ledger.netPaidAmount.toLocaleString('en-IN') }}</span>
+              </div>
+              <div class="detail-box">
+                <span class="lbl">Outstanding</span>
+                <span class="val" style="color: #dc2626; font-weight: 700;">₹{{ ledger.outstandingBalance.toLocaleString('en-IN') }} ({{ ledger.paymentStatus }})</span>
+              </div>
+            </div>
+          </div>
+        }
+
+        <div class="form-sheet__footer" style="display: flex; gap: 8px; flex-wrap: wrap;">
+          @if (activeDetailBooking(); as b) {
+            <button type="button" class="form-sheet__save" (click)="openCustomerProfile(b)" style="background: #f1f5f9; color: #1e293b;">
+              <span>Customer Profile</span>
+            </button>
+            <button type="button" class="form-sheet__save" (click)="collectPaymentForBooking(b)">
+              <span>Collect Payment</span>
+            </button>
+          }
+          <button type="button" class="form-sheet__save" (click)="closeDetails()">
+            <ion-icon name="close-outline"></ion-icon>
+            <span>Close</span>
           </button>
         </div>
       </div>

@@ -1,0 +1,238 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar class="ops-toolbar">
+    <ion-buttons slot="start">
+      <ion-back-button [defaultHref]="backHref()"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Maintenance & Inventory</ion-title>
+    <div slot="end" class="toolbar-end">
+      <select
+        class="lodge-select"
+        [ngModel]="selectedLodge()"
+        (ngModelChange)="selectedLodge.set($event)"
+      >
+        <option value="all">All Accessible Lodges</option>
+        @for (prop of accessibleProperties(); track prop.id) {
+          <option [value]="prop.id">{{ prop.name }}</option>
+        }
+      </select>
+    </div>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ops-content">
+  <div class="ops-container">
+    <!-- Module Navigation -->
+    <nav class="ops-subnav">
+      <a class="nav-pill active" routerLink="/operations">Operations Dashboard</a>
+      <a class="nav-pill" routerLink="/maintenance/requests">Maintenance Requests</a>
+      <a class="nav-pill" routerLink="/maintenance/work-orders">Work Orders</a>
+      <a class="nav-pill" routerLink="/inventory/items">Inventory Items</a>
+      <a class="nav-pill" routerLink="/inventory/movements">Stock Movements</a>
+      <a class="nav-pill" routerLink="/inventory/transfers">Stock Transfers</a>
+      <a class="nav-pill" routerLink="/inventory/suppliers">Suppliers</a>
+      <a class="nav-pill" routerLink="/inventory/purchase-orders">Purchase Orders</a>
+      <a class="nav-pill" routerLink="/inventory/reports">Reports</a>
+    </nav>
+
+    <!-- Maintenance KPIs -->
+    <h2 class="section-title">Maintenance Overview</h2>
+    <section class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-val">{{ maintenanceKpis().totalRequests }}</div>
+        <div class="kpi-lbl">Total Requests</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-val amber">{{ maintenanceKpis().pendingRequests }}</div>
+        <div class="kpi-lbl">Pending Requests</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-val blue">{{ maintenanceKpis().inProgress }}</div>
+        <div class="kpi-lbl">In Progress</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-val green">{{ maintenanceKpis().completed }}</div>
+        <div class="kpi-lbl">Completed</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-val red">{{ maintenanceKpis().emergencyRequests }}</div>
+        <div class="kpi-lbl">Emergency</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-val slate">{{ maintenanceKpis().roomsUnderMaintenance }}</div>
+        <div class="kpi-lbl">Rooms Under Maintenance</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-val">₹{{ maintenanceKpis().monthlyExpenses | number: '1.0-0' }}</div>
+        <div class="kpi-lbl">Monthly Maint. Cost</div>
+      </div>
+    </section>
+
+    <!-- Inventory KPIs -->
+    <h2 class="section-title">Inventory Overview</h2>
+    <section class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-val">{{ inventoryKpis().totalItems }}</div>
+        <div class="kpi-lbl">Total Items</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-val">{{ inventoryKpis().totalStockQty }}</div>
+        <div class="kpi-lbl">Total Stock Qty</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-val amber">{{ inventoryKpis().lowStock }}</div>
+        <div class="kpi-lbl">Low Stock Items</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-val red">{{ inventoryKpis().outOfStock }}</div>
+        <div class="kpi-lbl">Out of Stock</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-val blue">{{ inventoryKpis().pendingPOs }}</div>
+        <div class="kpi-lbl">Pending POs</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-val green">₹{{ inventoryKpis().stockValue | number: '1.0-0' }}</div>
+        <div class="kpi-lbl">Stock Value</div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-val">{{ inventoryKpis().issuedThisMonth }}</div>
+        <div class="kpi-lbl">Issued This Month</div>
+      </div>
+    </section>
+
+    <!-- Operational Panels -->
+    <div class="panels-grid">
+      <section class="panel">
+        <div class="panel-hdr">
+          <h3>Recent Maintenance Requests</h3>
+          <a routerLink="/maintenance/requests">View All</a>
+        </div>
+        @if (recentRequests().length === 0) {
+          <div class="empty-box">No maintenance requests yet.</div>
+        } @else {
+          @for (req of recentRequests(); track req.id) {
+            <div class="list-item" (click)="openRequest(req.id)">
+              <div>
+                <strong>{{ req.title }}</strong>
+                <div class="sub">
+                  {{ req.roomNumber ? 'Room ' + req.roomNumber : req.areaName || 'Common Area' }} ·
+                  {{ getLodgeName(req.propertyId) }} · {{ req.priority }}
+                </div>
+              </div>
+              <span class="badge">{{ req.status }}</span>
+            </div>
+          }
+        }
+      </section>
+
+      <section class="panel">
+        <div class="panel-hdr">
+          <h3>Pending Work Orders</h3>
+          <a routerLink="/maintenance/work-orders">View All</a>
+        </div>
+        @if (pendingWorkOrders().length === 0) {
+          <div class="empty-box">No active work orders.</div>
+        } @else {
+          @for (wo of pendingWorkOrders(); track wo.id) {
+            <div class="list-item" (click)="openWorkOrder(wo.id)">
+              <div>
+                <strong>{{ wo.workOrderNumber }} — {{ wo.category }}</strong>
+                <div class="sub">
+                  Tech: {{ wo.assignedTechnicianName }} · {{ getLodgeName(wo.propertyId) }}
+                </div>
+              </div>
+              <span class="badge">{{ wo.status }}</span>
+            </div>
+          }
+        }
+      </section>
+
+      <section class="panel">
+        <div class="panel-hdr">
+          <h3>Low Stock & Expiry Alerts</h3>
+          <a routerLink="/inventory/items">Manage Stock</a>
+        </div>
+        @if (lowStockAlerts().length === 0) {
+          <div class="empty-box">All stock levels healthy.</div>
+        } @else {
+          @for (a of lowStockAlerts(); track a.item.id + a.alertType) {
+            <div class="list-item">
+              <div>
+                <strong>{{ a.item.name }}</strong>
+                <div class="sub">
+                  Qty: {{ a.item.quantity }} {{ a.item.unit }} (Min: {{ a.item.min }}) ·
+                  {{ getLodgeName(a.item.propertyId) }}
+                </div>
+              </div>
+              <span class="badge alert">{{ a.alertType }}</span>
+            </div>
+          }
+        }
+      </section>
+
+      <section class="panel">
+        <div class="panel-hdr">
+          <h3>Recent Stock Movements</h3>
+          <a routerLink="/inventory/movements">History</a>
+        </div>
+        @if (recentMovements().length === 0) {
+          <div class="empty-box">No stock movements recorded.</div>
+        } @else {
+          @for (m of recentMovements(); track m.id) {
+            <div class="list-item">
+              <div>
+                <strong>{{ m.itemName }}</strong>
+                <div class="sub">
+                  {{ m.movementType || m.type }} · {{ m.reason || 'Movement' }}
+                </div>
+              </div>
+              <span class="badge">{{ m.delta || m.change }}</span>
+            </div>
+          }
+        }
+      </section>
+
+      <section class="panel">
+        <div class="panel-hdr">
+          <h3>Upcoming PO Deliveries</h3>
+          <a routerLink="/inventory/purchase-orders">Purchase Orders</a>
+        </div>
+        @if (upcomingDeliveries().length === 0) {
+          <div class="empty-box">No upcoming deliveries.</div>
+        } @else {
+          @for (po of upcomingDeliveries(); track po.id) {
+            <div class="list-item">
+              <div>
+                <strong>{{ po.poNumber }} — {{ po.supplierName }}</strong>
+                <div class="sub">
+                  {{ getLodgeName(po.propertyId) }} · ₹{{ po.total | number: '1.0-0' }}
+                </div>
+              </div>
+              <span class="badge">{{ po.status }}</span>
+            </div>
+          }
+        }
+      </section>
+
+      <section class="panel">
+        <div class="panel-hdr">
+          <h3>Lodge-wise Inventory Summary</h3>
+          <a routerLink="/inventory/reports">Reports</a>
+        </div>
+        @if (lodgeSummary().length === 0) {
+          <div class="empty-box">No lodges available.</div>
+        } @else {
+          @for (ls of lodgeSummary(); track ls.id) {
+            <div class="list-item">
+              <div>
+                <strong>{{ ls.name }}</strong>
+                <div class="sub">{{ ls.itemCount }} SKUs · {{ ls.totalQty }} units · {{ ls.lowStock }} alerts</div>
+              </div>
+              <strong>₹{{ ls.value | number: '1.0-0' }}</strong>
+            </div>
+          }
+        }
+      </section>
+    </div>
+  </div>
+</ion-content>

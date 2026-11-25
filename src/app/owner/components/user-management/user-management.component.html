@@ -1,0 +1,394 @@
+<div class="user-mgmt-container">
+  <!-- Stats Header -->
+  <header class="user-mgmt-header">
+    <div class="user-mgmt-header__copy">
+      <h2 class="user-mgmt-title">Centralized User Management & Role Authorization</h2>
+      <p class="user-mgmt-subtitle">
+        Review pending registration requests, assign operational roles, multi-lodge permissions, and manage active staff.
+      </p>
+    </div>
+  </header>
+
+  <!-- Metric Badges Row -->
+  <section class="stats-row">
+    <div class="stat-pill" [class.stat-pill--active]="selectedStatusFilter() === 'all'" (click)="selectedStatusFilter.set('all')">
+      <span class="stat-pill__label">All Users</span>
+      <strong class="stat-pill__value">{{ totalUsersCount() }}</strong>
+    </div>
+
+    <div
+      class="stat-pill stat-pill--pending"
+      [class.stat-pill--active]="selectedStatusFilter() === 'pending'"
+      (click)="selectedStatusFilter.set('pending')"
+    >
+      <span class="stat-pill__label">Pending Approval</span>
+      <strong class="stat-pill__value">{{ pendingCount() }}</strong>
+      @if (pendingCount() > 0) {
+        <span class="action-alert-dot"></span>
+      }
+    </div>
+
+    <div
+      class="stat-pill stat-pill--success"
+      [class.stat-pill--active]="selectedStatusFilter() === 'active'"
+      (click)="selectedStatusFilter.set('active')"
+    >
+      <span class="stat-pill__label">Active Authorized</span>
+      <strong class="stat-pill__value">{{ activeCount() }}</strong>
+    </div>
+
+    <div
+      class="stat-pill stat-pill--danger"
+      [class.stat-pill--active]="selectedStatusFilter() === 'suspended'"
+      (click)="selectedStatusFilter.set('suspended')"
+    >
+      <span class="stat-pill__label">Suspended</span>
+      <strong class="stat-pill__value">{{ suspendedCount() }}</strong>
+    </div>
+  </section>
+
+  <!-- Search & Filter Controls -->
+  <section class="controls-card">
+    <div class="search-input-box">
+      <ion-icon name="search-outline"></ion-icon>
+      <input
+        type="text"
+        placeholder="Search by name, email, or mobile..."
+        [ngModel]="searchQuery()"
+        (ngModelChange)="searchQuery.set($event)"
+      />
+      @if (searchQuery()) {
+        <button type="button" class="clear-btn" (click)="searchQuery.set('')">✕</button>
+      }
+    </div>
+
+    <div class="filter-dropdowns">
+      <!-- Role Filter -->
+      <div class="filter-select">
+        <label>Role:</label>
+        <select [ngModel]="selectedRoleFilter()" (ngModelChange)="selectedRoleFilter.set($event)">
+          <option value="all">All Roles</option>
+          <option value="manager">Manager</option>
+          <option value="staff">Staff</option>
+          <option value="pending">Unassigned</option>
+        </select>
+      </div>
+
+      <!-- Lodge Filter -->
+      <div class="filter-select">
+        <label>Lodge:</label>
+        <select [ngModel]="selectedPropertyFilter()" (ngModelChange)="selectedPropertyFilter.set($event)">
+          <option value="all">All Lodges</option>
+          @for (prop of properties(); track prop.id) {
+            <option [value]="prop.id">{{ prop.name }}</option>
+          }
+        </select>
+      </div>
+    </div>
+  </section>
+
+  <!-- Users List Grid -->
+  <section class="users-grid">
+    @if (filteredUsers().length === 0) {
+      <div class="empty-box">
+        <ion-icon name="person-outline"></ion-icon>
+        <p>No users matching the selected filters.</p>
+      </div>
+    } @else {
+      @for (user of filteredUsers(); track user.uid) {
+        <article
+          class="user-card"
+          [class.user-card--pending]="(user.accountStatus || user.status) === 'pending' || !user.role"
+          [class.user-card--suspended]="(user.accountStatus || user.status) === 'suspended'"
+        >
+          <div class="user-card__top">
+            <div class="user-card__avatar">
+              {{ getInitials(user.name) }}
+            </div>
+
+            <div class="user-card__identity">
+              <div class="name-row">
+                <h3 class="user-card__name">{{ user.name }}</h3>
+                @if (user.role === 'owner') {
+                  <span class="badge badge--owner">Owner</span>
+                } @else if (user.role === 'manager') {
+                  <span class="badge badge--manager">Manager</span>
+                } @else if (user.role === 'staff') {
+                  <span class="badge badge--staff">Staff</span>
+                } @else {
+                  <span class="badge badge--pending">Pending Role</span>
+                }
+              </div>
+
+              <span class="user-card__email">{{ user.email }}</span>
+              @if (user.phone) {
+                <span class="user-card__phone">{{ user.phone }}</span>
+              }
+            </div>
+          </div>
+
+          <!-- Mid: Lodge & Status Badges -->
+          <div class="user-card__details">
+            <div class="detail-line">
+              <span class="detail-label">Assigned Lodges:</span>
+              <span class="detail-val lodge-chips">{{ getPropertyNames(user.propertyIds) }}</span>
+            </div>
+
+            @if (user.designation) {
+              <div class="detail-line">
+                <span class="detail-label">Designation:</span>
+                <span class="detail-val font-medium">{{ user.designation }}</span>
+              </div>
+            }
+
+            <div class="detail-line">
+              <span class="detail-label">Account Status:</span>
+              <span
+                class="status-indicator"
+                [class.status-indicator--active]="(user.accountStatus || user.status) === 'active'"
+                [class.status-indicator--pending]="(user.accountStatus || user.status) === 'pending' || !user.role"
+                [class.status-indicator--suspended]="(user.accountStatus || user.status) === 'suspended'"
+              >
+                <span class="dot"></span>
+                {{ (user.accountStatus || user.status || 'pending') | uppercase }}
+              </span>
+            </div>
+          </div>
+
+          <!-- Bottom: Action Buttons -->
+          <div class="user-card__actions">
+            @if (user.role !== 'owner') {
+              @if ((user.accountStatus || user.status) === 'pending' || !user.role) {
+                <!-- Direct Approve Button for Pending Users -->
+                <button type="button" class="btn btn--primary btn--full" (click)="openRoleModal(user)">
+                  <ion-icon name="checkmark-circle-outline"></ion-icon>
+                  Approve & Assign Role
+                </button>
+              } @else {
+                <button type="button" class="btn btn--secondary" (click)="openRoleModal(user)">
+                  <ion-icon name="create-outline"></ion-icon>
+                  Edit Role
+                </button>
+
+                <button type="button" class="btn btn--outline" (click)="openTransferModal(user)">
+                  <ion-icon name="swap-horizontal-outline"></ion-icon>
+                  Transfer
+                </button>
+
+                <button
+                  type="button"
+                  class="btn btn--outline"
+                  [class.btn--danger]="(user.accountStatus || user.status) === 'active'"
+                  [class.btn--success]="(user.accountStatus || user.status) === 'suspended'"
+                  (click)="toggleAccountStatus(user)"
+                >
+                  {{ (user.accountStatus || user.status) === 'suspended' ? 'Activate' : 'Suspend' }}
+                </button>
+
+                <button type="button" class="btn btn--icon-only" title="Revoke Role" (click)="revokeRole(user)">
+                  <ion-icon name="close-circle-outline"></ion-icon>
+                </button>
+              }
+            } @else {
+              <div class="owner-pill-notice">
+                <ion-icon name="shield-checkmark-outline"></ion-icon>
+                <span>Primary Organization Owner</span>
+              </div>
+            }
+          </div>
+        </article>
+      }
+    }
+  </section>
+
+  <!-- Role Assignment & Approval Modal -->
+  @if (isModalOpen() && selectedUser()) {
+    <div class="modal-backdrop" (click)="closeModal()">
+      <div class="modal-sheet" (click)="$event.stopPropagation()">
+        <header class="modal-header">
+          <div class="modal-header__copy">
+            <h3>{{ selectedUser()?.role ? 'Edit Role & Permissions' : 'Approve User & Assign Role' }}</h3>
+            <p>{{ selectedUser()?.name }} ({{ selectedUser()?.email }})</p>
+          </div>
+          <button type="button" class="modal-close-btn" (click)="closeModal()">✕</button>
+        </header>
+
+        <div class="modal-body">
+          <!-- Role Selector -->
+          <div class="form-group">
+            <label class="form-label">System Role *</label>
+            <div class="role-segmented">
+              <button
+                type="button"
+                class="role-opt"
+                [class.role-opt--active]="formRole === 'owner'"
+                (click)="onRoleChange('owner')"
+              >
+                <ion-icon name="shield-checkmark-outline"></ion-icon>
+                <div class="role-opt__info">
+                  <strong>Owner</strong>
+                  <small>Full organization & all lodges</small>
+                </div>
+              </button>
+
+              <button
+                type="button"
+                class="role-opt"
+                [class.role-opt--active]="formRole === 'manager'"
+                (click)="onRoleChange('manager')"
+              >
+                <ion-icon name="business-outline"></ion-icon>
+                <div class="role-opt__info">
+                  <strong>Manager</strong>
+                  <small>Full operations for assigned lodge</small>
+                </div>
+              </button>
+
+              <button
+                type="button"
+                class="role-opt"
+                [class.role-opt--active]="formRole === 'staff'"
+                (click)="onRoleChange('staff')"
+              >
+                <ion-icon name="person-outline"></ion-icon>
+                <div class="role-opt__info">
+                  <strong>Staff Member</strong>
+                  <small>Task execution & housekeeping</small>
+                </div>
+              </button>
+            </div>
+          </div>
+
+          <!-- Designation (Only if Staff) -->
+          @if (formRole === 'staff') {
+            <div class="form-group">
+              <label class="form-label">Staff Designation / Department *</label>
+              <select [(ngModel)]="formDesignation" (change)="onDesignationChange()" class="form-select">
+                @for (d of staffDesignations; track d.value) {
+                  <option [value]="d.value">{{ d.label }}</option>
+                }
+              </select>
+            </div>
+          }
+
+          <!-- Lodge Assignment (Multi-Lodge) -->
+          <div class="form-group">
+            <label class="form-label">Assigned Lodges * (Select one or more)</label>
+            <div class="checkbox-grid">
+              @for (prop of properties(); track prop.id) {
+                <label class="checkbox-chip" [class.checkbox-chip--selected]="isPropertyAssigned(prop.id)">
+                  <input
+                    type="checkbox"
+                    [checked]="isPropertyAssigned(prop.id)"
+                    (change)="togglePropertySelection(prop.id)"
+                  />
+                  <div class="chip-content">
+                    <span class="chip-name">{{ prop.name }}</span>
+                    <span class="chip-code">{{ prop.code }} · {{ prop.city }}</span>
+                  </div>
+                </label>
+              }
+            </div>
+          </div>
+
+          <!-- Grouped Permissions -->
+          <div class="form-group">
+            <div class="perm-header">
+              <label class="form-label">Module Permissions</label>
+              <span class="perm-count">{{ selectedPermissions.length }} selected</span>
+            </div>
+
+            <div class="permissions-container">
+              @for (group of permissionGroups; track group.category) {
+                <div class="permission-group">
+                  <h4 class="permission-group__title">{{ group.titleKey | translate }}</h4>
+                  <div class="permission-group__list">
+                    @for (perm of group.permissions; track perm.key) {
+                      <label class="perm-item">
+                        <input
+                          type="checkbox"
+                          [checked]="isPermissionChecked(perm.key)"
+                          (change)="togglePermission(perm.key)"
+                        />
+                        <span>{{ perm.labelKey | translate }}</span>
+                      </label>
+                    }
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+        </div>
+
+        <footer class="modal-footer">
+          <button type="button" class="btn btn--outline" (click)="closeModal()">
+            <ion-icon name="close-outline"></ion-icon>
+            <span>Cancel</span>
+          </button>
+          <button type="button" class="btn btn--primary" [disabled]="isSaving()" (click)="saveRoleAssignment()">
+            @if (isSaving()) {
+              <ion-spinner name="crescent" class="btn-spinner"></ion-spinner>
+              <span>Saving...</span>
+            } @else {
+              <ion-icon name="checkmark-circle-outline"></ion-icon>
+              <span>Confirm & Save Role</span>
+            }
+          </button>
+        </footer>
+      </div>
+    </div>
+  }
+
+  <!-- Transfer Lodges Modal -->
+  @if (isTransferModalOpen() && selectedUser()) {
+    <div class="modal-backdrop" (click)="closeTransferModal()">
+      <div class="modal-sheet modal-sheet--sm" (click)="$event.stopPropagation()">
+        <header class="modal-header">
+          <div class="modal-header__copy">
+            <h3>Transfer Lodge Assignment</h3>
+            <p>{{ selectedUser()?.name }} · {{ selectedUser()?.role | uppercase }}</p>
+          </div>
+          <button type="button" class="modal-close-btn" (click)="closeTransferModal()">✕</button>
+        </header>
+
+        <div class="modal-body">
+          <p class="modal-hint">
+            Select the new lodge(s) this user should have access to:
+          </p>
+
+          <div class="checkbox-grid">
+            @for (prop of properties(); track prop.id) {
+              <label class="checkbox-chip" [class.checkbox-chip--selected]="isTransferPropChecked(prop.id)">
+                <input
+                  type="checkbox"
+                  [checked]="isTransferPropChecked(prop.id)"
+                  (change)="toggleTransferProp(prop.id)"
+                />
+                <div class="chip-content">
+                  <span class="chip-name">{{ prop.name }}</span>
+                  <span class="chip-code">{{ prop.code }} · {{ prop.city }}</span>
+                </div>
+              </label>
+            }
+          </div>
+        </div>
+
+        <footer class="modal-footer">
+          <button type="button" class="btn btn--outline" (click)="closeTransferModal()">
+            <ion-icon name="close-outline"></ion-icon>
+            <span>Cancel</span>
+          </button>
+          <button type="button" class="btn btn--primary" [disabled]="isSaving()" (click)="confirmTransfer()">
+            @if (isSaving()) {
+              <ion-spinner name="crescent" class="btn-spinner"></ion-spinner>
+              <span>Updating...</span>
+            } @else {
+              <ion-icon name="checkmark-circle-outline"></ion-icon>
+              <span>Save Lodge Transfer</span>
+            }
+          </button>
+        </footer>
+      </div>
+    </div>
+  }
+</div>

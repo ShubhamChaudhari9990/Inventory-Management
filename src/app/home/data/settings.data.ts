@@ -1,9 +1,6 @@
-export interface SettingsRole {
-  id: string;
-  titleKey: string;
-  descKey: string;
-  status: 'Active';
-}
+import { SettingsRole } from '../../interface';
+
+export type { SettingsRole };
 
 export const SETTINGS_VIEW_SUBTITLE = 'BRAND.NAME';
 

@@ -1,0 +1,99 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar class="hk-toolbar">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/housekeeping"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Housekeeping Reports</ion-title>
+    <div slot="end" class="toolbar-end">
+      <select
+        class="lodge-select"
+        [ngModel]="lodgeFilter()"
+        (ngModelChange)="lodgeFilter.set($event)"
+      >
+        <option value="all">All Lodges</option>
+        @for (prop of accessibleProperties(); track prop.id) {
+          <option [value]="prop.id">{{ prop.name }}</option>
+        }
+      </select>
+      <button class="btn-export" (click)="exportCsv()">
+        <ion-icon name="download-outline"></ion-icon>
+        CSV
+      </button>
+    </div>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="hk-content">
+  <div class="hk-container">
+    <div class="summary-grid">
+      <div class="stat-card">
+        <div class="stat-label">Today's Cleaning</div>
+        <div class="stat-val">{{ dailySummary().completed }} / {{ dailySummary().total }}</div>
+        <div class="stat-sub">Completed / Scheduled today</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Pending Tasks</div>
+        <div class="stat-val">{{ pendingTasks().length }}</div>
+        <div class="stat-sub">Open cleaning queue</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Overdue Tasks</div>
+        <div class="stat-val danger">{{ overdueTasks().length }}</div>
+        <div class="stat-sub">Past due time</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Avg Cleaning Time</div>
+        <div class="stat-val">{{ avgCleaningMinutes() }} min</div>
+        <div class="stat-sub">Start to completion</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-label">Inspection Failure Rate</div>
+        <div class="stat-val">{{ inspectionStats().failureRate }}%</div>
+        <div class="stat-sub">
+          {{ inspectionStats().rejected }} rejected / {{ inspectionStats().total }} total
+        </div>
+      </div>
+    </div>
+
+    <div class="reports-grid">
+      <!-- Staff-wise Completed Tasks -->
+      <section class="panel">
+        <h3>Staff-wise Completed Tasks</h3>
+        @if (staffCompleted().length === 0) {
+          <div class="empty-state">No completed tasks recorded yet.</div>
+        } @else {
+          <div class="list-rows">
+            @for (row of staffCompleted(); track row.name) {
+              <div class="list-row">
+                <span>{{ row.name }}</span>
+                <strong>{{ row.count }}</strong>
+              </div>
+            }
+          </div>
+        }
+      </section>
+
+      <!-- Lodge-wise Performance -->
+      <section class="panel">
+        <h3>Lodge-wise Housekeeping Performance</h3>
+        @if (lodgePerformance().length === 0) {
+          <div class="empty-state">No lodges found.</div>
+        } @else {
+          <div class="list-rows">
+            @for (lp of lodgePerformance(); track lp.name) {
+              <div class="list-row">
+                <div>
+                  <strong>{{ lp.name }}</strong>
+                  <div class="sub">
+                    {{ lp.cleanRooms }}/{{ lp.totalRooms }} rooms clean
+                  </div>
+                </div>
+                <span>{{ lp.completedTasks }}/{{ lp.totalTasks }} tasks</span>
+              </div>
+            }
+          </div>
+        }
+      </section>
+    </div>
+  </div>
+</ion-content>

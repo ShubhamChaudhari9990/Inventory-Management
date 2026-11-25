@@ -1,0 +1,169 @@
+<app-shell
+  [activeNavId]="'payments'"
+  [breadcrumb]="'Payments & Billing'"
+  (activeNavIdChange)="onNavChange($event)"
+>
+  <div class="pay-page">
+    <div class="pay-page__inner">
+      <header class="pay-header">
+        <div>
+          <h1>Payments & Billing</h1>
+          <p>Real-time ledger, collections, invoices, refunds & financial reports</p>
+        </div>
+
+        <div class="pay-header__actions">
+          @if (isOwner() || lodges().length > 1) {
+            <select
+              class="lodge-select"
+              [ngModel]="selectedPropertyId()"
+              (ngModelChange)="switchLodge($event)"
+            >
+              @if (isOwner()) {
+                <option value="all">All Lodges</option>
+              }
+              @for (l of lodges(); track l.id) {
+                <option [value]="l.id">{{ l.name }}</option>
+              }
+            </select>
+          }
+
+          <button type="button" class="sub-btn" (click)="goTo('/payments/transactions')">
+            <ion-icon name="list-outline"></ion-icon>
+            Transactions
+          </button>
+          <button type="button" class="sub-btn" (click)="goTo('/payments/invoices')">
+            <ion-icon name="document-text-outline"></ion-icon>
+            Invoices
+          </button>
+          <button type="button" class="sub-btn" (click)="goTo('/payments/refunds')">
+            <ion-icon name="return-down-Back-outline"></ion-icon>
+            Refunds
+          </button>
+          @if (canViewReports()) {
+            <button type="button" class="sub-btn" (click)="goTo('/payments/reports')">
+              <ion-icon name="bar-chart-outline"></ion-icon>
+              Reports
+            </button>
+          }
+          @if (canCollect()) {
+            <ion-button fill="solid" class="collect-cta" (click)="goTo('/payments/collect')">
+              <ion-icon slot="start" name="add-outline"></ion-icon>
+              Collect Payment
+            </ion-button>
+          }
+        </div>
+      </header>
+
+      <!-- 6 Summary Cards -->
+      <section class="kpi-grid">
+        <div class="kpi-card kpi-card--blue">
+          <span>Total Net Revenue</span>
+          <strong>₹{{ totalRevenue().toLocaleString('en-IN') }}</strong>
+        </div>
+        <div class="kpi-card kpi-card--green">
+          <span>Today's Collection</span>
+          <strong>₹{{ todayCollection().toLocaleString('en-IN') }}</strong>
+        </div>
+        <div class="kpi-card">
+          <span>Monthly Collection</span>
+          <strong>₹{{ monthlyCollection().toLocaleString('en-IN') }}</strong>
+        </div>
+        <div class="kpi-card kpi-card--amber">
+          <span>Pending Transactions</span>
+          <strong>{{ pendingPaymentsCount() }}</strong>
+        </div>
+        <div class="kpi-card kpi-card--red">
+          <span>Outstanding Balance</span>
+          <strong>₹{{ outstandingBalance().toLocaleString('en-IN') }}</strong>
+        </div>
+        <div class="kpi-card">
+          <span>Total Refunds</span>
+          <strong>₹{{ totalRefunds().toLocaleString('en-IN') }}</strong>
+        </div>
+      </section>
+
+      <!-- Charts -->
+      <section class="charts-grid">
+        <div class="chart-box">
+          <h3>7-Day Daily Collection</h3>
+          <app-dashboard-axis-chart [options]="dailyRevenueChart()" />
+        </div>
+        <div class="chart-box">
+          <h3>6-Month Collection Trend</h3>
+          <app-dashboard-axis-chart [options]="monthlyCollectionChart()" />
+        </div>
+        <div class="chart-box">
+          <h3>Payment Method Breakdown</h3>
+          <app-dashboard-donut-chart [options]="methodBreakdownChart()" />
+        </div>
+        <div class="chart-box">
+          <h3>Pending Payment Alerts ({{ pendingAlerts().length }})</h3>
+          @for (item of pendingAlerts(); track item.booking.id) {
+            <div class="alert-row">
+              <div>
+                <strong>{{ item.booking.guestName }} ({{ item.booking.id }})</strong>
+                <span>Room {{ item.booking.room }} · Due ₹{{ item.ledger.outstandingBalance.toLocaleString('en-IN') }}</span>
+              </div>
+              @if (canCollect()) {
+                <button type="button" class="mini-collect" (click)="goTo('/payments/collect', item.booking.id)">
+                  Collect
+                </button>
+              }
+            </div>
+          } @empty {
+            <p class="muted">No pending balances across bookings.</p>
+          }
+        </div>
+      </section>
+
+      <!-- Lodge-wise Revenue Comparison (Owner) & Recent Transactions -->
+      <section class="bottom-grid">
+        @if (isOwner()) {
+          <div class="panel-box">
+            <h3>Lodge-Wise Revenue Comparison</h3>
+            <div class="table-wrap">
+              <table class="mini-table">
+                <thead>
+                  <tr>
+                    <th>Lodge</th>
+                    <th>Collected</th>
+                    <th>Refunded</th>
+                    <th>Net Revenue</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (row of lodgeComparison(); track row.id) {
+                    <tr>
+                      <td><strong>{{ row.name }}</strong></td>
+                      <td>₹{{ row.collected.toLocaleString('en-IN') }}</td>
+                      <td>₹{{ row.refunded.toLocaleString('en-IN') }}</td>
+                      <td><strong>₹{{ row.netRevenue.toLocaleString('en-IN') }}</strong></td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          </div>
+        }
+
+        <div class="panel-box">
+          <div class="panel-head">
+            <h3>Recent Transactions</h3>
+            <button type="button" class="link-btn" (click)="goTo('/payments/transactions')">View All</button>
+          </div>
+          @for (p of recentTransactions(); track p.id) {
+            <div class="tx-row">
+              <div>
+                <strong>{{ p.guestName }} · {{ p.amount }}</strong>
+                <span>{{ p.method }} · {{ p.type }} · {{ p.paymentDate || (p.createdAt | date:'shortDate') }}</span>
+              </div>
+              <span class="st-pill st-pill--{{ p.status.toLowerCase().replace(' ', '-') }}">{{ p.status }}</span>
+            </div>
+          } @empty {
+            <p class="muted">No transactions recorded yet.</p>
+          }
+        </div>
+      </section>
+    </div>
+  </div>
+</app-shell>

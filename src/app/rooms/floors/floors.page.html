@@ -1,0 +1,105 @@
+<app-shell
+  [activeNavId]="'rooms'"
+  [breadcrumb]="'Floor Management'"
+  (activeNavIdChange)="onNavChange($event)"
+>
+  <div class="sub-page">
+    <div class="sub-page__inner">
+      <header class="sub-header">
+        <button type="button" class="back-btn" (click)="goBack()">
+          <ion-icon name="arrow-back-outline"></ion-icon>
+          Rooms
+        </button>
+        <div>
+          <h1>Floor Management</h1>
+          <p>Organize floors per lodge, inspect floor-wise rooms & manage status</p>
+        </div>
+      </header>
+
+      @if (!isStaff()) {
+        <section class="sub-card">
+          <h2>{{ editingId() ? 'Edit Floor' : 'Add New Floor' }}</h2>
+          <div class="form-grid">
+            <div class="field">
+              <label>Lodge *</label>
+              <select [(ngModel)]="propertyId" [disabled]="!!editingId()">
+                @for (l of lodges(); track l.id) {
+                  <option [value]="l.id">{{ l.name }}</option>
+                }
+              </select>
+            </div>
+            <div class="field">
+              <label>Floor Name *</label>
+              <input type="text" [(ngModel)]="floorName" placeholder="e.g. First Floor" />
+            </div>
+            <div class="field">
+              <label>Floor Number *</label>
+              <input type="number" [(ngModel)]="floorNumber" />
+            </div>
+            <div class="field">
+              <label>Status</label>
+              <select [(ngModel)]="status">
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+              </select>
+            </div>
+            <div class="field field--full">
+              <label>Description</label>
+              <input type="text" [(ngModel)]="description" placeholder="Wing details or notes..." />
+            </div>
+          </div>
+          <div class="form-actions">
+            @if (editingId()) {
+              <ion-button fill="outline" color="medium" (click)="resetForm()">Cancel</ion-button>
+            }
+            <ion-button fill="solid" (click)="saveFloor()">
+              {{ editingId() ? 'Update Floor' : 'Add Floor' }}
+            </ion-button>
+          </div>
+        </section>
+      }
+
+      <section class="cards-grid">
+        @for (fl of floors(); track fl.id) {
+          <article class="item-card" (click)="selectedFloor.set(fl)">
+            <div class="item-card__head">
+              <strong>{{ fl.floorName }} (Level {{ fl.floorNumber }})</strong>
+              <span class="pill" [class.active]="fl.status === 'active'">{{ fl.status }}</span>
+            </div>
+            <p class="sub">{{ getLodgeName(fl.propertyId) }} · {{ getRoomCount(fl) }} Rooms Assigned</p>
+            @if (fl.description) {
+              <p class="desc">{{ fl.description }}</p>
+            }
+            @if (!isStaff()) {
+              <div class="item-card__actions" (click)="$event.stopPropagation()">
+                <button type="button" class="mini-btn" (click)="startEdit(fl)">
+                  <ion-icon name="create-outline"></ion-icon>
+                  Edit
+                </button>
+                <button type="button" class="mini-btn danger" (click)="deleteFloor(fl)">
+                  <ion-icon name="trash-outline"></ion-icon>
+                  Delete
+                </button>
+              </div>
+            }
+          </article>
+        } @empty {
+          <div class="empty">No floors configured yet. Add a floor above.</div>
+        }
+      </section>
+
+      @if (selectedFloor(); as sf) {
+        <section class="sub-card">
+          <h2>Rooms on {{ sf.floorName }} ({{ floorRooms().length }})</h2>
+          <div class="chip-wrap">
+            @for (r of floorRooms(); track r.id) {
+              <span class="room-chip">Room {{ r.number }} · {{ r.type }} ({{ r.status }})</span>
+            } @empty {
+              <p class="muted">No rooms assigned to this floor.</p>
+            }
+          </div>
+        </section>
+      }
+    </div>
+  </div>
+</app-shell>

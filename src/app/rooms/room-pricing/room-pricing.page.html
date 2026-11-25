@@ -1,0 +1,123 @@
+<app-shell
+  [activeNavId]="'rooms'"
+  [breadcrumb]="'Room Pricing'"
+  (activeNavIdChange)="onNavChange($event)"
+>
+  <div class="sub-page">
+    <div class="sub-page__inner">
+      <header class="sub-header">
+        <button type="button" class="back-btn" (click)="goBack()">
+          <ion-icon name="arrow-back-outline"></ion-icon>
+          Rooms
+        </button>
+        <div>
+          <h1>Room Pricing & Seasonal Rules</h1>
+          <p>Configure seasonal/special date rates and preview effective stay pricing (confirmed bookings remain locked)</p>
+        </div>
+      </header>
+
+      <!-- Live Pricing Preview -->
+      <section class="sub-card">
+        <h2>Effective Pricing Preview</h2>
+        <div class="form-grid">
+          <div class="field">
+            <label>Select Room</label>
+            <select [ngModel]="previewRoomId()" (ngModelChange)="previewRoomId.set($event)">
+              @for (r of rooms(); track r.id) {
+                <option [value]="r.id">Room {{ r.number }} ({{ r.type }} · {{ r.price }})</option>
+              }
+            </select>
+          </div>
+          <div class="field">
+            <label>Check-in Date</label>
+            <input type="date" [ngModel]="previewCheckIn()" (ngModelChange)="previewCheckIn.set($event)" />
+          </div>
+          <div class="field">
+            <label>Check-out Date</label>
+            <input type="date" [ngModel]="previewCheckOut()" (ngModelChange)="previewCheckOut.set($event)" />
+          </div>
+        </div>
+
+        @if (previewBreakdown(); as pb) {
+          <div class="preview-summary">
+            <div><span>Nights</span><strong>{{ pb.nights }}</strong></div>
+            <div><span>Room Subtotal</span><strong>₹{{ pb.subtotal.toLocaleString('en-IN') }}</strong></div>
+            <div><span>Taxes</span><strong>₹{{ pb.taxAmount.toLocaleString('en-IN') }}</strong></div>
+            <div class="total"><span>Effective Total</span><strong>₹{{ pb.total.toLocaleString('en-IN') }}</strong></div>
+          </div>
+        }
+      </section>
+
+      @if (!isStaff()) {
+        <section class="sub-card">
+          <h2>Add Seasonal / Special Date Rule</h2>
+          <div class="form-grid">
+            <div class="field">
+              <label>Lodge *</label>
+              <select [(ngModel)]="propertyId">
+                @for (l of lodges(); track l.id) {
+                  <option [value]="l.id">{{ l.name }}</option>
+                }
+              </select>
+            </div>
+            <div class="field">
+              <label>Rule Title *</label>
+              <input type="text" [(ngModel)]="title" placeholder="e.g. Diwali Peak Season" />
+            </div>
+            <div class="field">
+              <label>Rule Type</label>
+              <select [(ngModel)]="ruleType">
+                <option value="seasonal">Seasonal Pricing</option>
+                <option value="special_date">Special Date Pricing</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Percentage Adjustment (%)</label>
+              <input type="number" [(ngModel)]="percentageAdjustment" placeholder="e.g. 20 or -10" />
+            </div>
+            <div class="field">
+              <label>Start Date</label>
+              <input type="date" [(ngModel)]="startDate" />
+            </div>
+            <div class="field">
+              <label>End Date</label>
+              <input type="date" [(ngModel)]="endDate" />
+            </div>
+          </div>
+          <div class="form-actions">
+            <ion-button fill="solid" (click)="addRule()">Save Pricing Rule</ion-button>
+          </div>
+        </section>
+      }
+
+      <section class="cards-grid">
+        @for (rule of rules(); track rule.id) {
+          <article class="item-card">
+            <div class="item-card__head">
+              <strong>{{ rule.title }}</strong>
+              <span class="pill" [class.active]="rule.isActive">{{ rule.isActive ? 'Active' : 'Paused' }}</span>
+            </div>
+            <p class="sub">{{ rule.startDate }} to {{ rule.endDate }} · {{ rule.ruleType }}</p>
+            <p class="desc">
+              @if (rule.priceOverride !== undefined) {
+                Fixed Override: ₹{{ rule.priceOverride }}
+              } @else {
+                Adjustment: {{ (rule.percentageAdjustment || 0) >= 0 ? '+' : '' }}{{ rule.percentageAdjustment }}%
+              }
+            </p>
+            @if (!isStaff()) {
+              <div class="item-card__actions">
+                <button type="button" class="mini-btn" (click)="toggleRule(rule)">
+                  {{ rule.isActive ? 'Pause' : 'Activate' }}
+                </button>
+                <button type="button" class="mini-btn danger" (click)="deleteRule(rule)">Delete</button>
+              </div>
+            }
+          </article>
+        } @empty {
+          <div class="empty">No seasonal or special date pricing rules configured.</div>
+        }
+      </section>
+    </div>
+  </div>
+</app-shell>

@@ -1,0 +1,106 @@
+<app-shell
+  [activeNavId]="'lodges'"
+  [breadcrumb]="(lodge()?.name || 'Lodge') + ' · Documents'"
+  (activeNavIdChange)="onNavChange($event)"
+>
+  <div class="doc-page">
+    <div class="doc-page__inner">
+      <header class="doc-header">
+        <button type="button" class="back-btn" (click)="goBack()">
+          <ion-icon name="arrow-back-outline"></ion-icon>
+          Back to Details
+        </button>
+        <div>
+          <h1>Lodge Documents</h1>
+          <p>Compliance, registration, fire safety & operational files for {{ lodge()?.name }}</p>
+        </div>
+      </header>
+
+      <!-- Upload Form Card -->
+      <section class="doc-card">
+        <h2>Upload New Document</h2>
+        <div class="doc-form-grid">
+          <div class="field">
+            <label>Document Title *</label>
+            <input type="text" [(ngModel)]="docTitle" placeholder="e.g. Fire NOC 2026" />
+          </div>
+
+          <div class="field">
+            <label>Category *</label>
+            <select [(ngModel)]="docCategory">
+              @for (c of categories; track c) {
+                <option [value]="c">{{ c }}</option>
+              }
+            </select>
+          </div>
+
+          <div class="field">
+            <label>Expiry Date (Optional)</label>
+            <input type="date" [(ngModel)]="docExpiry" />
+          </div>
+
+          <div class="field">
+            <label>File (PDF, JPG, PNG, DOC · Max 10 MB)</label>
+            <label class="file-picker">
+              <ion-icon name="cloud-upload-outline"></ion-icon>
+              <span>{{ selectedFile ? selectedFile.name : 'Choose File...' }}</span>
+              <input
+                type="file"
+                accept=".pdf,.jpg,.jpeg,.png,.webp,.doc,.docx"
+                hidden
+                (change)="onFilePicked($event)"
+              />
+            </label>
+          </div>
+        </div>
+
+        @if (uploadProgress() !== null) {
+          <ion-progress-bar [value]="(uploadProgress() || 0) / 100"></ion-progress-bar>
+        }
+
+        <div class="doc-form-actions">
+          <ion-button fill="solid" (click)="uploadDocument()" [disabled]="uploadProgress() !== null">
+            <ion-icon slot="start" name="cloud-upload-outline"></ion-icon>
+            Upload Document
+          </ion-button>
+        </div>
+      </section>
+
+      <!-- Documents List -->
+      <section class="doc-card">
+        <h2>Uploaded Documents ({{ documents().length }})</h2>
+        @if (documents().length > 0) {
+          <div class="doc-list">
+            @for (d of documents(); track d.id) {
+              <div class="doc-row">
+                <div class="doc-row__icon">
+                  <ion-icon name="document-text-outline"></ion-icon>
+                </div>
+                <div class="doc-row__info">
+                  <strong>{{ d.title }}</strong>
+                  <span>
+                    {{ d.category }} · {{ formatBytes(d.fileSize) }} · Uploaded by {{ d.uploadedBy }} on {{ d.uploadedAt | date:'mediumDate' }}
+                    @if (d.expiryDate) {
+                      · Expires {{ d.expiryDate }}
+                    }
+                  </span>
+                </div>
+                <div class="doc-row__actions">
+                  <a [href]="d.url" target="_blank" rel="noopener noreferrer" class="doc-btn">
+                    <ion-icon name="download-outline"></ion-icon>
+                    View
+                  </a>
+                  <button type="button" class="doc-btn doc-btn--danger" (click)="deleteDocument(d)">
+                    <ion-icon name="trash-outline"></ion-icon>
+                  </button>
+                </div>
+              </div>
+            }
+          </div>
+        } @else {
+          <p class="muted">No documents uploaded for this lodge yet.</p>
+        }
+      </section>
+    </div>
+  </div>
+</app-shell>

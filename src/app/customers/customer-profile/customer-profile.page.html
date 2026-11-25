@@ -1,0 +1,237 @@
+<app-shell
+  [activeNavId]="'customers'"
+  [breadcrumb]="customer()?.name || 'Customer Profile'"
+  (activeNavIdChange)="onNavChange($event)"
+>
+  <div class="prof-page">
+    <div class="prof-page__inner">
+      @if (customer(); as c) {
+        <header class="prof-topbar">
+          <button type="button" class="back-btn" (click)="goBack()">
+            <ion-icon name="arrow-back-outline"></ion-icon>
+            All Customers
+          </button>
+
+          @if (canEdit()) {
+            <div class="topbar-actions">
+              <button type="button" class="act-btn" (click)="toggleActive()">
+                <ion-icon name="power-outline"></ion-icon>
+                {{ c.customerStatus === 'inactive' ? 'Activate' : 'Deactivate' }}
+              </button>
+              <ion-button fill="solid" class="edit-btn" (click)="goToEdit()">
+                <ion-icon slot="start" name="create-outline"></ion-icon>
+                Edit Profile
+              </ion-button>
+            </div>
+          }
+        </header>
+
+        <!-- Hero Card -->
+        <section class="hero-card">
+          <div class="hero-avatar">
+            @if (c.photoUrl) {
+              <img [src]="c.photoUrl" [alt]="c.name" />
+            } @else {
+              <span>{{ c.initials }}</span>
+            }
+          </div>
+
+          <div class="hero-info">
+            <div class="badges">
+              <span class="badge badge--type">{{ c.customerType || 'Regular' }}</span>
+              <span class="badge" [class.badge--active]="c.customerStatus !== 'inactive'">
+                {{ c.customerStatus === 'inactive' ? 'Inactive' : 'Active' }}
+              </span>
+              @if (stats()?.isReturning) {
+                <span class="badge badge--ret">Returning Guest</span>
+              }
+            </div>
+            <h1>{{ c.name }}</h1>
+            <div class="meta-line">
+              <span><ion-icon name="call-outline"></ion-icon> {{ c.phone }}</span>
+              @if (c.email) {
+                <span><ion-icon name="mail-outline"></ion-icon> {{ c.email }}</span>
+              }
+              <span><ion-icon name="location-outline"></ion-icon> {{ c.fullAddress || c.address || c.city }}</span>
+            </div>
+            <p class="dates-line">
+              Created: {{ c.createdAt ? (c.createdAt | date:'mediumDate') : '—' }} ·
+              Last Updated: {{ c.updatedAt ? (c.updatedAt | date:'medium') : '—' }}
+            </p>
+          </div>
+        </section>
+
+        <!-- 5 Tabs -->
+        <nav class="tabs-bar">
+          <button type="button" [class.active]="activeTab() === 'overview'" (click)="activeTab.set('overview')">Overview</button>
+          <button type="button" [class.active]="activeTab() === 'bookings'" (click)="activeTab.set('bookings')">Bookings ({{ bookings().length }})</button>
+          @if (canViewFinance()) {
+            <button type="button" [class.active]="activeTab() === 'payments'" (click)="activeTab.set('payments')">Payments ({{ payments().length }})</button>
+          }
+          @if (canViewNotes()) {
+            <button type="button" [class.active]="activeTab() === 'notes'" (click)="activeTab.set('notes')">Notes ({{ notes().length }})</button>
+          }
+          <button type="button" [class.active]="activeTab() === 'activity'" (click)="activeTab.set('activity')">Activity ({{ activity().length }})</button>
+        </nav>
+
+        <!-- TAB 1: OVERVIEW -->
+        @if (activeTab() === 'overview') {
+          @if (stats(); as st) {
+            <section class="stats-grid">
+              <div class="s-box"><span>Total Bookings</span><strong>{{ st.totalBookings }}</strong></div>
+              <div class="s-box"><span>Completed Stays</span><strong>{{ st.completedStays }}</strong></div>
+              <div class="s-box"><span>Total Nights</span><strong>{{ st.totalNights }}</strong></div>
+              <div class="s-box"><span>Upcoming</span><strong>{{ st.upcomingBookings }}</strong></div>
+              <div class="s-box"><span>Cancelled</span><strong>{{ st.cancelledBookings }}</strong></div>
+              <div class="s-box"><span>Last Visit</span><strong>{{ st.lastVisit || '—' }}</strong></div>
+            </section>
+          }
+
+          <section class="info-grid">
+            <div class="card">
+              <h3>Preferences & Requirements</h3>
+              <dl class="kv">
+                <div><dt>Preferences</dt><dd>{{ c.preferences || 'None recorded' }}</dd></div>
+                <div><dt>Special Requirements</dt><dd>{{ c.specialRequirements || 'None' }}</dd></div>
+                <div><dt>ID Document</dt><dd>{{ c.idType }} {{ c.idNumber ? '· ' + c.idNumber : '' }}</dd></div>
+              </dl>
+            </div>
+            <div class="card">
+              <h3>Address Details</h3>
+              <dl class="kv">
+                <div><dt>City / State</dt><dd>{{ c.city }} {{ c.state ? ', ' + c.state : '' }}</dd></div>
+                <div><dt>Country / PIN</dt><dd>{{ c.country || 'India' }} {{ c.pincode ? '· ' + c.pincode : '' }}</dd></div>
+                <div><dt>Full Address</dt><dd>{{ c.fullAddress || c.address || '—' }}</dd></div>
+              </dl>
+            </div>
+          </section>
+        }
+
+        <!-- TAB 2: BOOKINGS -->
+        @if (activeTab() === 'bookings') {
+          <section class="card">
+            <h3>Booking History</h3>
+            @if (bookings().length > 0) {
+              <div class="table-wrap">
+                <table class="mini-table">
+                  <thead>
+                    <tr>
+                      <th>Booking ID</th>
+                      <th>Lodge</th>
+                      <th>Room</th>
+                      <th>Check-in</th>
+                      <th>Check-out</th>
+                      <th>Status</th>
+                      @if (canViewFinance()) {
+                        <th>Amount</th>
+                      }
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (b of bookings(); track b.id) {
+                      <tr>
+                        <td><strong>{{ b.id }}</strong></td>
+                        <td>{{ b.propertyName || b.propertyId || '—' }}</td>
+                        <td>Room {{ b.room }}</td>
+                        <td>{{ b.checkIn }}</td>
+                        <td>{{ b.checkOut }}</td>
+                        <td><span class="status-tag">{{ b.status }}</span></td>
+                        @if (canViewFinance()) {
+                          <td>{{ b.amount }}</td>
+                        }
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            } @else {
+              <p class="muted">No bookings recorded for this customer yet.</p>
+            }
+          </section>
+        }
+
+        <!-- TAB 3: PAYMENTS (RESTRICTED) -->
+        @if (activeTab() === 'payments' && canViewFinance()) {
+          <section class="card">
+            <h3>Payment History</h3>
+            @if (payments().length > 0) {
+              <div class="table-wrap">
+                <table class="mini-table">
+                  <thead>
+                    <tr>
+                      <th>Payment ID</th>
+                      <th>Booking</th>
+                      <th>Method</th>
+                      <th>Status</th>
+                      <th>Amount</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (p of payments(); track p.id) {
+                      <tr>
+                        <td><strong>{{ p.id }}</strong></td>
+                        <td>{{ p.bookingId }}</td>
+                        <td>{{ p.method }}</td>
+                        <td><span class="status-tag">{{ p.status }}</span></td>
+                        <td>{{ p.amount }}</td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            } @else {
+              <p class="muted">No payment records found.</p>
+            }
+          </section>
+        }
+
+        <!-- TAB 4: INTERNAL NOTES -->
+        @if (activeTab() === 'notes' && canViewNotes()) {
+          <section class="card">
+            <h3>Private Internal Notes</h3>
+            <div class="note-form">
+              <textarea rows="2" [(ngModel)]="newNoteText" placeholder="Add a private staff note..."></textarea>
+              <ion-button size="small" fill="solid" (click)="addNote()">Add Note</ion-button>
+            </div>
+            <div class="notes-list">
+              @for (n of notes(); track n.id) {
+                <div class="note-item">
+                  <div class="note-item__body">
+                    <p>{{ n.content }}</p>
+                    <span>{{ n.authorName }} · {{ n.createdAt | date:'short' }}</span>
+                  </div>
+                  @if (isOwner() || isManager()) {
+                    <button type="button" class="del-btn" (click)="deleteNote(n)">
+                      <ion-icon name="trash-outline"></ion-icon>
+                    </button>
+                  }
+                </div>
+              } @empty {
+                <p class="muted">No internal notes yet.</p>
+              }
+            </div>
+          </section>
+        }
+
+        <!-- TAB 5: ACTIVITY HISTORY -->
+        @if (activeTab() === 'activity') {
+          <section class="card">
+            <h3>Activity History</h3>
+            @for (a of activity(); track a.id) {
+              <div class="act-row">
+                <strong>{{ a.action }}</strong>
+                <span>{{ a.details }} · {{ a.performedBy }} ({{ a.timestamp | date:'short' }})</span>
+              </div>
+            } @empty {
+              <p class="muted">No activity logged yet.</p>
+            }
+          </section>
+        }
+      } @else {
+        <div class="card">
+          <p class="muted">Loading customer profile...</p>
+        </div>
+      }
+    </div>
+  </div>
+</app-shell>

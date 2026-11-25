@@ -1,0 +1,63 @@
+<app-shell
+  [activeNavId]="'lodges'"
+  [breadcrumb]="(lodge()?.name || 'Lodge') + ' · Gallery'"
+  (activeNavIdChange)="onNavChange($event)"
+>
+  <div class="gal-page">
+    <div class="gal-page__inner">
+      <header class="gal-header">
+        <button type="button" class="back-btn" (click)="goBack()">
+          <ion-icon name="arrow-back-outline"></ion-icon>
+          Back to Details
+        </button>
+        <div class="gal-header__copy">
+          <h1>Lodge Gallery</h1>
+          <p>Upload, reorder, or set the cover image for {{ lodge()?.name }}</p>
+        </div>
+        <label class="upload-btn">
+          <ion-icon name="cloud-upload-outline"></ion-icon>
+          Upload Photos
+          <input type="file" multiple accept="image/jpeg,image/png,image/webp" hidden (change)="onFilesSelected($event)" />
+        </label>
+      </header>
+
+      @if (uploadProgress() !== null) {
+        <ion-progress-bar [value]="(uploadProgress() || 0) / 100"></ion-progress-bar>
+      }
+
+      @if (gallery().length > 0) {
+        <section class="gal-grid">
+          @for (item of gallery(); track item.id; let i = $index) {
+            <article class="gal-card" [class.gal-card--cover]="item.isCover || lodge()?.images?.cover === item.url">
+              <div class="gal-card__img">
+                <img [src]="item.url" alt="Lodge gallery item" />
+                @if (item.isCover || lodge()?.images?.cover === item.url) {
+                  <span class="cover-badge">Cover Image</span>
+                }
+              </div>
+              <div class="gal-card__actions">
+                <button type="button" class="act-btn" (click)="setAsCover(item)" title="Set as Cover">
+                  <ion-icon [name]="item.isCover ? 'star' : 'star-outline'"></ion-icon>
+                  Cover
+                </button>
+                <button type="button" class="act-btn" (click)="moveItem(i, -1)" [disabled]="i === 0" title="Move Up">
+                  <ion-icon name="arrow-up-outline"></ion-icon>
+                </button>
+                <button type="button" class="act-btn" (click)="moveItem(i, 1)" [disabled]="i === gallery().length - 1" title="Move Down">
+                  <ion-icon name="arrow-down-outline"></ion-icon>
+                </button>
+                <button type="button" class="act-btn act-btn--danger" (click)="removeItem(item)" title="Remove">
+                  <ion-icon name="trash-outline"></ion-icon>
+                </button>
+              </div>
+            </article>
+          }
+        </section>
+      } @else {
+        <div class="gal-empty">
+          <p>No gallery photos yet. Upload JPG, PNG, or WebP images (max 5 MB each).</p>
+        </div>
+      }
+    </div>
+  </div>
+</app-shell>

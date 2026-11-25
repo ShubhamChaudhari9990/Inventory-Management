@@ -1,0 +1,81 @@
+<app-shell
+  [activeNavId]="'payments'"
+  [breadcrumb]="'Refunds'"
+  (activeNavIdChange)="onNavChange($event)"
+>
+  <div class="ref-page">
+    <div class="ref-page__inner">
+      <header class="ref-header">
+        <button type="button" class="back-btn" (click)="goBack()">
+          <ion-icon name="arrow-back-outline"></ion-icon>
+          Payments
+        </button>
+        <div>
+          <h1>Refund Management</h1>
+          <p>Request, approve, and complete verified refunds against original transactions</p>
+        </div>
+      </header>
+
+      <!-- Request Refund Form -->
+      <section class="ref-card">
+        <h2>Request Refund</h2>
+        <div class="form-grid">
+          <div class="field">
+            <label>Booking *</label>
+            <select [ngModel]="selectedBookingId()" (ngModelChange)="onBookingChange($event)">
+              <option value="">Select booking...</option>
+              @for (b of bookings(); track b.id) {
+                <option [value]="b.id">{{ b.id }} · {{ b.guestName }}</option>
+              }
+            </select>
+          </div>
+          <div class="field">
+            <label>Original Payment *</label>
+            <select [(ngModel)]="selectedPaymentId">
+              @for (p of bookingPayments(); track p.id) {
+                <option [value]="p.id">{{ p.id }} · {{ p.amount }} ({{ p.method }})</option>
+              }
+            </select>
+          </div>
+          <div class="field">
+            <label>Refund Amount (₹) *</label>
+            <input type="number" [(ngModel)]="refundAmount" min="1" />
+          </div>
+          <div class="field">
+            <label>Reason *</label>
+            <input type="text" [(ngModel)]="refundReason" placeholder="e.g. Early check-out / Cancellation" />
+          </div>
+        </div>
+        <div class="actions-end">
+          <ion-button fill="solid" (click)="submitRequest()">Submit Refund Request</ion-button>
+        </div>
+      </section>
+
+      <!-- Refund History -->
+      <section class="ref-card">
+        <h2>Refund History ({{ refunds().length }})</h2>
+        @for (r of refunds(); track r.id) {
+          <div class="ref-row">
+            <div>
+              <strong>{{ r.guestName }} · ₹{{ r.refundAmount.toLocaleString('en-IN') }}</strong>
+              <span>Booking {{ r.bookingId }} · Payment {{ r.paymentId }} · {{ r.refundReason }}</span>
+              <span class="meta">Requested by {{ r.requestedBy }} on {{ r.createdAt | date:'short' }}</span>
+            </div>
+            <div class="ref-row__right">
+              <span class="st-pill st-pill--{{ r.refundStatus.toLowerCase() }}">{{ r.refundStatus }}</span>
+              @if ((isOwner() || isManager()) && r.refundStatus === 'Requested') {
+                <button type="button" class="mini-btn ok" (click)="approve(r)">Approve</button>
+                <button type="button" class="mini-btn bad" (click)="reject(r)">Reject</button>
+              }
+              @if ((isOwner() || isManager()) && r.refundStatus === 'Approved') {
+                <button type="button" class="mini-btn ok" (click)="complete(r)">Complete Payout</button>
+              }
+            </div>
+          </div>
+        } @empty {
+          <p class="muted">No refund requests recorded.</p>
+        }
+      </section>
+    </div>
+  </div>
+</app-shell>

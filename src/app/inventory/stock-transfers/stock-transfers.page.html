@@ -1,0 +1,101 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar class="ops-toolbar">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/operations"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Inter-Lodge Stock Transfers</ion-title>
+    @if (canManage()) {
+      <ion-buttons slot="end">
+        <button class="btn-add" (click)="showForm.set(!showForm())">
+          {{ showForm() ? 'Close' : '+ New Transfer' }}
+        </button>
+      </ion-buttons>
+    }
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ops-content">
+  <div class="ops-container">
+    @if (showForm() && canManage()) {
+      <section class="card">
+        <h3>Request Stock Transfer</h3>
+        <div class="form-grid">
+          <div class="field">
+            <label>Source Lodge *</label>
+            <select [ngModel]="srcLodgeId()" (ngModelChange)="srcLodgeId.set($event); itemId.set('')">
+              <option value="">Select source...</option>
+              @for (prop of accessibleProperties(); track prop.id) {
+                <option [value]="prop.id">{{ prop.name }}</option>
+              }
+            </select>
+          </div>
+          <div class="field">
+            <label>Destination Lodge *</label>
+            <select [ngModel]="dstLodgeId()" (ngModelChange)="dstLodgeId.set($event)">
+              <option value="">Select destination...</option>
+              @for (prop of accessibleProperties(); track prop.id) {
+                <option [value]="prop.id">{{ prop.name }}</option>
+              }
+            </select>
+          </div>
+          <div class="field">
+            <label>Item *</label>
+            <select [ngModel]="itemId()" (ngModelChange)="itemId.set($event)">
+              <option value="">Select item...</option>
+              @for (it of sourceItems(); track it.id) {
+                <option [value]="it.id">{{ it.name }} (Avail: {{ it.quantity }} {{ it.unit }})</option>
+              }
+            </select>
+          </div>
+          <div class="field">
+            <label>Quantity *</label>
+            <input type="number" min="1" [ngModel]="qty()" (ngModelChange)="qty.set($event)" />
+          </div>
+        </div>
+        <div class="field">
+          <label>Notes</label>
+          <input type="text" [ngModel]="notes()" (ngModelChange)="notes.set($event)" />
+        </div>
+        <div class="actions">
+          <button class="btn-primary" [disabled]="saving()" (click)="createTransfer()">Submit Transfer Request</button>
+        </div>
+      </section>
+    }
+
+    @if (transfers().length === 0) {
+      <div class="empty-state">No inter-lodge stock transfers recorded.</div>
+    } @else {
+      <div class="list">
+        @for (t of transfers(); track t.id) {
+          <div class="trf-card">
+            <div class="top">
+              <div>
+                <strong>{{ t.itemName }} ({{ t.quantity }} {{ t.unit }})</strong>
+                <div class="sub">
+                  From {{ t.sourcePropertyName || t.sourcePropertyId }} → {{ t.destinationPropertyName || t.destinationPropertyId }} ·
+                  Requested by {{ t.requestedBy }}
+                </div>
+              </div>
+              <span class="badge">{{ t.status }}</span>
+            </div>
+
+            @if (canManage()) {
+              <div class="actions">
+                @if (t.status === 'Requested' && roleService.isOwner()) {
+                  <button class="btn-green" (click)="approve(t.id)">Approve</button>
+                  <button class="btn-red" (click)="reject(t.id)">Reject</button>
+                }
+                @if (t.status === 'Approved') {
+                  <button class="btn-amber" (click)="dispatch(t.id)">Confirm Dispatch</button>
+                }
+                @if (t.status === 'Dispatched') {
+                  <button class="btn-primary" (click)="receive(t.id)">Confirm Receipt</button>
+                }
+              </div>
+            }
+          </div>
+        }
+      </div>
+    }
+  </div>
+</ion-content>

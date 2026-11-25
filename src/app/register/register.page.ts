@@ -8,37 +8,29 @@ import {
   IonIcon,
   IonInput,
   IonItem,
-  IonSelect,
-  IonSelectOption,
+  IonSpinner,
 } from '@ionic/angular/standalone';
 import { TranslatePipe } from '@ngx-translate/core';
 import { addIcons } from 'ionicons';
 import {
   arrowForwardOutline,
-  businessOutline,
   callOutline,
+  checkmarkCircleOutline,
+  closeCircleOutline,
   eyeOffOutline,
   eyeOutline,
   languageOutline,
   leaf,
   lockClosedOutline,
   mailOutline,
+  mailUnreadOutline,
   personOutline,
+  refreshOutline,
+  shieldCheckmarkOutline,
 } from 'ionicons/icons';
 
 import { AppToastService } from '../shared/services/app-toast.service';
-
-type StaffRole =
-  | 'front_desk'
-  | 'housekeeping'
-  | 'kitchen'
-  | 'manager'
-  | 'maintenance';
-
-interface RoleOption {
-  value: StaffRole;
-  labelKey: string;
-}
+import { AuthService } from '../services/auth.service';
 
 @Component({
   selector: 'app-register',
@@ -51,34 +43,27 @@ interface RoleOption {
     IonContent,
     IonInput,
     IonItem,
-    IonSelect,
-    IonSelectOption,
     IonCheckbox,
     IonButton,
     IonIcon,
+    IonSpinner,
   ],
 })
 export class RegisterPage {
   private readonly router = inject(Router);
   private readonly appToast = inject(AppToastService);
+  private readonly authService = inject(AuthService);
 
   fullName = '';
   email = '';
   mobile = '';
-  role: StaffRole | '' = '';
   password = '';
   confirmPassword = '';
   agreeTerms = false;
   showPassword = false;
   showConfirmPassword = false;
-
-  readonly roles: RoleOption[] = [
-    { value: 'front_desk', labelKey: 'REGISTER.ROLES.FRONT_DESK' },
-    { value: 'housekeeping', labelKey: 'REGISTER.ROLES.HOUSEKEEPING' },
-    { value: 'kitchen', labelKey: 'REGISTER.ROLES.KITCHEN' },
-    { value: 'manager', labelKey: 'REGISTER.ROLES.MANAGER' },
-    { value: 'maintenance', labelKey: 'REGISTER.ROLES.MAINTENANCE' },
-  ];
+  isSubmitting = false;
+  registrationCompleted = false;
 
   constructor() {
     addIcons({
@@ -87,11 +72,15 @@ export class RegisterPage {
       personOutline,
       mailOutline,
       callOutline,
-      businessOutline,
       lockClosedOutline,
       eyeOutline,
       eyeOffOutline,
       arrowForwardOutline,
+      checkmarkCircleOutline,
+      mailUnreadOutline,
+      refreshOutline,
+      shieldCheckmarkOutline,
+      closeCircleOutline,
     });
   }
 
@@ -107,8 +96,7 @@ export class RegisterPage {
     if (
       !this.fullName.trim() ||
       !this.email.trim() ||
-      !this.mobile.trim() ||
-      !this.role
+      !this.mobile.trim()
     ) {
       await this.showToast('REGISTER.ERRORS.REQUIRED', 'warning');
       return;
@@ -129,8 +117,31 @@ export class RegisterPage {
       return;
     }
 
-    await this.showToast('REGISTER.ERRORS.SUCCESS', 'success');
-    await this.router.navigate(['/login']);
+    this.isSubmitting = true;
+    try {
+      const res = await this.authService.registerWithEmailPassword({
+        fullName: this.fullName,
+        email: this.email,
+        mobile: this.mobile,
+        password: this.password,
+      });
+
+      if (res.success) {
+        this.registrationCompleted = true;
+      }
+    } finally {
+      this.isSubmitting = false;
+    }
+  }
+
+  async onResendVerification(): Promise<void> {
+    await this.authService.resendVerificationEmail();
+  }
+
+  onGoToLogin(): void {
+    void this.router.navigate(['/login'], {
+      queryParams: { email: this.email },
+    });
   }
 
   private async showToast(

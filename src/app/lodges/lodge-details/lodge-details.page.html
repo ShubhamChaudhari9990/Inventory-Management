@@ -1,0 +1,398 @@
+<app-shell
+  [activeNavId]="'lodges'"
+  [breadcrumb]="lodge()?.name || 'Lodge Details'"
+  (activeNavIdChange)="onNavChange($event)"
+>
+  <div class="details-page" (click)="isMoreMenuOpen.set(false)">
+    <div class="details-page__inner">
+      @if (lodge(); as l) {
+        <!-- Top Navigation -->
+        <div class="details-topbar">
+          <button type="button" class="back-btn" (click)="goBack()">
+            <ion-icon name="arrow-back-outline"></ion-icon>
+            All Lodges
+          </button>
+
+          <div class="topbar-actions">
+            @if (!isStaff()) {
+              <ion-button fill="solid" class="edit-btn" (click)="goToEdit()">
+                <ion-icon slot="start" name="create-outline"></ion-icon>
+                Edit Lodge
+              </ion-button>
+            }
+
+            <div class="more-wrap" (click)="$event.stopPropagation()">
+              <button
+                type="button"
+                class="more-btn"
+                (click)="isMoreMenuOpen.set(!isMoreMenuOpen())"
+                aria-label="More actions"
+              >
+                <ion-icon name="ellipsis-vertical-outline"></ion-icon>
+              </button>
+
+              @if (isMoreMenuOpen()) {
+                <div class="more-dropdown">
+                  <button type="button" (click)="switchToThisLodge()">
+                    <ion-icon name="swap-horizontal-outline"></ion-icon>
+                    Switch to Lodge
+                  </button>
+                  @if (!isStaff()) {
+                    <button type="button" (click)="goToSection('settings')">
+                      <ion-icon name="settings-outline"></ion-icon>
+                      Lodge Settings
+                    </button>
+                    <button type="button" (click)="goToSection('gallery')">
+                      <ion-icon name="images-outline"></ion-icon>
+                      Manage Gallery
+                    </button>
+                    <button type="button" (click)="goToSection('facilities')">
+                      <ion-icon name="sparkles-outline"></ion-icon>
+                      Manage Facilities
+                    </button>
+                    <button type="button" (click)="goToSection('documents')">
+                      <ion-icon name="document-text-outline"></ion-icon>
+                      Lodge Documents
+                    </button>
+                  }
+                  @if (isOwner()) {
+                    <button type="button" class="danger" (click)="toggleStatus()">
+                      <ion-icon name="power-outline"></ion-icon>
+                      {{ l.status === 'active' ? 'Deactivate Lodge' : 'Activate Lodge' }}
+                    </button>
+                  }
+                </div>
+              }
+            </div>
+          </div>
+        </div>
+
+        <!-- Hero Header Card -->
+        <section class="hero-card">
+          <div class="hero-card__cover">
+            @if (l.images?.cover || l.imageUrl) {
+              <img [src]="l.images?.cover || l.imageUrl" [alt]="l.name" />
+            } @else {
+              <div class="hero-card__fallback">
+                <ion-icon name="business-outline"></ion-icon>
+              </div>
+            }
+          </div>
+
+          <div class="hero-card__content">
+            <div class="hero-card__logo">
+              @if (l.images?.logo) {
+                <img [src]="l.images?.logo" [alt]="l.name + ' logo'" />
+              } @else {
+                <span>{{ l.code.slice(0, 2) }}</span>
+              }
+            </div>
+
+            <div class="hero-card__info">
+              <div class="hero-card__badges">
+                <span class="badge badge--code">{{ l.code }}</span>
+                <span class="badge badge--type">{{ l.type || 'Lodge' }}</span>
+                <span
+                  class="badge"
+                  [class.badge--active]="l.status === 'active'"
+                  [class.badge--inactive]="l.status !== 'active'"
+                >
+                  {{ l.status === 'active' ? 'Active' : 'Inactive' }}
+                </span>
+              </div>
+              <h1 class="hero-card__title">{{ l.name }}</h1>
+              <div class="hero-card__meta">
+                <span>
+                  <ion-icon name="location-outline"></ion-icon>
+                  {{ l.address || l.lodgeAddress?.addressLine1 }}{{ l.city ? ', ' + l.city : '' }}{{ l.state ? ', ' + l.state : '' }}
+                </span>
+                <span>
+                  <ion-icon name="call-outline"></ion-icon>
+                  {{ l.contact?.primaryPhone || l.phone || 'N/A' }}
+                </span>
+                @if (l.contact?.email || l.email) {
+                  <span>
+                    <ion-icon name="mail-outline"></ion-icon>
+                    {{ l.contact?.email || l.email }}
+                  </span>
+                }
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Overview KPI Cards -->
+        <section class="kpi-row">
+          <div class="kpi-box">
+            <span class="kpi-box__lbl">Total Rooms</span>
+            <strong class="kpi-box__val">{{ totalRooms() }}</strong>
+          </div>
+          <div class="kpi-box kpi-box--green">
+            <span class="kpi-box__lbl">Available Rooms</span>
+            <strong class="kpi-box__val">{{ availableRooms() }}</strong>
+          </div>
+          <div class="kpi-box kpi-box--amber">
+            <span class="kpi-box__lbl">Occupied Rooms</span>
+            <strong class="kpi-box__val">{{ occupiedRooms() }}</strong>
+          </div>
+          <div class="kpi-box kpi-box--blue">
+            <span class="kpi-box__lbl">Active Bookings</span>
+            <strong class="kpi-box__val">{{ activeBookingsCount() }}</strong>
+          </div>
+          @if (canViewFinance()) {
+            <div class="kpi-box kpi-box--indigo">
+              <span class="kpi-box__lbl">Revenue Collected</span>
+              <strong class="kpi-box__val">₹{{ lodgeRevenue().toLocaleString('en-IN') }}</strong>
+            </div>
+          }
+        </section>
+
+        <!-- 7 Tabs Navigation -->
+        <nav class="details-tabs" role="tablist">
+          <button type="button" [class.active]="activeTab() === 'overview'" (click)="activeTab.set('overview')">Overview</button>
+          <button type="button" [class.active]="activeTab() === 'rooms'" (click)="activeTab.set('rooms')">Rooms ({{ lodgeRooms().length }})</button>
+          <button type="button" [class.active]="activeTab() === 'facilities'" (click)="activeTab.set('facilities')">Facilities ({{ facilityList().length }})</button>
+          <button type="button" [class.active]="activeTab() === 'gallery'" (click)="activeTab.set('gallery')">Gallery ({{ galleryList().length }})</button>
+          @if (!isStaff()) {
+            <button type="button" [class.active]="activeTab() === 'staff'" (click)="activeTab.set('staff')">Staff ({{ lodgeStaff().length }})</button>
+            <button type="button" [class.active]="activeTab() === 'settings'" (click)="activeTab.set('settings')">Settings</button>
+            <button type="button" [class.active]="activeTab() === 'documents'" (click)="activeTab.set('documents')">Documents ({{ documents().length }})</button>
+          }
+        </nav>
+
+        <!-- TAB 1: OVERVIEW -->
+        @if (activeTab() === 'overview') {
+          <section class="tab-grid">
+            <div class="info-card info-card--wide">
+              <h3>About Property</h3>
+              <p>{{ l.description || l.tagline || 'No description provided yet.' }}</p>
+            </div>
+
+            <div class="info-card">
+              <h3>Contact Details</h3>
+              <dl class="kv-list">
+                <div><dt>Primary Phone</dt><dd>{{ l.contact?.primaryPhone || l.phone || '—' }}</dd></div>
+                <div><dt>Alternate Phone</dt><dd>{{ l.contact?.alternatePhone || '—' }}</dd></div>
+                <div><dt>Email</dt><dd>{{ l.contact?.email || l.email || '—' }}</dd></div>
+                <div><dt>Website</dt><dd>{{ l.contact?.website || '—' }}</dd></div>
+                <div><dt>Contact Person</dt><dd>{{ l.contact?.contactPerson || '—' }}</dd></div>
+              </dl>
+            </div>
+
+            <div class="info-card">
+              <h3>Address & Coordinates</h3>
+              <dl class="kv-list">
+                <div><dt>Address</dt><dd>{{ l.lodgeAddress?.addressLine1 || l.address || '—' }}</dd></div>
+                <div><dt>City / District</dt><dd>{{ l.lodgeAddress?.city || l.city || '—' }} {{ l.lodgeAddress?.district ? '(' + l.lodgeAddress?.district + ')' : '' }}</dd></div>
+                <div><dt>State / Country</dt><dd>{{ l.lodgeAddress?.state || l.state || '—' }}, {{ l.lodgeAddress?.country || l.country || 'India' }}</dd></div>
+                <div><dt>Postal Code</dt><dd>{{ l.lodgeAddress?.postalCode || l.postalCode || l.pincode || '—' }}</dd></div>
+              </dl>
+            </div>
+
+            <div class="info-card">
+              <h3>Property & Operating Hours</h3>
+              <dl class="kv-list">
+                <div><dt>Total Floors</dt><dd>{{ l.propertyDetails?.totalFloors || l.totalFloors || 1 }}</dd></div>
+                <div><dt>Check-in Time</dt><dd>{{ l.propertyDetails?.checkInTime || l.checkInTime || '12:00' }}</dd></div>
+                <div><dt>Check-out Time</dt><dd>{{ l.propertyDetails?.checkOutTime || l.checkOutTime || '11:00' }}</dd></div>
+                <div><dt>Currency / Timezone</dt><dd>{{ l.propertyDetails?.currency || l.currency || 'INR' }} · {{ l.propertyDetails?.timezone || l.timezone || 'Asia/Kolkata' }}</dd></div>
+                <div><dt>Last Updated</dt><dd>{{ l.updatedAt ? (l.updatedAt | date:'medium') : '—' }}</dd></div>
+              </dl>
+            </div>
+
+            <div class="info-card">
+              <h3>Facilities</h3>
+              <div class="chip-wrap">
+                @for (f of facilityList(); track f.id) {
+                  <span class="fac-pill">{{ f.name }}</span>
+                } @empty {
+                  <span class="muted">No active facilities listed.</span>
+                }
+              </div>
+            </div>
+          </section>
+        }
+
+        <!-- TAB 2: ROOMS -->
+        @if (activeTab() === 'rooms') {
+          <section class="info-card">
+            <div class="card-head">
+              <h3>Rooms in {{ l.name }}</h3>
+            </div>
+            @if (lodgeRooms().length > 0) {
+              <div class="mini-table-wrap">
+                <table class="mini-table">
+                  <thead>
+                    <tr>
+                      <th>Room</th>
+                      <th>Type</th>
+                      <th>Floor</th>
+                      <th>Tariff</th>
+                      <th>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (r of lodgeRooms(); track r.id) {
+                      <tr>
+                        <td><strong>{{ r.number }}</strong></td>
+                        <td>{{ r.type }}</td>
+                        <td>{{ r.floor }}</td>
+                        <td>{{ r.price }}</td>
+                        <td><span class="status-badge">{{ r.status }}</span></td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            } @else {
+              <p class="muted">No rooms recorded for this lodge yet.</p>
+            }
+          </section>
+        }
+
+        <!-- TAB 3: FACILITIES -->
+        @if (activeTab() === 'facilities') {
+          <section class="info-card">
+            <div class="card-head">
+              <h3>Lodge Facilities</h3>
+              @if (!isStaff()) {
+                <ion-button size="small" fill="outline" (click)="goToSection('facilities')">
+                  Manage Facilities
+                </ion-button>
+              }
+            </div>
+            <div class="chip-wrap">
+              @for (f of facilityList(); track f.id) {
+                <span class="fac-pill">
+                  <ion-icon name="checkmark-circle-outline"></ion-icon>
+                  {{ f.name }}
+                </span>
+              } @empty {
+                <p class="muted">No facilities configured.</p>
+              }
+            </div>
+          </section>
+        }
+
+        <!-- TAB 4: GALLERY -->
+        @if (activeTab() === 'gallery') {
+          <section class="info-card">
+            <div class="card-head">
+              <h3>Photo Gallery</h3>
+              @if (!isStaff()) {
+                <ion-button size="small" fill="outline" (click)="goToSection('gallery')">
+                  Manage Gallery
+                </ion-button>
+              }
+            </div>
+            @if (galleryList().length > 0) {
+              <div class="gallery-grid">
+                @for (img of galleryList(); track img.id) {
+                  <div class="gallery-card">
+                    <img [src]="img.url" [alt]="img.caption || l.name" />
+                  </div>
+                }
+              </div>
+            } @else {
+              <p class="muted">No gallery photos uploaded yet.</p>
+            }
+          </section>
+        }
+
+        <!-- TAB 5: STAFF -->
+        @if (activeTab() === 'staff' && !isStaff()) {
+          <section class="info-card">
+            <h3>Assigned Staff ({{ lodgeStaff().length }})</h3>
+            @if (lodgeStaff().length > 0) {
+              <div class="mini-table-wrap">
+                <table class="mini-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Role / Designation</th>
+                      <th>Shift</th>
+                      <th>Status</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (s of lodgeStaff(); track s.id) {
+                      <tr>
+                        <td><strong>{{ s.name }}</strong></td>
+                        <td>{{ s.designation || s.roleKey || 'Staff' }}</td>
+                        <td>{{ s.shift }}</td>
+                        <td><span class="status-badge">{{ s.status }}</span></td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            } @else {
+              <p class="muted">No staff members assigned to this lodge.</p>
+            }
+          </section>
+        }
+
+        <!-- TAB 6: SETTINGS -->
+        @if (activeTab() === 'settings' && !isStaff()) {
+          <section class="info-card">
+            <div class="card-head">
+              <h3>Lodge-Specific Settings</h3>
+              <ion-button size="small" fill="solid" (click)="goToSection('settings')">
+                Open Full Settings
+              </ion-button>
+            </div>
+            <p class="muted">
+              Configure booking rules, check-in/out grace periods, invoice prefixes, tax rates, and notification preferences specifically for {{ l.name }}.
+            </p>
+          </section>
+        }
+
+        <!-- TAB 7: DOCUMENTS -->
+        @if (activeTab() === 'documents' && !isStaff()) {
+          <section class="info-card">
+            <div class="card-head">
+              <h3>Lodge Documents</h3>
+              <ion-button size="small" fill="outline" (click)="goToSection('documents')">
+                Upload & Manage Documents
+              </ion-button>
+            </div>
+            @if (documents().length > 0) {
+              <div class="mini-table-wrap">
+                <table class="mini-table">
+                  <thead>
+                    <tr>
+                      <th>Title</th>
+                      <th>Category</th>
+                      <th>Uploaded</th>
+                      <th>Expiry</th>
+                      <th>Action</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (d of documents(); track d.id) {
+                      <tr>
+                        <td><strong>{{ d.title }}</strong></td>
+                        <td>{{ d.category }}</td>
+                        <td>{{ d.uploadedAt | date:'mediumDate' }}</td>
+                        <td>{{ d.expiryDate || '—' }}</td>
+                        <td>
+                          <a [href]="d.url" target="_blank" rel="noopener noreferrer" class="doc-link">View</a>
+                        </td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            } @else {
+              <p class="muted">No compliance or property documents uploaded yet.</p>
+            }
+          </section>
+        }
+      } @else {
+        <div class="info-card">
+          <p class="muted">Loading lodge details...</p>
+        </div>
+      }
+    </div>
+  </div>
+</app-shell>

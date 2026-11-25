@@ -1,0 +1,177 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar class="hk-toolbar">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/housekeeping"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Cleaning Tasks</ion-title>
+    @if (canAssign()) {
+      <ion-buttons slot="end">
+        <button class="btn-assign-toggle" (click)="toggleAssignForm()">
+          <ion-icon [name]="showAssignForm() ? 'close-outline' : 'add-outline'"></ion-icon>
+          {{ showAssignForm() ? 'Close' : 'Assign Task' }}
+        </button>
+      </ion-buttons>
+    }
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="hk-content">
+  <div class="hk-container">
+    @if (showAssignForm() && canAssign()) {
+      <section class="assign-card">
+        <h3>Assign Housekeeping Task</h3>
+        <div class="form-grid">
+          <div class="field">
+            <label>Lodge *</label>
+            <select [ngModel]="formLodgeId()" (ngModelChange)="onLodgeChange($event)">
+              <option value="">Select lodge...</option>
+              @for (prop of accessibleProperties(); track prop.id) {
+                <option [value]="prop.id">{{ prop.name }}</option>
+              }
+            </select>
+          </div>
+
+          <div class="field">
+            <label>Room *</label>
+            <select [ngModel]="formRoomId()" (ngModelChange)="formRoomId.set($event)">
+              <option value="">Select room...</option>
+              @for (room of roomsForFormLodge(); track room.id) {
+                <option [value]="room.id">
+                  Room {{ room.number }} ({{ room.type }})
+                </option>
+              }
+            </select>
+          </div>
+
+          <div class="field">
+            <label>Task Type *</label>
+            <select [ngModel]="formTaskType()" (ngModelChange)="formTaskType.set($event)">
+              @for (tt of taskTypes; track tt) {
+                <option [value]="tt">{{ tt }}</option>
+              }
+            </select>
+          </div>
+
+          <div class="field">
+            <label>Assign Staff *</label>
+            <select [ngModel]="formStaffUid()" (ngModelChange)="formStaffUid.set($event)">
+              <option value="">Select active staff...</option>
+              @for (u of activeStaffForFormLodge(); track u.uid) {
+                <option [value]="u.uid">{{ u.name }} ({{ u.role }})</option>
+              }
+            </select>
+          </div>
+
+          <div class="field">
+            <label>Priority</label>
+            <select [ngModel]="formPriority()" (ngModelChange)="formPriority.set($event)">
+              @for (p of priorities; track p) {
+                <option [value]="p">{{ p }}</option>
+              }
+            </select>
+          </div>
+
+          <div class="field">
+            <label>Due Date / Time</label>
+            <input
+              type="datetime-local"
+              [ngModel]="formDueAt()"
+              (ngModelChange)="formDueAt.set($event)"
+            />
+          </div>
+        </div>
+
+        <div class="field full">
+          <label>Instructions</label>
+          <textarea
+            rows="2"
+            placeholder="Special linen requests, deep clean notes..."
+            [ngModel]="formInstructions()"
+            (ngModelChange)="formInstructions.set($event)"
+          ></textarea>
+        </div>
+
+        <div class="form-actions">
+          <button class="btn-secondary" (click)="toggleAssignForm()">Cancel</button>
+          <button class="btn-primary" [disabled]="saving()" (click)="createTask()">
+            {{ saving() ? 'Assigning...' : 'Assign Cleaning Task' }}
+          </button>
+        </div>
+      </section>
+    }
+
+    <!-- Filters -->
+    <div class="filters-bar">
+      <div class="search-box">
+        <ion-icon name="search-outline"></ion-icon>
+        <input
+          type="text"
+          placeholder="Search room or staff..."
+          [ngModel]="searchQuery()"
+          (ngModelChange)="searchQuery.set($event)"
+        />
+      </div>
+
+      <select class="filter-select" [ngModel]="lodgeFilter()" (ngModelChange)="lodgeFilter.set($event)">
+        <option value="all">All Lodges</option>
+        @for (prop of accessibleProperties(); track prop.id) {
+          <option [value]="prop.id">{{ prop.name }}</option>
+        }
+      </select>
+
+      <select class="filter-select" [ngModel]="statusFilter()" (ngModelChange)="statusFilter.set($event)">
+        <option value="all">All Statuses</option>
+        @for (s of statuses; track s) {
+          <option [value]="s">{{ s }}</option>
+        }
+      </select>
+
+      <select class="filter-select" [ngModel]="priorityFilter()" (ngModelChange)="priorityFilter.set($event)">
+        <option value="all">All Priorities</option>
+        @for (p of priorities; track p) {
+          <option [value]="p">{{ p }}</option>
+        }
+      </select>
+
+      <select class="filter-select" [ngModel]="taskTypeFilter()" (ngModelChange)="taskTypeFilter.set($event)">
+        <option value="all">All Types</option>
+        @for (tt of taskTypes; track tt) {
+          <option [value]="tt">{{ tt }}</option>
+        }
+      </select>
+    </div>
+
+    @if (filteredTasks().length === 0) {
+      <div class="empty-state">No housekeeping tasks match the current filters.</div>
+    } @else {
+      <div class="tasks-list">
+        @for (task of filteredTasks(); track task.id) {
+          <div class="task-card" (click)="openTask(task)">
+            <div class="task-left">
+              <div class="task-title">
+                Room {{ task.room }}
+                <span class="chip priority-{{ (task.priority || 'Medium').toLowerCase() }}">
+                  {{ task.priority || 'Medium' }}
+                </span>
+                <span class="type-chip">{{ task.taskType || task.type }}</span>
+              </div>
+              <div class="task-meta">
+                {{ getLodgeName(task.propertyId) }} · Assigned to
+                <strong>{{ task.assignedTo || 'Unassigned' }}</strong>
+                @if (task.dueAt) {
+                  · Due {{ task.dueAt | date: 'short' }}
+                }
+              </div>
+              @if (task.instructions) {
+                <div class="task-notes">{{ task.instructions }}</div>
+              }
+            </div>
+            <div class="task-right">
+              <span class="status-pill">{{ task.status }}</span>
+            </div>
+          </div>
+        }
+      </div>
+    }
+  </div>
+</ion-content>

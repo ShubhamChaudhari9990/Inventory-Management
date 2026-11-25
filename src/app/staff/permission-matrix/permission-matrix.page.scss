@@ -1,0 +1,119 @@
+.mat-page {
+  padding: 20px;
+  min-height: 100%;
+  background: #f8fafc;
+
+  &__inner {
+    max-width: 1200px;
+    margin: 0 auto;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+}
+
+.mat-header {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+  h1 { margin: 0; font-size: 1.4rem; font-weight: 700; color: #0f172a; }
+  p { margin: 2px 0 0; font-size: 0.85rem; color: #64748b; }
+}
+
+.back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border-radius: 10px;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  color: #334155;
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+}
+
+.mat-card {
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 14px;
+  padding: 18px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.top-row {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+
+  select {
+    padding: 10px 12px;
+    border-radius: 10px;
+    border: 1px solid #cbd5e1;
+    background: #ffffff;
+    font-size: 0.9rem;
+  }
+}
+
+.tpl-btns {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+
+  button {
+    padding: 6px 11px;
+    border-radius: 999px;
+    border: 1px solid #cbd5e1;
+    background: #f8fafc;
+    font-size: 0.78rem;
+    font-weight: 600;
+    cursor: pointer;
+
+    &:hover { background: #eff6ff; border-color: #1d3e9f; color: #1d3e9f; }
+  }
+}
+
+.groups-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 12px;
+}
+
+.g-box {
+  background: #f8fafc;
+  border: 1px solid #f1f5f9;
+  border-radius: 12px;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+
+  h3 { margin: 0 0 4px; font-size: 0.76rem; color: #64748b; }
+}
+
+.perm-check {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.8rem;
+  color: #1e293b;
+  cursor: pointer;
+}
+
+.save-row {
+  display: flex;
+  justify-content: flex-end;
+
+  ion-button {
+    --background: #1d3e9f;
+    --border-radius: 10px;
+    text-transform: none;
+    font-weight: 600;
+  }
+}
+
+.muted { color: #64748b; font-size: 0.86rem; margin: 0; }

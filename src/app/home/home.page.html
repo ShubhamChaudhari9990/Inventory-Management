@@ -3,21 +3,30 @@
   (activeNavIdChange)="activeNavId.set($event)"
 >
   @if (isDashboardActive()) {
-    <div class="dashboard-page">
-      <div class="dashboard-page__inner">
-        <section class="dashboard-page__hero">
-          <div class="dashboard-page__hero-copy">
-            <h1 class="dashboard-page__title">{{ 'DASHBOARD.TITLE' | translate }}</h1>
-            <p class="dashboard-page__subtitle">{{ todayLabel | translate }}</p>
-          </div>
+    @if (isStaff()) {
+      <div class="dashboard-page">
+        <div class="dashboard-page__inner">
+          <app-staff-dashboard />
+        </div>
+      </div>
+    } @else {
+      <div class="dashboard-page">
+        <div class="dashboard-page__inner">
+          <section class="dashboard-page__hero">
+            <div class="dashboard-page__hero-copy">
+              <h1 class="dashboard-page__title">{{ 'DASHBOARD.TITLE' | translate }}</h1>
+              <p class="dashboard-page__subtitle">
+                {{ selectedPropertyName() | translate }} · {{ todayLabel | translate }}
+              </p>
+            </div>
 
-          <ion-button class="dashboard-page__cta" fill="solid">
-            <ion-icon slot="start" name="add-outline"></ion-icon>
-            {{ 'DASHBOARD.NEW_BOOKING' | translate }}
-          </ion-button>
-        </section>
+            <ion-button class="dashboard-page__cta" fill="solid" (click)="navigateTo('bookings')">
+              <ion-icon slot="start" name="add-outline"></ion-icon>
+              {{ 'DASHBOARD.NEW_BOOKING' | translate }}
+            </ion-button>
+          </section>
 
-        <section class="dashboard-page__kpis">
+          <section class="dashboard-page__kpis">
           @for (kpi of kpis; track kpi.id) {
             <app-dashboard-kpi-card [kpi]="kpi" />
           }
@@ -64,7 +73,7 @@
         <app-dashboard-section-card title="DASHBOARD.QUICK_ACTIONS">
           <div class="quick-actions">
             @for (action of quickActions; track action.id) {
-              <button type="button" class="quick-actions__item">
+              <button type="button" class="quick-actions__item" (click)="onQuickAction(action.id)">
                 <ion-icon [name]="action.icon" aria-hidden="true"></ion-icon>
                 <span>{{ action.label | translate }}</span>
               </button>
@@ -149,7 +158,14 @@
         </section>
       </div>
     </div>
-  } @else if (isRoomsActive()) {
+  }
+} @else if (isLodgesActive()) {
+  <div class="dashboard-page">
+    <div class="dashboard-page__inner">
+      <app-lodges-view />
+    </div>
+  </div>
+} @else if (isRoomsActive()) {
     <div class="dashboard-page">
       <div class="dashboard-page__inner">
         <app-rooms-view />
@@ -159,6 +175,12 @@
     <div class="dashboard-page">
       <div class="dashboard-page__inner">
         <app-bookings-view />
+      </div>
+    </div>
+  } @else if (isPaymentsActive()) {
+    <div class="dashboard-page">
+      <div class="dashboard-page__inner">
+        <app-payments-view />
       </div>
     </div>
   } @else if (isInventoryActive()) {

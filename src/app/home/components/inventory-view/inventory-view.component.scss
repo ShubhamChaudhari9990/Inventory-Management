@@ -40,17 +40,27 @@
 }
 
 .inventory-page__cta {
-  --background: var(--brand-primary, #1d3e9f);
-  --background-hover: var(--brand-primary-dark, #152f7a);
-  --background-activated: var(--brand-primary-dark, #152f7a);
-  --border-radius: 18px;
-  --box-shadow: 0 8px 20px rgba(29, 62, 159, 0.2);
+  --background: linear-gradient(135deg, #1d3e9f 0%, #2563eb 100%);
+  --background-hover: linear-gradient(135deg, #173282 0%, #1d4ed8 100%);
+  --background-activated: linear-gradient(135deg, #152f7a 0%, #1e40af 100%);
+  --border-radius: 12px;
+  --box-shadow: 0 4px 14px rgba(29, 62, 159, 0.25);
   --color: #ffffff;
   height: 44px;
   margin: 0;
   font-size: 14px;
   font-weight: 600;
   text-transform: none;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+
+  &:hover {
+    --box-shadow: 0 6px 18px rgba(29, 62, 159, 0.35);
+    transform: translateY(-1px);
+  }
+
+  &:active {
+    transform: scale(0.99);
+  }
 }
 
 .inventory-page__kpis {
@@ -98,24 +108,46 @@
 
 .inventory-toolbar__chip {
   flex-shrink: 0;
-  padding: 9px 16px;
-  border: 1px solid var(--border-color, #e5e7eb);
+  padding: 8px 16px;
+  border: 1.5px solid var(--border-color, #e5e7eb);
   border-radius: 999px;
   background: var(--surface, #ffffff);
   color: var(--text-muted, #6b7280);
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;
-  transition:
-    background-color 0.15s ease,
-    border-color 0.15s ease,
-    color 0.15s ease;
+  transition: all 0.15s ease;
+
+  &:hover {
+    background: #f8fafc;
+    border-color: #cbd5e1;
+    color: var(--text-primary, #111827);
+  }
+
+  &:active {
+    transform: scale(0.98);
+  }
 }
 
 .inventory-toolbar__chip--active {
-  border-color: var(--brand-primary, #1d3e9f);
-  background: var(--brand-primary, #1d3e9f);
-  color: #ffffff;
+  border-color: transparent;
+  background: linear-gradient(135deg, #1d3e9f 0%, #2563eb 100%);
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+  box-shadow: 0 2px 8px rgba(29, 62, 159, 0.25);
+
+  span,
+  ion-icon {
+    color: #ffffff !important;
+    -webkit-text-fill-color: #ffffff !important;
+  }
+
+  &:hover {
+    background: linear-gradient(135deg, #173282 0%, #1d4ed8 100%);
+    border-color: transparent;
+    color: #ffffff !important;
+    -webkit-text-fill-color: #ffffff !important;
+  }
 }
 
 .inventory-grid {
@@ -189,6 +221,101 @@
 .inventory-status--low {
   background: #feeceb;
   color: #ef4444;
+}
+
+.category-filter-bar {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 2px;
+
+  .cat-chip {
+    padding: 6px 14px;
+    border-radius: 20px;
+    border: 1px solid var(--border-color, #e5e7eb);
+    background: #ffffff;
+    color: #475569;
+    font-size: 0.8rem;
+    font-weight: 500;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: all 0.15s ease;
+
+    &:hover {
+      background: #f1f5f9;
+    }
+
+    &--active {
+      background: #2563eb;
+      color: #ffffff;
+      border-color: #2563eb;
+    }
+  }
+}
+
+.inventory-card__actions {
+  display: flex;
+  gap: 6px;
+  margin-top: 14px;
+  padding-top: 10px;
+  border-top: 1px solid #f1f5f9;
+
+  .act-btn {
+    flex: 1;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 5px 8px;
+    border-radius: 8px;
+    font-size: 0.76rem;
+    font-weight: 600;
+    border: 1px solid #cbd5e1;
+    background: #ffffff;
+    cursor: pointer;
+    transition: all 0.15s ease;
+
+    &.btn-stock-in {
+      color: #16a34a;
+      border-color: #bbf7d0;
+      &:hover { background: #f0fdf4; }
+    }
+
+    &.btn-stock-out {
+      color: #2563eb;
+      border-color: #bfdbfe;
+      &:hover { background: #eff6ff; }
+    }
+
+    &.btn-stock-damage {
+      color: #dc2626;
+      border-color: #fecaca;
+      &:hover { background: #fef2f2; }
+    }
+  }
+}
+
+.empty-inventory {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 40px;
+  color: #64748b;
+
+  ion-icon {
+    font-size: 2rem;
+    color: #94a3b8;
+  }
+
+  p {
+    margin: 8px 0 0;
+  }
+}
+
+.no-movements {
+  padding: 16px;
+  text-align: center;
+  font-size: 0.85rem;
+  color: #94a3b8;
 }
 
 .inventory-card__stats {
@@ -335,6 +462,25 @@
 .stock-movement__delta--danger {
   background: #feeceb;
   color: #ef4444;
+}
+
+@media (max-width: 640px) {
+  .inventory-page__hero {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .inventory-page__title {
+    white-space: normal;
+    font-size: 19px;
+  }
+
+  .inventory-page__cta {
+    width: 100%;
+    margin: 0;
+  }
 }
 
 @media (min-width: 640px) {

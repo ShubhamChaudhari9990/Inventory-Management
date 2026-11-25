@@ -1,12 +1,8 @@
 import { DashboardKpi } from './dashboard.data';
 import { AxisChartOptions } from './dashboard-charts.data';
+import { ExpenseCategory } from '../../interface';
 
-export interface ExpenseCategory {
-  id: string;
-  nameKey: string;
-  amount: string;
-  fillPercent: number;
-}
+export type { ExpenseCategory };
 
 export const EXPENSES_SUBTITLE = 'EXPENSES.SUBTITLE';
 
@@ -14,28 +10,28 @@ export const EXPENSE_KPIS: readonly DashboardKpi[] = [
   {
     id: 'today',
     label: 'EXPENSES.KPI.TODAY',
-    value: '₹15,320',
+    value: '₹0',
     icon: 'receipt-outline',
     tone: 'danger',
   },
   {
     id: 'month',
     label: 'EXPENSES.KPI.MONTH',
-    value: '₹1,71,200',
+    value: '₹0',
     icon: 'trending-down-outline',
     tone: 'warm',
   },
   {
     id: 'revenue',
     label: 'EXPENSES.KPI.REVENUE',
-    value: '₹3,58,000',
+    value: '₹0',
     icon: 'trending-up-outline',
     tone: 'success',
   },
   {
     id: 'pnl',
     label: 'EXPENSES.KPI.PNL',
-    value: '₹1,86,800',
+    value: '₹0',
     icon: 'trending-up-outline',
     tone: 'primary',
   },
@@ -45,8 +41,8 @@ const AXIS_LABEL_STYLE = { colors: '#6b7280', fontSize: '12px' } as const;
 
 export const EXPENSE_REVENUE_CHART: AxisChartOptions = {
   series: [
-    { name: 'Revenue', data: [220, 248, 291, 335, 303, 360] },
-    { name: 'Expense', data: [132, 141, 153, 168, 159, 171] },
+    { name: 'Revenue', data: [0, 0, 0, 0, 0, 0] },
+    { name: 'Expense', data: [0, 0, 0, 0, 0, 0] },
   ],
   chart: {
     type: 'bar',
@@ -84,7 +80,7 @@ export const EXPENSE_REVENUE_CHART: AxisChartOptions = {
   },
   yaxis: {
     min: 0,
-    max: 360,
+    max: 100,
     tickAmount: 4,
     labels: {
       style: { ...AXIS_LABEL_STYLE },
@@ -98,47 +94,4 @@ export const EXPENSE_REVENUE_CHART: AxisChartOptions = {
   responsive: [{ breakpoint: 768, options: { chart: { height: 250 } } }],
 };
 
-export const EXPENSE_CATEGORIES: readonly ExpenseCategory[] = [
-  {
-    id: 'electricity',
-    nameKey: 'EXPENSES.CATEGORY.ELECTRICITY',
-    amount: '₹18,400',
-    fillPercent: 11,
-  },
-  {
-    id: 'water',
-    nameKey: 'EXPENSES.CATEGORY.WATER',
-    amount: '₹6,200',
-    fillPercent: 4,
-  },
-  {
-    id: 'salary',
-    nameKey: 'EXPENSES.CATEGORY.SALARY',
-    amount: '₹1,02,500',
-    fillPercent: 60,
-  },
-  {
-    id: 'laundry',
-    nameKey: 'EXPENSES.CATEGORY.LAUNDRY',
-    amount: '₹14,300',
-    fillPercent: 8,
-  },
-  {
-    id: 'cleaning',
-    nameKey: 'EXPENSES.CATEGORY.CLEANING',
-    amount: '₹9,100',
-    fillPercent: 5,
-  },
-  {
-    id: 'repair',
-    nameKey: 'EXPENSES.CATEGORY.REPAIR',
-    amount: '₹11,800',
-    fillPercent: 7,
-  },
-  {
-    id: 'food',
-    nameKey: 'EXPENSES.CATEGORY.FOOD',
-    amount: '₹8,900',
-    fillPercent: 5,
-  },
-] as const;
+export const EXPENSE_CATEGORIES: readonly ExpenseCategory[] = [];

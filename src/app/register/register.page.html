@@ -1,169 +1,197 @@
 <ion-content [fullscreen]="true" class="register-content">
   <div class="page-shell">
     <header class="brand-header">
-      <div class="brand-left">
+      <div class="brand-main">
         <div class="brand-logo">
-          <ion-icon name="leaf" aria-hidden="true"></ion-icon>
+          <img src="assets/branding/lemonwood-lodge-icon.png" alt="Lemonwood Lodge" class="brand-logo-img" />
         </div>
-        <span class="brand-name">{{ 'BRAND.NAME' | translate }}</span>
+        <div class="brand-info">
+          <span class="brand-name">{{ 'BRAND.NAME' | translate }}</span>
+          <span class="brand-subtitle">{{ 'BRAND.SUBTITLE' | translate }}</span>
+        </div>
       </div>
+
       <a routerLink="/language-selection" class="language-toggle" aria-label="Change language">
         <ion-icon name="language-outline"></ion-icon>
       </a>
     </header>
 
-    <section class="register-card">
-      <h1>{{ 'REGISTER.TITLE' | translate }}</h1>
-      <p class="subtitle">{{ 'REGISTER.SUBTITLE' | translate }}</p>
-
-      <form class="register-form" (ngSubmit)="onRegister()">
-        <div class="field-block">
-          <label class="field-label">
-            {{ 'REGISTER.FULL_NAME' | translate }} /
-            {{ 'REGISTER.FULL_NAME_LOCAL' | translate }}
-          </label>
-          <ion-item lines="none" class="input-item">
-            <ion-icon slot="start" name="person-outline" aria-hidden="true"></ion-icon>
-            <ion-input
-              type="text"
-              [placeholder]="'REGISTER.FULL_NAME_PLACEHOLDER' | translate"
-              [(ngModel)]="fullName"
-              name="fullName"
-              autocomplete="name"
-            ></ion-input>
-          </ion-item>
+    @if (registrationCompleted) {
+      <section class="register-card verification-card">
+        <div class="verification-badge">
+          <ion-icon name="mail-unread-outline" aria-hidden="true"></ion-icon>
         </div>
 
-        <div class="field-block">
-          <label class="field-label">
-            {{ 'REGISTER.EMAIL' | translate }} /
-            {{ 'REGISTER.EMAIL_LOCAL' | translate }}
-          </label>
-          <ion-item lines="none" class="input-item">
-            <ion-icon slot="start" name="mail-outline" aria-hidden="true"></ion-icon>
-            <ion-input
-              type="email"
-              [placeholder]="'REGISTER.EMAIL_PLACEHOLDER' | translate"
-              [(ngModel)]="email"
-              name="email"
-              autocomplete="email"
-            ></ion-input>
-          </ion-item>
+        <h1>{{ 'AUTH.VERIFY_EMAIL_TITLE' | translate }}</h1>
+        <p class="subtitle">{{ 'AUTH.VERIFY_EMAIL_SUBTITLE' | translate }}</p>
+
+        <div class="email-pill">
+          <ion-icon name="mail-outline"></ion-icon>
+          <strong>{{ email }}</strong>
         </div>
 
-        <div class="field-block">
-          <label class="field-label">
-            {{ 'REGISTER.MOBILE' | translate }} /
-            {{ 'REGISTER.MOBILE_LOCAL' | translate }}
-          </label>
-          <ion-item lines="none" class="input-item">
-            <ion-icon slot="start" name="call-outline" aria-hidden="true"></ion-icon>
-            <ion-input
-              type="tel"
-              [placeholder]="'REGISTER.MOBILE_PLACEHOLDER' | translate"
-              [(ngModel)]="mobile"
-              name="mobile"
-              autocomplete="tel"
-            ></ion-input>
-          </ion-item>
+        <p class="verification-desc">
+          {{ 'AUTH.VERIFY_EMAIL_INSTRUCTION' | translate }}
+        </p>
+
+        <div class="verification-actions">
+          <ion-button expand="block" class="primary-btn" (click)="onGoToLogin()">
+            {{ 'AUTH.PROCEED_TO_LOGIN' | translate }}
+            <ion-icon slot="end" name="arrow-forward-outline"></ion-icon>
+          </ion-button>
+
+          <ion-button expand="block" fill="outline" class="resend-btn" (click)="onResendVerification()">
+            <ion-icon slot="start" name="refresh-outline"></ion-icon>
+            {{ 'AUTH.RESEND_VERIFICATION' | translate }}
+          </ion-button>
         </div>
+      </section>
+    } @else {
+      <section class="register-card">
+        <h1>{{ 'REGISTER.TITLE' | translate }}</h1>
+        <p class="subtitle">{{ 'REGISTER.SUBTITLE' | translate }}</p>
 
-        <div class="field-block">
-          <label class="field-label">
-            {{ 'REGISTER.ROLE' | translate }} /
-            {{ 'REGISTER.ROLE_LOCAL' | translate }}
+        <form class="register-form" (ngSubmit)="onRegister()">
+          <div class="field-block">
+            <label class="field-label">
+              {{ 'REGISTER.FULL_NAME' | translate }} /
+              {{ 'REGISTER.FULL_NAME_LOCAL' | translate }}
+            </label>
+            <ion-item lines="none" class="input-item">
+              <ion-icon slot="start" name="person-outline" aria-hidden="true"></ion-icon>
+              <ion-input
+                type="text"
+                [placeholder]="'REGISTER.FULL_NAME_PLACEHOLDER' | translate"
+                [(ngModel)]="fullName"
+                name="fullName"
+                autocomplete="name"
+              ></ion-input>
+            </ion-item>
+          </div>
+
+          <div class="field-block">
+            <label class="field-label">
+              {{ 'REGISTER.EMAIL' | translate }} /
+              {{ 'REGISTER.EMAIL_LOCAL' | translate }}
+            </label>
+            <ion-item lines="none" class="input-item">
+              <ion-icon slot="start" name="mail-outline" aria-hidden="true"></ion-icon>
+              <ion-input
+                type="email"
+                [placeholder]="'REGISTER.EMAIL_PLACEHOLDER' | translate"
+                [(ngModel)]="email"
+                name="email"
+                autocomplete="email"
+              ></ion-input>
+            </ion-item>
+          </div>
+
+          <div class="field-block">
+            <label class="field-label">
+              {{ 'REGISTER.MOBILE' | translate }} /
+              {{ 'REGISTER.MOBILE_LOCAL' | translate }}
+            </label>
+            <ion-item lines="none" class="input-item">
+              <ion-icon slot="start" name="call-outline" aria-hidden="true"></ion-icon>
+              <ion-input
+                type="tel"
+                [placeholder]="'REGISTER.MOBILE_PLACEHOLDER' | translate"
+                [(ngModel)]="mobile"
+                name="mobile"
+                autocomplete="tel"
+              ></ion-input>
+            </ion-item>
+          </div>
+
+          <div class="field-block">
+            <label class="field-label">
+              {{ 'REGISTER.PASSWORD' | translate }} /
+              {{ 'REGISTER.PASSWORD_LOCAL' | translate }}
+            </label>
+            <ion-item lines="none" class="input-item password-item">
+              <ion-icon slot="start" name="lock-closed-outline" aria-hidden="true"></ion-icon>
+              <ion-input
+                [type]="showPassword ? 'text' : 'password'"
+                [placeholder]="'REGISTER.PASSWORD_PLACEHOLDER' | translate"
+                [(ngModel)]="password"
+                name="password"
+                autocomplete="new-password"
+              ></ion-input>
+              <ion-button
+                fill="clear"
+                class="toggle-password"
+                type="button"
+                (click)="togglePasswordVisibility()"
+                [attr.aria-label]="'LOGIN.TOGGLE_PASSWORD' | translate"
+              >
+                <ion-icon
+                  slot="icon-only"
+                  [name]="showPassword ? 'eye-off-outline' : 'eye-outline'"
+                ></ion-icon>
+              </ion-button>
+            </ion-item>
+          </div>
+
+          <div class="field-block">
+            <label class="field-label">
+              {{ 'REGISTER.CONFIRM_PASSWORD' | translate }} /
+              {{ 'REGISTER.CONFIRM_PASSWORD_LOCAL' | translate }}
+            </label>
+            <ion-item lines="none" class="input-item password-item">
+              <ion-icon slot="start" name="lock-closed-outline" aria-hidden="true"></ion-icon>
+              <ion-input
+                [type]="showConfirmPassword ? 'text' : 'password'"
+                [placeholder]="'REGISTER.CONFIRM_PASSWORD_PLACEHOLDER' | translate"
+                [(ngModel)]="confirmPassword"
+                name="confirmPassword"
+                autocomplete="new-password"
+              ></ion-input>
+              <ion-button
+                fill="clear"
+                class="toggle-password"
+                type="button"
+                (click)="toggleConfirmPasswordVisibility()"
+                [attr.aria-label]="'LOGIN.TOGGLE_PASSWORD' | translate"
+              >
+                <ion-icon
+                  slot="icon-only"
+                  [name]="showConfirmPassword ? 'eye-off-outline' : 'eye-outline'"
+                ></ion-icon>
+              </ion-button>
+            </ion-item>
+          </div>
+
+          <label class="terms-card" [class.terms-card--checked]="agreeTerms">
+            <ion-checkbox
+              [(ngModel)]="agreeTerms"
+              name="agreeTerms"
+              class="terms-checkbox"
+            ></ion-checkbox>
+            <span class="terms-text">
+              {{ 'REGISTER.AGREE_TERMS' | translate }}
+              <a routerLink="/terms" (click)="$event.stopPropagation()">{{ 'LOGIN.TERMS' | translate }}</a>
+              {{ 'REGISTER.AND' | translate }}
+              <a routerLink="/privacy" (click)="$event.stopPropagation()">{{ 'LOGIN.PRIVACY' | translate }}</a>.
+            </span>
           </label>
-          <ion-item lines="none" class="input-item select-item">
-            <ion-icon slot="start" name="business-outline" aria-hidden="true"></ion-icon>
-            <ion-select
-              [(ngModel)]="role"
-              name="role"
-              [placeholder]="'REGISTER.ROLE_PLACEHOLDER' | translate"
-              interface="action-sheet"
-            >
-              @for (option of roles; track option.value) {
-                <ion-select-option [value]="option.value">
-                  {{ option.labelKey | translate }}
-                </ion-select-option>
-              }
-            </ion-select>
-          </ion-item>
-        </div>
 
-        <div class="field-block">
-          <label class="field-label">
-            {{ 'REGISTER.PASSWORD' | translate }} /
-            {{ 'REGISTER.PASSWORD_LOCAL' | translate }}
-          </label>
-          <ion-item lines="none" class="input-item password-item">
-            <ion-icon slot="start" name="lock-closed-outline" aria-hidden="true"></ion-icon>
-            <ion-input
-              [type]="showPassword ? 'text' : 'password'"
-              [placeholder]="'REGISTER.PASSWORD_PLACEHOLDER' | translate"
-              [(ngModel)]="password"
-              name="password"
-              autocomplete="new-password"
-            ></ion-input>
-            <ion-button
-              fill="clear"
-              class="toggle-password"
-              type="button"
-              (click)="togglePasswordVisibility()"
-              [attr.aria-label]="'LOGIN.TOGGLE_PASSWORD' | translate"
-            >
-              <ion-icon
-                slot="icon-only"
-                [name]="showPassword ? 'eye-off-outline' : 'eye-outline'"
-              ></ion-icon>
-            </ion-button>
-          </ion-item>
-        </div>
-
-        <div class="field-block">
-          <label class="field-label">
-            {{ 'REGISTER.CONFIRM_PASSWORD' | translate }} /
-            {{ 'REGISTER.CONFIRM_PASSWORD_LOCAL' | translate }}
-          </label>
-          <ion-item lines="none" class="input-item password-item">
-            <ion-icon slot="start" name="lock-closed-outline" aria-hidden="true"></ion-icon>
-            <ion-input
-              [type]="showConfirmPassword ? 'text' : 'password'"
-              [placeholder]="'REGISTER.CONFIRM_PASSWORD_PLACEHOLDER' | translate"
-              [(ngModel)]="confirmPassword"
-              name="confirmPassword"
-              autocomplete="new-password"
-            ></ion-input>
-            <ion-button
-              fill="clear"
-              class="toggle-password"
-              type="button"
-              (click)="toggleConfirmPasswordVisibility()"
-              [attr.aria-label]="'LOGIN.TOGGLE_PASSWORD' | translate"
-            >
-              <ion-icon
-                slot="icon-only"
-                [name]="showConfirmPassword ? 'eye-off-outline' : 'eye-outline'"
-              ></ion-icon>
-            </ion-button>
-          </ion-item>
-        </div>
-
-        <label class="terms-row">
-          <ion-checkbox [(ngModel)]="agreeTerms" name="agreeTerms"></ion-checkbox>
-          <span>
-            {{ 'REGISTER.AGREE_TERMS' | translate }}
-            <a routerLink="/terms">{{ 'LOGIN.TERMS' | translate }}</a>
-            {{ 'REGISTER.AND' | translate }}
-            <a routerLink="/privacy">{{ 'LOGIN.PRIVACY' | translate }}</a>.
-          </span>
-        </label>
-
-        <ion-button expand="block" type="submit" class="primary-btn">
-          {{ 'REGISTER.SUBMIT' | translate }}
-          <ion-icon slot="end" name="arrow-forward-outline"></ion-icon>
-        </ion-button>
-      </form>
-    </section>
+          <ion-button
+            expand="block"
+            type="submit"
+            class="primary-btn register-btn"
+            [disabled]="isSubmitting"
+          >
+            @if (isSubmitting) {
+              <ion-spinner name="crescent" class="btn-spinner"></ion-spinner>
+              <span>{{ 'REGISTER.CREATING_ACCOUNT' | translate }}</span>
+            } @else {
+              <span class="btn-label">{{ 'REGISTER.SUBMIT' | translate }}</span>
+              <ion-icon slot="end" name="arrow-forward-outline" class="btn-arrow"></ion-icon>
+            }
+          </ion-button>
+        </form>
+      </section>
+    }
 
     <footer class="page-footer">
       <p>

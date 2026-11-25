@@ -1,0 +1,55 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar class="ops-toolbar">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/operations"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Stock Movements</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ops-content">
+  <div class="ops-container">
+    <div class="filters-bar">
+      <input class="search-input" type="text" placeholder="Search item, reason, user..." [ngModel]="searchQuery()" (ngModelChange)="searchQuery.set($event)" />
+      <select class="filter-select" [ngModel]="lodgeFilter()" (ngModelChange)="lodgeFilter.set($event)">
+        <option value="all">All Lodges</option>
+        @for (prop of accessibleProperties(); track prop.id) {
+          <option [value]="prop.id">{{ prop.name }}</option>
+        }
+      </select>
+      <select class="filter-select" [ngModel]="typeFilter()" (ngModelChange)="typeFilter.set($event)">
+        <option value="all">All Movement Types</option>
+        <option value="Opening Stock">Opening Stock</option>
+        <option value="Purchase In">Purchase In</option>
+        <option value="Issue Out">Issue Out</option>
+        <option value="Return In">Return In</option>
+        <option value="Transfer Out">Transfer Out</option>
+        <option value="Transfer In">Transfer In</option>
+        <option value="Adjustment In">Adjustment In</option>
+        <option value="Adjustment Out">Adjustment Out</option>
+      </select>
+    </div>
+
+    @if (filteredMovements().length === 0) {
+      <div class="empty-state">No stock movements found.</div>
+    } @else {
+      <div class="mov-list">
+        @for (m of filteredMovements(); track m.id) {
+          <div class="mov-card">
+            <div>
+              <strong>{{ m.itemName }}</strong>
+              <span class="type-pill">{{ m.movementType || m.type }}</span>
+              <div class="sub">
+                {{ getLodgeName(m.propertyId) }} · {{ m.reason || 'Movement' }} ·
+                By {{ m.performedBy || 'User' }} · {{ (m.timestamp || m.createdAt) | date: 'short' }}
+              </div>
+            </div>
+            <strong class="delta" [class.neg]="(m.change || 0) < 0">
+              {{ m.delta || m.change }}
+            </strong>
+          </div>
+        }
+      </div>
+    }
+  </div>
+</ion-content>

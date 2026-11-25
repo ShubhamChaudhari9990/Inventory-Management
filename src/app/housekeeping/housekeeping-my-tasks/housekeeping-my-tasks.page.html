@@ -1,0 +1,90 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar class="hk-toolbar">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/housekeeping"></ion-back-button>
+    </ion-buttons>
+    <ion-title>My Cleaning Tasks</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="hk-content">
+  <div class="hk-container">
+    <section class="section">
+      <h3>Active & Assigned ({{ activeTasks().length }})</h3>
+      @if (activeTasks().length === 0) {
+        <div class="empty-state">You have no active cleaning tasks assigned.</div>
+      } @else {
+        <div class="cards-stack">
+          @for (task of activeTasks(); track task.id) {
+            <div class="mobile-task-card">
+              <div class="card-top">
+                <div>
+                  <div class="room-title">Room {{ task.room }}</div>
+                  <div class="room-sub">
+                    {{ task.taskType || task.type }} · {{ getLodgeName(task.propertyId) }}
+                  </div>
+                </div>
+                <span class="status-pill">{{ task.status }}</span>
+              </div>
+
+              @if (task.instructions) {
+                <p class="notes">{{ task.instructions }}</p>
+              }
+              @if (task.rejectionReason) {
+                <p class="rejection">Rejected: {{ task.rejectionReason }}</p>
+              }
+
+              <div class="mobile-actions">
+                @if (task.status === 'Pending' || task.status === 'Assigned' || task.status === 'Rejected') {
+                  <button
+                    class="btn-amber"
+                    [disabled]="busyTaskId() === task.id"
+                    (click)="startCleaning(task)"
+                  >
+                    <ion-icon name="play-outline"></ion-icon>
+                    Start Cleaning
+                  </button>
+                }
+                @if (task.status === 'In Progress') {
+                  <button
+                    class="btn-primary"
+                    [disabled]="busyTaskId() === task.id"
+                    (click)="submitForInspection(task)"
+                  >
+                    <ion-icon name="checkmark-done-outline"></ion-icon>
+                    Submit for Inspection
+                  </button>
+                }
+                <button class="btn-outline" (click)="openDetail(task)">
+                  <ion-icon name="camera-outline"></ion-icon>
+                  Notes / Photos / Issue
+                </button>
+              </div>
+            </div>
+          }
+        </div>
+      }
+    </section>
+
+    <section class="section">
+      <h3>Submitted & Completed ({{ submittedTasks().length }})</h3>
+      @if (submittedTasks().length === 0) {
+        <div class="empty-state">No submitted tasks yet.</div>
+      } @else {
+        <div class="cards-stack">
+          @for (task of submittedTasks(); track task.id) {
+            <div class="mobile-task-card compact" (click)="openDetail(task)">
+              <div class="card-top">
+                <div>
+                  <div class="room-title">Room {{ task.room }}</div>
+                  <div class="room-sub">{{ getLodgeName(task.propertyId) }}</div>
+                </div>
+                <span class="status-pill done">{{ task.status }}</span>
+              </div>
+            </div>
+          }
+        </div>
+      }
+    </section>
+  </div>
+</ion-content>

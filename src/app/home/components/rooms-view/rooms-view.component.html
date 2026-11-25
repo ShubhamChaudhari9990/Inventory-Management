@@ -5,10 +5,16 @@
       <p class="rooms-page__subtitle">{{ subtitle | translate }}</p>
     </div>
 
-    <ion-button class="rooms-page__cta" fill="solid" (click)="openAddRoom()">
-      <ion-icon slot="start" name="add-outline"></ion-icon>
-      {{ 'ROOMS.ADD_ROOM' | translate }}
-    </ion-button>
+    <div class="rooms-page__hero-actions">
+      <ion-button class="rooms-page__cta-secondary" fill="outline" (click)="openBulkAdd()">
+        <ion-icon slot="start" name="layers-outline"></ion-icon>
+        Bulk Add
+      </ion-button>
+      <ion-button class="rooms-page__cta" fill="solid" (click)="openAddRoom()">
+        <ion-icon slot="start" name="add-outline"></ion-icon>
+        {{ 'ROOMS.ADD_ROOM' | translate }}
+      </ion-button>
+    </div>
   </header>
 
   <div class="rooms-toolbar">
@@ -60,13 +66,30 @@
   @if (viewMode() === 'grid') {
     <div class="rooms-grid">
       @for (room of filteredRooms(); track trackRoom($index, room)) {
-        <button type="button" class="room-card">
+        <div class="room-card" (click)="openEditRoom(room, $event)">
           <div class="room-card__header">
             <div>
-              <p class="room-card__number">{{ room.number }}</p>
-              <p class="room-card__type">{{ room.type }}</p>
+              <p class="room-card__number">Room {{ room.number }}</p>
+              <p class="room-card__type">Floor {{ room.floor }} · {{ room.type }}</p>
             </div>
-            <ion-icon name="bed-outline" aria-hidden="true"></ion-icon>
+            <div class="room-card__actions">
+              <button
+                type="button"
+                class="room-icon-btn"
+                title="Edit Room"
+                (click)="openEditRoom(room, $event)"
+              >
+                <ion-icon name="create-outline"></ion-icon>
+              </button>
+              <button
+                type="button"
+                class="room-icon-btn btn-delete"
+                title="Delete Room"
+                (click)="deleteRoom(room, $event)"
+              >
+                <ion-icon name="trash-outline"></ion-icon>
+              </button>
+            </div>
           </div>
 
           <div class="room-card__status">
@@ -83,12 +106,12 @@
             </span>
           </div>
 
-          <p class="room-card__price">{{ room.price }}</p>
+          <p class="room-card__price">{{ room.price }} <span class="per-night">/ night</span></p>
 
           @if (room.guestName && room.guestDate) {
             <p class="room-card__meta">{{ room.guestName }} · {{ room.guestDate }}</p>
           }
-        </button>
+        </div>
       }
     </div>
   } @else {
@@ -103,12 +126,13 @@
               <th>{{ 'ROOMS.TABLE.GUEST' | translate }}</th>
               <th class="rooms-table__price">{{ 'ROOMS.TABLE.PRICE' | translate }}</th>
               <th>{{ 'ROOMS.TABLE.STATUS' | translate }}</th>
+              <th>Actions</th>
             </tr>
           </thead>
           <tbody>
             @for (room of filteredRooms(); track trackRoom($index, room)) {
               <tr>
-                <td class="rooms-table__room">{{ room.number }}</td>
+                <td class="rooms-table__room">Room {{ room.number }}</td>
                 <td>{{ room.floor }}</td>
                 <td>{{ room.type }}</td>
                 <td>{{ room.guestName ?? '—' }}</td>
@@ -126,6 +150,26 @@
                     {{ statusLabelKey(room.status) | translate }}
                   </span>
                 </td>
+                <td>
+                  <div class="table-actions">
+                    <button
+                      type="button"
+                      class="room-icon-btn"
+                      title="Edit Room"
+                      (click)="openEditRoom(room, $event)"
+                    >
+                      <ion-icon name="create-outline"></ion-icon>
+                    </button>
+                    <button
+                      type="button"
+                      class="room-icon-btn btn-delete"
+                      title="Delete Room"
+                      (click)="deleteRoom(room, $event)"
+                    >
+                      <ion-icon name="trash-outline"></ion-icon>
+                    </button>
+                  </div>
+                </td>
               </tr>
             }
           </tbody>
@@ -134,12 +178,9 @@
     </div>
   }
 
+  <!-- Single Add Room Modal -->
   <ion-modal
     [isOpen]="isAddRoomOpen()"
-    [breakpoints]="addRoomBreakpoints"
-    [initialBreakpoint]="addRoomInitialBreakpoint"
-    [handle]="false"
-    [expandToScroll]="false"
     [cssClass]="addRoomModalClass"
     (didDismiss)="closeAddRoom()"
   >
@@ -186,7 +227,137 @@
 
         <div class="form-sheet__footer">
           <button type="button" class="form-sheet__save" (click)="saveRoom(numInput, floorInput, priceInput)">
-            {{ 'ROOMS.SHEET.SAVE' | translate }}
+            <ion-icon name="checkmark-circle-outline"></ion-icon>
+            <span>{{ 'ROOMS.SHEET.SAVE' | translate }}</span>
+          </button>
+        </div>
+      </div>
+    </ng-template>
+  </ion-modal>
+
+  <!-- Bulk Add Rooms Modal -->
+  <ion-modal
+    [isOpen]="isBulkAddOpen()"
+    [cssClass]="addRoomModalClass"
+    (didDismiss)="closeBulkAdd()"
+  >
+    <ng-template>
+      <div class="form-sheet" role="dialog" aria-labelledby="bulk-add-title">
+        <button
+          type="button"
+          class="form-sheet__close"
+          [attr.aria-label]="'COMMON.CLOSE' | translate"
+          (click)="closeBulkAdd()"
+        >
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M18 6 6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="m6 6 12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+
+        <div class="form-sheet__header">
+          <h2 id="bulk-add-title" class="form-sheet__title">Bulk Add Rooms</h2>
+          <p class="form-sheet__sub">Quickly provision consecutive rooms on a specific floor</p>
+        </div>
+
+        <div class="form-sheet__grid">
+          <label class="form-sheet__field">
+            <span>Floor</span>
+            <input type="text" [(ngModel)]="bulkFloor" placeholder="e.g. 3" />
+          </label>
+          <label class="form-sheet__field">
+            <span>Start Room Number</span>
+            <input type="number" [(ngModel)]="bulkStartNumber" placeholder="301" />
+          </label>
+          <label class="form-sheet__field">
+            <span>Number of Rooms</span>
+            <input type="number" [(ngModel)]="bulkCount" min="1" max="50" placeholder="5" />
+          </label>
+          <label class="form-sheet__field">
+            <span>Room Type</span>
+            <select [(ngModel)]="bulkRoomType">
+              @for (type of roomTypes; track type) {
+                <option [value]="type">{{ type }}</option>
+              }
+            </select>
+          </label>
+          <label class="form-sheet__field form-sheet__field--full">
+            <span>Base Price Per Night (₹)</span>
+            <input type="number" [(ngModel)]="bulkPrice" placeholder="1800" />
+          </label>
+        </div>
+
+        <div class="form-sheet__footer">
+          <button type="button" class="form-sheet__save" (click)="saveBulkRooms()">
+            <ion-icon name="add-circle-outline"></ion-icon>
+            <span>Create {{ bulkCount }} Rooms</span>
+          </button>
+        </div>
+      </div>
+    </ng-template>
+  </ion-modal>
+
+  <!-- Edit Room Modal -->
+  <ion-modal
+    [isOpen]="isEditRoomOpen()"
+    [cssClass]="addRoomModalClass"
+    (didDismiss)="closeEditRoom()"
+  >
+    <ng-template>
+      <div class="form-sheet" role="dialog" aria-labelledby="edit-room-title">
+        <button
+          type="button"
+          class="form-sheet__close"
+          [attr.aria-label]="'COMMON.CLOSE' | translate"
+          (click)="closeEditRoom()"
+        >
+          <svg viewBox="0 0 24 24" fill="none" aria-hidden="true">
+            <path d="M18 6 6 18" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+            <path d="m6 6 12 12" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
+          </svg>
+        </button>
+
+        <div class="form-sheet__header">
+          <h2 id="edit-room-title" class="form-sheet__title">Edit Room {{ editNumber }}</h2>
+        </div>
+
+        <div class="form-sheet__grid">
+          <label class="form-sheet__field">
+            <span>Room Number</span>
+            <input type="text" [(ngModel)]="editNumber" />
+          </label>
+          <label class="form-sheet__field">
+            <span>Floor</span>
+            <input type="text" [(ngModel)]="editFloor" />
+          </label>
+          <label class="form-sheet__field">
+            <span>Room Type</span>
+            <select [(ngModel)]="editType">
+              @for (type of roomTypes; track type) {
+                <option [value]="type">{{ type }}</option>
+              }
+            </select>
+          </label>
+          <label class="form-sheet__field">
+            <span>Status</span>
+            <select [(ngModel)]="editStatus">
+              <option value="Available">Available</option>
+              <option value="Occupied">Occupied</option>
+              <option value="Reserved">Reserved</option>
+              <option value="Cleaning">Cleaning</option>
+              <option value="Maintenance">Maintenance</option>
+            </select>
+          </label>
+          <label class="form-sheet__field form-sheet__field--full">
+            <span>Price Per Night (₹)</span>
+            <input type="text" [(ngModel)]="editPrice" />
+          </label>
+        </div>
+
+        <div class="form-sheet__footer">
+          <button type="button" class="form-sheet__save" (click)="saveEditRoom()">
+            <ion-icon name="checkmark-circle-outline"></ion-icon>
+            <span>Save Changes</span>
           </button>
         </div>
       </div>

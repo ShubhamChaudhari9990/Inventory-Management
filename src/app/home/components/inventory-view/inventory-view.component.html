@@ -5,7 +5,7 @@
       <p class="inventory-page__subtitle">{{ subtitle | translate }}</p>
     </div>
 
-    <ion-button class="inventory-page__cta" fill="solid">
+    <ion-button class="inventory-page__cta" fill="solid" (click)="openAddItem()">
       <ion-icon slot="start" name="bag-add-outline"></ion-icon>
       {{ 'INVENTORY.ADD' | translate }}
     </ion-button>
@@ -38,6 +38,28 @@
     </button>
   </div>
 
+  <!-- Category Filter Bar -->
+  <div class="category-filter-bar">
+    <button
+      type="button"
+      class="cat-chip"
+      [class.cat-chip--active]="selectedCategory() === 'All'"
+      (click)="selectedCategory.set('All')"
+    >
+      All Categories
+    </button>
+    @for (cat of categories; track cat) {
+      <button
+        type="button"
+        class="cat-chip"
+        [class.cat-chip--active]="selectedCategory() === cat"
+        (click)="selectedCategory.set(cat)"
+      >
+        {{ cat }}
+      </button>
+    }
+  </div>
+
   <div class="inventory-grid">
     @for (item of filteredItems(); track trackItem($index, item)) {
       <article class="inventory-card">
@@ -49,10 +71,10 @@
           <span
             class="inventory-status"
             [class.inventory-status--ok]="item.status === 'In stock'"
-            [class.inventory-status--low]="item.status === 'Low Stock Alerts'"
+            [class.inventory-status--low]="item.status === 'Low Stock Alerts' || item.quantity <= item.min"
           >
             <span class="inventory-status__dot"></span>
-            {{ statusLabelKey(item.status) | translate }}
+            {{ item.status }}
           </span>
         </div>
 
@@ -73,20 +95,57 @@
         >
           <span [style.width.%]="item.fillPercent"></span>
         </div>
+
+        <!-- Inventory Movement Shortcuts -->
+        <div class="inventory-card__actions">
+          <button
+            type="button"
+            class="act-btn btn-stock-in"
+            title="Purchase / Stock In"
+            (click)="openMovementModal(item, 'Purchase', $event)"
+          >
+            <ion-icon name="arrow-up-circle-outline"></ion-icon>
+            + In
+          </button>
+          <button
+            type="button"
+            class="act-btn btn-stock-out"
+            title="Consume / Stock Out"
+            (click)="openMovementModal(item, 'Consumption', $event)"
+          >
+            <ion-icon name="arrow-down-circle-outline"></ion-icon>
+            - Out
+          </button>
+          <button
+            type="button"
+            class="act-btn btn-stock-damage"
+            title="Record Damaged"
+            (click)="openMovementModal(item, 'Damage', $event)"
+          >
+            <ion-icon name="warning-outline"></ion-icon>
+            Damage
+          </button>
+        </div>
       </article>
+    } @empty {
+      <div class="empty-inventory">
+        <ion-icon name="cube-outline"></ion-icon>
+        <p>No inventory items found matching your filter.</p>
+      </div>
     }
   </div>
 
+  <!-- Stock Movements Log -->
   <section class="stock-movement">
     <header class="stock-movement__header">
       <h2 class="stock-movement__title">{{ 'INVENTORY.STOCK_MOVEMENT' | translate }}</h2>
     </header>
 
     <ul class="stock-movement__list">
-      @for (movement of movements; track trackMovement($index, movement)) {
+      @for (movement of movements(); track trackMovement($index, movement)) {
         <li class="stock-movement__item">
           <div class="stock-movement__copy">
-            <p class="stock-movement__name">{{ movement.title | translate }}</p>
+            <p class="stock-movement__name">{{ movement.title }}</p>
             <p class="stock-movement__detail">{{ movement.detail }}</p>
           </div>
           <span
@@ -99,7 +158,140 @@
             {{ movement.delta }}
           </span>
         </li>
+      } @empty {
+        <li class="no-movements">No recent inventory adjustments recorded.</li>
       }
     </ul>
   </section>
+
+  <!-- Add Item Modal -->
+  <ion-modal [isOpen]="isAddItemOpen()" (didDismiss)="closeAddItem()" cssClass="app-form-modal">
+    <ng-template>
+      <div class="form-sheet" role="dialog" aria-labelledby="add-item-title">
+        <button type="button" class="form-sheet__close" (click)="closeAddItem()">✕</button>
+
+        <div class="form-sheet__header">
+          <h2 id="add-item-title" class="form-sheet__title">Add New Inventory Item</h2>
+        </div>
+
+        <div class="form-sheet__grid">
+          <label class="form-sheet__field">
+            <span>Item Name *</span>
+            <input type="text" [(ngModel)]="formItemName" placeholder="e.g. Bath Towels, Tea Bags" />
+          </label>
+
+          <label class="form-sheet__field">
+            <span>Category *</span>
+            <select [(ngModel)]="formCategory">
+              @for (cat of categories; track cat) {
+                <option [value]="cat">{{ cat }}</option>
+              }
+            </select>
+          </label>
+
+          <label class="form-sheet__field">
+            <span>Initial Quantity *</span>
+            <input type="number" [(ngModel)]="formQuantity" min="0" />
+          </label>
+
+          <label class="form-sheet__field">
+            <span>Unit of Measure</span>
+            <input type="text" [(ngModel)]="formUnit" placeholder="e.g. pcs, sets, bottles" />
+          </label>
+
+          <label class="form-sheet__field">
+            <span>Min Stock Alert Level</span>
+            <input type="number" [(ngModel)]="formMin" min="1" />
+          </label>
+
+          <label class="form-sheet__field">
+            <span>Unit Purchase Cost (₹)</span>
+            <input type="number" [(ngModel)]="formPrice" min="0" />
+          </label>
+
+          <label class="form-sheet__field form-sheet__field--full">
+            <span>Default Supplier</span>
+            <input type="text" [(ngModel)]="formSupplier" placeholder="e.g. Metro Wholesale or Local Vendor" />
+          </label>
+        </div>
+
+        <div class="form-sheet__footer">
+          <button type="button" class="form-sheet__cancel" (click)="closeAddItem()">
+            <ion-icon name="close-outline"></ion-icon>
+            <span>Cancel</span>
+          </button>
+          <button type="button" class="form-sheet__save" (click)="saveNewItem()">
+            <ion-icon name="checkmark-circle-outline"></ion-icon>
+            <span>Save Item</span>
+          </button>
+        </div>
+      </div>
+    </ng-template>
+  </ion-modal>
+
+  <!-- Record Stock Movement Modal -->
+  <ion-modal [isOpen]="isMovementModalOpen()" (didDismiss)="closeMovementModal()" cssClass="app-form-modal">
+    <ng-template>
+      <div class="form-sheet" role="dialog" aria-labelledby="movement-title">
+        <button type="button" class="form-sheet__close" (click)="closeMovementModal()">✕</button>
+
+        @if (activeItemForMovement(); as item) {
+          <div class="form-sheet__header">
+            <h2 id="movement-title" class="form-sheet__title">
+              Record {{ movementType() }} – {{ item.name }}
+            </h2>
+            <p class="form-sheet__sub">Current available stock: {{ item.quantity }} {{ item.unit }}</p>
+          </div>
+
+          <div class="form-sheet__grid">
+            <label class="form-sheet__field form-sheet__field--full">
+              <span>Quantity to {{ movementType() === 'Purchase' ? 'Add' : 'Deduct' }} ({{ item.unit }}) *</span>
+              <input type="number" [(ngModel)]="moveQuantity" min="1" />
+            </label>
+
+            @if (movementType() === 'Purchase') {
+              <label class="form-sheet__field">
+                <span>Unit Cost (₹)</span>
+                <input type="number" [(ngModel)]="moveCost" min="0" />
+              </label>
+              <label class="form-sheet__field">
+                <span>Supplier Name</span>
+                <input type="text" [(ngModel)]="moveSupplier" />
+              </label>
+            } @else if (movementType() === 'Consumption') {
+              <label class="form-sheet__field">
+                <span>Department</span>
+                <input type="text" [(ngModel)]="moveDepartment" placeholder="Housekeeping / Kitchen" />
+              </label>
+              <label class="form-sheet__field">
+                <span>Purpose</span>
+                <input type="text" [(ngModel)]="movePurpose" placeholder="e.g. Restocking 2nd floor" />
+              </label>
+            } @else if (movementType() === 'Damage') {
+              <label class="form-sheet__field form-sheet__field--full">
+                <span>Damage / Wastage Reason *</span>
+                <input type="text" [(ngModel)]="moveDamageReason" placeholder="e.g. Broken packaging, expired" />
+              </label>
+            }
+          </div>
+        }
+
+        <div class="form-sheet__footer">
+          <button type="button" class="form-sheet__cancel" (click)="closeMovementModal()">
+            <ion-icon name="close-outline"></ion-icon>
+            <span>Cancel</span>
+          </button>
+          <button
+            type="button"
+            class="form-sheet__save"
+            [class.btn-danger]="movementType() === 'Damage'"
+            (click)="submitMovement()"
+          >
+            <ion-icon name="checkmark-circle-outline"></ion-icon>
+            <span>Record {{ movementType() }}</span>
+          </button>
+        </div>
+      </div>
+    </ng-template>
+  </ion-modal>
 </div>

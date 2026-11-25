@@ -1,0 +1,32 @@
+@use '../floors/floors.page.scss';
+
+.preview-summary {
+  margin-top: 14px;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 10px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  padding: 12px;
+
+  div {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+
+    span {
+      font-size: 0.76rem;
+      color: #64748b;
+    }
+
+    strong {
+      font-size: 1.05rem;
+      color: #0f172a;
+    }
+
+    &.total strong {
+      color: #1d3e9f;
+    }
+  }
+}

@@ -1,0 +1,181 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar class="hk-toolbar">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/housekeeping/tasks"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Task Details</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="hk-content">
+  <div class="hk-container">
+    @if (!task()) {
+      <div class="empty-state">Housekeeping task not found.</div>
+    } @else {
+      @let t = task()!;
+      <section class="detail-card">
+        <div class="detail-header">
+          <div>
+            <h2>Room {{ t.room }} — {{ t.taskType || t.type }}</h2>
+            <p>
+              {{ getLodgeName(t.propertyId) }} · Assigned to
+              <strong>{{ t.assignedTo || 'Unassigned' }}</strong>
+            </p>
+          </div>
+          <span class="status-badge">{{ t.status }}</span>
+        </div>
+
+        <div class="meta-grid">
+          <div><span>Priority:</span> <strong>{{ t.priority || 'Medium' }}</strong></div>
+          <div><span>Created:</span> <strong>{{ t.createdAt | date: 'short' }}</strong></div>
+          @if (t.dueAt) {
+            <div><span>Due:</span> <strong>{{ t.dueAt | date: 'short' }}</strong></div>
+          }
+          @if (t.startedAt) {
+            <div><span>Started:</span> <strong>{{ t.startedAt | date: 'short' }}</strong></div>
+          }
+          @if (t.completedAt) {
+            <div><span>Completed:</span> <strong>{{ t.completedAt | date: 'short' }}</strong></div>
+          }
+        </div>
+
+        @if (t.instructions) {
+          <div class="instructions-box">
+            <strong>Instructions:</strong> {{ t.instructions }}
+          </div>
+        }
+
+        @if (t.rejectionReason) {
+          <div class="rejection-box">
+            <ion-icon name="alert-circle-outline"></ion-icon>
+            <strong>Inspection Rejected:</strong> {{ t.rejectionReason }}
+          </div>
+        }
+      </section>
+
+      <section class="detail-card">
+        <h3>Cleaning Execution & Notes</h3>
+
+        <div class="field">
+          <label>Completion Notes</label>
+          <textarea
+            rows="3"
+            placeholder="Record linens replaced, deep clean notes, or observations..."
+            [ngModel]="notes()"
+            (ngModelChange)="notes.set($event)"
+          ></textarea>
+        </div>
+
+        <div class="field">
+          <label>Missing / Damaged Items (comma-separated)</label>
+          <input
+            type="text"
+            placeholder="e.g., 1 Bath Towel, TV Remote Battery"
+            [ngModel]="missingItemsText()"
+            (ngModelChange)="missingItemsText.set($event)"
+          />
+        </div>
+
+        <div class="field">
+          <label>Cleaning Photos (Firebase Storage)</label>
+          <div class="upload-row">
+            <label class="upload-btn">
+              <ion-icon name="camera-outline"></ion-icon>
+              {{ uploading() ? 'Uploading...' : 'Upload Photo' }}
+              <input
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                hidden
+                [disabled]="uploading()"
+                (change)="onFileSelected($event)"
+              />
+            </label>
+          </div>
+          @if ((t.photos?.length || 0) + uploadedPhotos().length > 0) {
+            <div class="photo-grid">
+              @for (url of (t.photos || []); track url) {
+                <img [src]="url" alt="Cleaning photo" />
+              }
+              @for (url of uploadedPhotos(); track url) {
+                <img [src]="url" alt="Uploaded photo" />
+              }
+            </div>
+          }
+        </div>
+
+        <div class="actions-row">
+          @if (t.status === 'Pending' || t.status === 'Assigned' || t.status === 'Rejected') {
+            <button class="btn-amber" [disabled]="saving()" (click)="startTask()">
+              <ion-icon name="play-outline"></ion-icon>
+              Start Cleaning
+            </button>
+          }
+          @if (t.status !== 'Approved' && t.status !== 'Verified' && t.status !== 'Cancelled') {
+            <button class="btn-primary" [disabled]="saving()" (click)="submitCleaning(true)">
+              <ion-icon name="checkmark-done-outline"></ion-icon>
+              Submit for Inspection
+            </button>
+            @if (roleService.isOwner() || roleService.isManager()) {
+              <button class="btn-green" [disabled]="saving()" (click)="submitCleaning(false)">
+                Mark Clean Directly
+              </button>
+            }
+          }
+          <button class="btn-outline" (click)="showIssueForm.set(!showIssueForm())">
+            <ion-icon name="construct-outline"></ion-icon>
+            Report Maintenance Issue
+          </button>
+        </div>
+      </section>
+
+      @if (showIssueForm()) {
+        <section class="detail-card issue-card">
+          <h3>Report Maintenance Issue</h3>
+          <div class="meta-grid">
+            <div class="field">
+              <label>Category</label>
+              <select [ngModel]="issueCategory()" (ngModelChange)="issueCategory.set($event)">
+                @for (c of categories; track c) {
+                  <option [value]="c">{{ c }}</option>
+                }
+              </select>
+            </div>
+            <div class="field">
+              <label>Severity</label>
+              <select [ngModel]="issueSeverity()" (ngModelChange)="issueSeverity.set($event)">
+                @for (s of severities; track s) {
+                  <option [value]="s">{{ s }}</option>
+                }
+              </select>
+            </div>
+          </div>
+
+          <div class="field">
+            <label>Description *</label>
+            <textarea
+              rows="2"
+              placeholder="Describe the repair or damage..."
+              [ngModel]="issueDescription()"
+              (ngModelChange)="issueDescription.set($event)"
+            ></textarea>
+          </div>
+
+          <label class="checkbox-row">
+            <input
+              type="checkbox"
+              [ngModel]="issueOutOfService()"
+              (ngModelChange)="issueOutOfService.set($event)"
+            />
+            Mark Room {{ t.room }} as Out of Service immediately
+          </label>
+
+          <div class="actions-row">
+            <button class="btn-danger" [disabled]="saving()" (click)="submitMaintenanceIssue()">
+              Submit Maintenance Issue
+            </button>
+          </div>
+        </section>
+      }
+    }
+  </div>
+</ion-content>

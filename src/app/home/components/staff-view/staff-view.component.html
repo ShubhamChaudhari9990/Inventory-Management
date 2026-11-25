@@ -5,27 +5,151 @@
       <p class="staff-page__subtitle">{{ subtitle | translate }}</p>
     </div>
 
-    <ion-button class="staff-page__cta" fill="solid">
-      <ion-icon slot="start" name="person-add-outline"></ion-icon>
-      {{ 'STAFF.ADD' | translate }}
-    </ion-button>
+    @if (activeStaffTab() === 'directory' && (isOwner() || isManager())) {
+      <ion-button class="staff-page__cta" fill="solid" (click)="openAddStaff()">
+        <ion-icon slot="start" name="person-add-outline"></ion-icon>
+        {{ 'STAFF.ADD' | translate }}
+      </ion-button>
+    }
   </header>
 
-  <section class="staff-page__kpis">
-    @for (kpi of kpis; track kpi.id) {
-      <app-dashboard-kpi-card [kpi]="kpi" />
-    }
-  </section>
+  @if (isOwner()) {
+    <nav class="staff-segmented-tabs">
+      <button
+        type="button"
+        class="staff-tab-btn"
+        [class.staff-tab-btn--active]="activeStaffTab() === 'directory'"
+        (click)="activeStaffTab.set('directory')"
+      >
+        <span>Staff Directory & Tasks</span>
+      </button>
+
+      <button
+        type="button"
+        class="staff-tab-btn"
+        [class.staff-tab-btn--active]="activeStaffTab() === 'rbac'"
+        (click)="activeStaffTab.set('rbac')"
+      >
+        <span>User Access & RBAC</span>
+        @if (pendingApprovalsCount() > 0) {
+          <span class="tab-badge">{{ pendingApprovalsCount() }} Pending</span>
+        }
+      </button>
+    </nav>
+  }
+
+  @if (isOwner() && activeStaffTab() === 'rbac') {
+    <app-user-management />
+  } @else {
+    <section class="staff-page__kpis">
+      @for (kpi of kpis; track kpi.id) {
+        <app-dashboard-kpi-card [kpi]="kpi" />
+      }
+    </section>
+
+  <!-- Staff Modal -->
+  @if (isModalOpen()) {
+    <div class="staff-modal-backdrop" (click)="closeModal()">
+      <div class="staff-modal-card" (click)="$event.stopPropagation()">
+        <div class="staff-modal-header">
+          <h2>{{ editingStaffId() ? ('STAFF.EDIT' | translate) : ('STAFF.ADD_NEW' | translate) }}</h2>
+          <button type="button" class="close-btn" (click)="closeModal()">✕</button>
+        </div>
+
+        <div class="staff-form">
+          <ion-item lines="none" class="form-item">
+            <ion-label position="stacked">{{ 'STAFF.NAME' | translate }} *</ion-label>
+            <ion-input [(ngModel)]="formName" placeholder="e.g. Ramesh More"></ion-input>
+          </ion-item>
+
+          <div class="form-row">
+            <ion-item lines="none" class="form-item">
+              <ion-label position="stacked">{{ 'STAFF.PHONE' | translate }} *</ion-label>
+              <ion-input [(ngModel)]="formPhone" placeholder="98500 00000"></ion-input>
+            </ion-item>
+
+            <ion-item lines="none" class="form-item">
+              <ion-label position="stacked">{{ 'STAFF.SALARY' | translate }}</ion-label>
+              <ion-input [(ngModel)]="formSalary" placeholder="₹18,000"></ion-input>
+            </ion-item>
+          </div>
+
+          <ion-item lines="none" class="form-item">
+            <ion-label position="stacked">{{ 'STAFF.EMAIL' | translate }}</ion-label>
+            <ion-input type="email" [(ngModel)]="formEmail" placeholder="staff@lemonwood.com"></ion-input>
+          </ion-item>
+
+          <div class="form-row">
+            <!-- Designation (NOT role) -->
+            <ion-item lines="none" class="form-item">
+              <ion-label position="stacked">{{ 'STAFF.DESIGNATION_LABEL' | translate }} *</ion-label>
+              <ion-select [(ngModel)]="formDesignation" (ionChange)="onDesignationChange()">
+                @for (des of designations; track des.value) {
+                  <ion-select-option [value]="des.value">{{ des.labelKey | translate }}</ion-select-option>
+                }
+              </ion-select>
+            </ion-item>
+
+            <!-- Lodge Assignment -->
+            <ion-item lines="none" class="form-item">
+              <ion-label position="stacked">{{ 'STAFF.ASSIGNED_LODGE' | translate }} *</ion-label>
+              <ion-select [(ngModel)]="formPropertyId">
+                @for (prop of accessibleProperties(); track prop.id) {
+                  <ion-select-option [value]="prop.id">{{ prop.name }}</ion-select-option>
+                }
+              </ion-select>
+            </ion-item>
+          </div>
+
+          <!-- Grouped Permissions UI -->
+          <div class="permissions-section">
+            <h3 class="permissions-title">{{ 'STAFF.CONFIG_PERMISSIONS' | translate }}</h3>
+            <p class="permissions-sub">{{ 'STAFF.CONFIG_PERMISSIONS_SUB' | translate }}</p>
+
+            <div class="permissions-grid">
+              @for (group of permissionGroups; track group.category) {
+                <div class="permission-group-card">
+                  <h4 class="group-title">{{ group.titleKey | translate }}</h4>
+                  <div class="group-checkboxes">
+                    @for (perm of group.permissions; track perm.key) {
+                      <label class="perm-checkbox-item">
+                        <ion-checkbox
+                          [checked]="isPermissionChecked(perm.key)"
+                          (ionChange)="togglePermission(perm.key)"
+                        ></ion-checkbox>
+                        <span>{{ perm.labelKey | translate }}</span>
+                      </label>
+                    }
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+
+          <div class="form-actions">
+            <ion-button fill="outline" (click)="closeModal()">
+              <ion-icon slot="start" name="close-outline"></ion-icon>
+              {{ 'COMMON.CANCEL' | translate }}
+            </ion-button>
+            <ion-button fill="solid" (click)="saveStaff()">
+              <ion-icon slot="start" name="checkmark-circle-outline"></ion-icon>
+              {{ 'COMMON.SAVE' | translate }}
+            </ion-button>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
 
   <app-dashboard-section-card title="STAFF.ATTENDANCE" [noPadding]="true">
     <ul class="staff-list">
       @for (member of members; track trackMember($index, member)) {
-        <li class="staff-list__item">
+        <li class="staff-list__item" (click)="openEditStaff(member)">
           <span class="staff-list__avatar">{{ member.initials }}</span>
           <div class="staff-list__copy">
             <p class="staff-list__name">{{ member.name }}</p>
             <p class="staff-list__meta">
-              {{ member.roleKey | translate }} · {{ member.phone }}
+              {{ (member.roleKey || 'STAFF.ROLE.STAFF') | translate }} · {{ member.phone }}
             </p>
           </div>
           <span class="staff-list__salary">{{ member.salary }}</span>
@@ -37,8 +161,10 @@
             <span class="staff-status__dot"></span>
             {{ statusLabelKey(member.status) | translate }}
           </span>
+          <button type="button" class="edit-pill-btn">{{ 'COMMON.EDIT' | translate }}</button>
         </li>
       }
     </ul>
   </app-dashboard-section-card>
+  }
 </div>

@@ -1,147 +1,228 @@
-<div class="app-header">
-  <ion-button
-    class="app-header__icon-btn app-header__menu-btn"
-    fill="clear"
+<header class="app-header">
+  <!-- Mobile drawer toggle: only visible on screens < 1027px -->
+  <button
+    type="button"
+    class="app-header__menu-btn"
     [attr.aria-label]="'SHELL.MENU' | translate"
     (click)="onMenuClick()"
   >
-    <ion-icon slot="icon-only" name="chevron-forward-outline"></ion-icon>
-  </ion-button>
+    <ion-icon name="menu-outline"></ion-icon>
+  </button>
 
-  <ion-label class="app-header__title">{{ title() | translate }}</ion-label>
+  <!-- Left: Lodge Selector (Owner) OR Assigned Lodge Badge (Manager / Staff) -->
+  <div class="app-header__lodge-area">
+    @if (isOwner()) {
+      <!-- Owner: interactive selector dropdown with All Lodges and specific lodges -->
+      <div class="app-header__lodge-dropdown-wrap">
+        <button
+          type="button"
+          class="app-header__lodge-btn"
+          aria-haspopup="menu"
+          [attr.aria-expanded]="isLodgeMenuOpen()"
+          (click)="onLodgeButtonClick($event)"
+        >
+          <span class="app-header__lodge-icon-box">
+            <ion-icon name="business-outline"></ion-icon>
+          </span>
+          <span class="app-header__lodge-name">{{ selectedPropertyName() | translate }}</span>
+          <ion-icon
+            name="chevron-down-outline"
+            class="app-header__lodge-chevron"
+            [class.app-header__lodge-chevron--open]="isLodgeMenuOpen()"
+          ></ion-icon>
+        </button>
 
+        @if (isLodgeMenuOpen()) {
+          <div
+            class="app-header__dropdown app-header__lodge-menu"
+            role="menu"
+            (click)="$event.stopPropagation()"
+          >
+            <div class="app-header__dropdown-header">
+              <span>{{ 'LODGE.SELECT_LODGE' | translate }}</span>
+            </div>
+
+            <!-- "All Lodges" Option (Owner only) -->
+            <button
+              type="button"
+              class="app-header__dropdown-item"
+              role="menuitem"
+              [class.app-header__dropdown-item--active]="selectedPropertyId() === 'all'"
+              (click)="onSelectLodge('all', $event)"
+            >
+              <div class="app-header__dropdown-item-icon-box app-header__dropdown-item-icon-box--all">
+                <ion-icon name="apps-outline"></ion-icon>
+              </div>
+              <div class="app-header__dropdown-item-text">
+                <span class="app-header__dropdown-item-title">{{ 'LODGE.ALL_LODGES' | translate }}</span>
+                <span class="app-header__dropdown-item-meta">{{ accessibleProperties().length }} {{ 'LODGE.MANAGE_TITLE' | translate }}</span>
+              </div>
+              @if (selectedPropertyId() === 'all') {
+                <ion-icon name="checkmark-outline" class="app-header__dropdown-item-check"></ion-icon>
+              }
+            </button>
+
+            @if (accessibleProperties().length > 0) {
+              <div class="app-header__dropdown-divider"></div>
+            }
+
+            <!-- Individual Lodges List -->
+            @for (lodge of accessibleProperties(); track lodge.id) {
+              <button
+                type="button"
+                class="app-header__dropdown-item"
+                role="menuitem"
+                [class.app-header__dropdown-item--active]="selectedPropertyId() === lodge.id"
+                (click)="onSelectLodge(lodge.id, $event)"
+              >
+                <div class="app-header__dropdown-item-icon-box">
+                  @if (lodge.imageUrl && !lodge.imageUrl.includes('favicon')) {
+                    <img [src]="lodge.imageUrl" [alt]="lodge.name" class="app-header__dropdown-item-thumb" />
+                  } @else {
+                    <ion-icon name="business-outline"></ion-icon>
+                  }
+                </div>
+                <div class="app-header__dropdown-item-text">
+                  <span class="app-header__dropdown-item-title">{{ lodge.name }}</span>
+                  <span class="app-header__dropdown-item-meta">{{ lodge.city || lodge.code }} · {{ lodge.totalRooms }} Rooms</span>
+                </div>
+                @if (selectedPropertyId() === lodge.id) {
+                  <ion-icon name="checkmark-outline" class="app-header__dropdown-item-check"></ion-icon>
+                }
+              </button>
+            }
+          </div>
+        }
+      </div>
+    } @else {
+      <!-- Manager or Staff: Static Badge showing only their assigned lodge name & logo/icon (NO dropdown) -->
+      <div class="app-header__assigned-lodge">
+        <div class="app-header__assigned-lodge-icon-box">
+          @if (assignedProperty()?.imageUrl && !assignedProperty()?.imageUrl?.includes('favicon')) {
+            <img [src]="assignedProperty()?.imageUrl" [alt]="assignedProperty()?.name || 'Lodge'" class="app-header__assigned-lodge-thumb" />
+          } @else {
+            <ion-icon name="business-outline"></ion-icon>
+          }
+        </div>
+        <div class="app-header__assigned-lodge-content">
+          <span class="app-header__assigned-lodge-name">{{ assignedProperty()?.name || (selectedPropertyName() | translate) }}</span>
+          <span
+            class="app-header__assigned-lodge-badge"
+            [class.app-header__assigned-lodge-badge--manager]="isManager()"
+            [class.app-header__assigned-lodge-badge--staff]="isStaff()"
+          >
+            {{ isManager() ? ('ROLES.MANAGER' | translate) : (currentDesignation() || ('ROLES.STAFF' | translate)) }}
+          </span>
+        </div>
+      </div>
+    }
+  </div>
+
+  <!-- Center Spacer: expands to push controls to opposite ends -->
+  <div class="app-header__spacer"></div>
+
+  <!-- Right Actions: Language Selector and Profile Avatar ONLY (No notifications) -->
   <div class="app-header__actions">
-    <div class="app-header__lang">
-      <ion-button
+    <!-- Language Selector -->
+    <div class="app-header__action-item">
+      <button
+        type="button"
         class="app-header__lang-btn"
-        fill="clear"
-        [attr.aria-label]="'SHELL.LANGUAGE' | translate"
         aria-haspopup="menu"
+        [attr.aria-label]="'SHELL.LANGUAGE' | translate"
         [attr.aria-expanded]="isLanguageMenuOpen()"
         (click)="onLanguageButtonClick($event)"
       >
-        <ion-icon slot="start" name="language-outline"></ion-icon>
+        <ion-icon name="language-outline" class="app-header__lang-icon"></ion-icon>
         <span class="app-header__lang-code">{{ currentLanguage() }}</span>
-      </ion-button>
+      </button>
 
       @if (isLanguageMenuOpen()) {
-        <ion-list
+        <div
           class="app-header__dropdown app-header__lang-menu"
-          lines="none"
           role="menu"
-          [attr.aria-label]="'SHELL.SELECT_LANGUAGE' | translate"
           (click)="$event.stopPropagation()"
         >
           @for (option of languageOptions; track option.code) {
-            <ion-item
-              class="app-header__lang-option"
-              button
-              detail="false"
-              role="menuitem"
-              [class.app-header__lang-option--active]="
-                option.code === currentLanguage()
-              "
-              (click)="onLanguageSelect(option, $event)"
-            >
-              <ion-label>{{ option.label }}</ion-label>
-            </ion-item>
-          }
-        </ion-list>
-      }
-    </div>
-
-    <div class="app-header__notifications">
-      <ion-button
-        class="app-header__icon-btn app-header__icon-btn--relative"
-        fill="clear"
-        [attr.aria-label]="'SHELL.NOTIFICATIONS' | translate"
-        aria-haspopup="menu"
-        [attr.aria-expanded]="isNotificationsMenuOpen()"
-        (click)="onNotificationsButtonClick($event)"
-      >
-        <ion-icon slot="icon-only" name="notifications-outline"></ion-icon>
-        @if (hasNotifications()) {
-          <span class="app-header__badge" aria-hidden="true"></span>
-        }
-      </ion-button>
-
-      @if (isNotificationsMenuOpen()) {
-        <div
-          class="app-header__dropdown app-header__notifications-menu"
-          role="menu"
-          [attr.aria-label]="'SHELL.NOTIFICATIONS' | translate"
-          (click)="$event.stopPropagation()"
-        >
-          <p class="app-header__notifications-heading">
-            {{ 'SHELL.NOTIFICATIONS' | translate }}
-          </p>
-
-          @for (notification of notifications; track notification.id) {
             <button
               type="button"
-              class="app-header__notification-item"
+              class="app-header__dropdown-item app-header__lang-option"
               role="menuitem"
-              (click)="onNotificationClick(notification, $event)"
+              [class.app-header__dropdown-item--active]="option.code === currentLanguage()"
+              (click)="onLanguageSelect(option, $event)"
             >
-              <span class="app-header__notification-title">{{
-                notification.title | translate
-              }}</span>
-              <span class="app-header__notification-desc">{{
-                notification.description | translate
-              }}</span>
+              <span class="app-header__lang-option-text">{{ option.label }}</span>
+              @if (option.code === currentLanguage()) {
+                <ion-icon name="checkmark-outline" class="app-header__dropdown-item-check"></ion-icon>
+              }
             </button>
           }
         </div>
       }
     </div>
 
-    <div class="app-header__profile">
-      <ion-button
-        class="app-header__avatar"
-        fill="solid"
-        shape="round"
-        [attr.aria-label]="'SHELL.PROFILE' | translate"
+    <!-- Profile Avatar Dropdown -->
+    <div class="app-header__action-item">
+      <button
+        type="button"
+        class="app-header__avatar-btn"
+        [class.app-header__avatar-btn--open]="isProfileMenuOpen()"
         aria-haspopup="menu"
+        [attr.aria-label]="'SHELL.PROFILE' | translate"
         [attr.aria-expanded]="isProfileMenuOpen()"
         (click)="onProfileButtonClick($event)"
       >
-        {{ profileInitials() }}
-      </ion-button>
+        <ion-icon name="person-outline" class="app-header__avatar-icon"></ion-icon>
+      </button>
 
       @if (isProfileMenuOpen()) {
         <div
           class="app-header__dropdown app-header__profile-menu"
           role="menu"
-          [attr.aria-label]="'SHELL.PROFILE_MENU' | translate"
           (click)="$event.stopPropagation()"
         >
-          <div class="app-header__profile-info">
-            <span class="app-header__profile-name">{{ profileName() }}</span>
-            <span class="app-header__profile-role">{{ profileRole() }}</span>
+          <div class="app-header__profile-card">
+            <div class="app-header__profile-card-avatar">
+              <ion-icon name="person-outline"></ion-icon>
+            </div>
+            <div class="app-header__profile-card-details">
+              <span class="app-header__profile-card-name">{{ profileName() }}</span>
+              <span
+                class="app-header__profile-card-role"
+                [class.app-header__profile-card-role--owner]="currentRole() === 'owner'"
+                [class.app-header__profile-card-role--manager]="currentRole() === 'manager'"
+                [class.app-header__profile-card-role--staff]="currentRole() === 'staff'"
+              >
+                {{ profileRole() }}
+              </span>
+            </div>
           </div>
 
-          <div class="app-header__profile-separator" role="separator"></div>
+          <div class="app-header__dropdown-divider"></div>
 
+          <!-- Settings Option -->
           <button
             type="button"
-            class="app-header__menu-item"
+            class="app-header__menu-action-btn"
             role="menuitem"
             (click)="onSettingsClick($event)"
           >
-            {{ 'SHELL.SETTINGS' | translate }}
+            <ion-icon name="settings-outline"></ion-icon>
+            <span>{{ 'SHELL.SETTINGS' | translate }}</span>
           </button>
 
+          <!-- Logout Option -->
           <button
             type="button"
-            class="app-header__menu-item app-header__menu-item--danger"
+            class="app-header__menu-action-btn app-header__menu-action-btn--danger"
             role="menuitem"
             (click)="onLogoutClick($event)"
           >
-            <ion-icon name="log-out-outline" aria-hidden="true"></ion-icon>
-            {{ 'SHELL.LOGOUT' | translate }}
+            <ion-icon name="log-out-outline"></ion-icon>
+            <span>{{ 'SHELL.LOGOUT' | translate }}</span>
           </button>
         </div>
       }
     </div>
   </div>
-</div>
+</header>

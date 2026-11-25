@@ -1,0 +1,107 @@
+<app-shell
+  [activeNavId]="'payments'"
+  [breadcrumb]="'Collect Payment'"
+  (activeNavIdChange)="onNavChange($event)"
+>
+  <div class="col-page">
+    <div class="col-page__inner">
+      <header class="col-header">
+        <button type="button" class="back-btn" (click)="goBack()">
+          <ion-icon name="arrow-back-outline"></ion-icon>
+          Back
+        </button>
+        <div>
+          <h1>Collect Payment</h1>
+          <p>Concurrency-safe, idempotent payment collection synced with booking ledger</p>
+        </div>
+      </header>
+
+      <section class="col-card">
+        <div class="field">
+          <label>Select Booking *</label>
+          <select [ngModel]="selectedBookingId()" (ngModelChange)="onBookingSelect($event)">
+            @for (b of bookings(); track b.id) {
+              <option [value]="b.id">{{ b.id }} · {{ b.guestName }} (Room {{ b.room }})</option>
+            }
+          </select>
+        </div>
+
+        @if (selectedBooking(); as b) {
+          @if (ledger(); as l) {
+            <div class="ledger-summary">
+              <div><span>Customer</span><strong>{{ b.guestName }}</strong></div>
+              <div><span>Lodge</span><strong>{{ b.propertyName || b.propertyId }}</strong></div>
+              <div><span>Booking Total</span><strong>₹{{ l.bookingTotal.toLocaleString('en-IN') }}</strong></div>
+              <div><span>Previously Paid</span><strong>₹{{ l.netPaidAmount.toLocaleString('en-IN') }}</strong></div>
+              <div class="due"><span>Outstanding Balance</span><strong>₹{{ l.outstandingBalance.toLocaleString('en-IN') }}</strong></div>
+            </div>
+          }
+
+          <div class="form-grid">
+            <div class="field">
+              <label>Payment Type *</label>
+              <select [(ngModel)]="paymentType">
+                <option value="Advance">Advance Payment</option>
+                <option value="Partial">Partial Payment</option>
+                <option value="Full">Full Payment</option>
+                <option value="Remaining Balance">Remaining Balance</option>
+                <option value="Additional Charges">Additional Charges</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label>Payment Method *</label>
+              <select [(ngModel)]="paymentMethod">
+                <option value="Cash">Cash (Manual)</option>
+                <option value="UPI">UPI (Manual)</option>
+                <option value="Card">Card (Manual POS)</option>
+                <option value="Bank Transfer">Bank Transfer (Manual)</option>
+                <option value="Online Gateway">Online Payment Gateway</option>
+              </select>
+            </div>
+
+            <div class="field">
+              <label>Payment Amount (₹) *</label>
+              <input type="number" [(ngModel)]="paymentAmount" min="1" />
+            </div>
+
+            <div class="field">
+              <label>Payment Date *</label>
+              <input type="date" [(ngModel)]="paymentDate" />
+            </div>
+
+            <div class="field">
+              <label>Transaction Reference</label>
+              <input type="text" [(ngModel)]="referenceNumber" placeholder="UPI Ref / Receipt / Auth Code" />
+            </div>
+
+            <div class="field">
+              <label>Notes</label>
+              <input type="text" [(ngModel)]="notes" placeholder="Optional remarks" />
+            </div>
+          </div>
+
+          <div class="mode-note">
+            @if (paymentMethod === 'Online Gateway') {
+              <span>Online gateway payments remain <strong>Pending</strong> until verified by server-side gateway webhook.</span>
+            } @else {
+              <span>This transaction will be recorded as a <strong>Manually Recorded Payment</strong> by your account.</span>
+            }
+          </div>
+
+          <div class="submit-row">
+            <ion-button fill="solid" (click)="submitPayment()" [disabled]="isSubmitting()">
+              @if (isSubmitting()) {
+                <ion-spinner slot="start" name="crescent"></ion-spinner>
+                Processing...
+              } @else {
+                <ion-icon slot="start" name="checkmark-circle-outline"></ion-icon>
+                Confirm & Record Payment
+              }
+            </ion-button>
+          </div>
+        }
+      </section>
+    </div>
+  </div>
+</app-shell>

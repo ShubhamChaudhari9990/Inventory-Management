@@ -1,8 +1,9 @@
 import { Component, computed, inject, signal } from '@angular/core';
-import { Router } from '@angular/router';
 import { ViewWillEnter } from '@ionic/angular';
-import { IonButton, IonIcon } from '@ionic/angular/standalone';
-import { TranslatePipe } from '@ngx-translate/core';
+import { AlertController, IonButton, IonIcon } from '@ionic/angular/standalone';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { AuthService } from '../services/auth.service';
+import { AppLockService } from '../services/app-lock.service';
 
 import { AppShellComponent } from '../shared/components/app-shell/app-shell.component';
 import { DEFAULT_NAV_ID } from '../shared/data/nav-items';
@@ -22,26 +23,30 @@ import { CustomersViewComponent } from './components/customers-view/customers-vi
 import { ExpensesViewComponent } from './components/expenses-view/expenses-view.component';
 import { HousekeepingViewComponent } from './components/housekeeping-view/housekeeping-view.component';
 import { InventoryViewComponent } from './components/inventory-view/inventory-view.component';
+import { LodgesViewComponent } from './components/lodges-view/lodges-view.component';
 import { MoreMenuViewComponent } from './components/more-menu-view/more-menu-view.component';
+import { PaymentsViewComponent } from './components/payments-view/payments-view.component';
 import { ReportsViewComponent } from './components/reports-view/reports-view.component';
 import { RevenueViewComponent } from './components/revenue-view/revenue-view.component';
 import { RoomsViewComponent } from './components/rooms-view/rooms-view.component';
 import { SettingsViewComponent } from './components/settings-view/settings-view.component';
+import { StaffDashboardComponent } from './components/staff-dashboard/staff-dashboard.component';
 import { StaffViewComponent } from './components/staff-view/staff-view.component';
+import { RoleService } from '../services/role.service';
+import { PropertyService } from '../services/property.service';
 import {
-  BOOKING_TREND_CHART,
-  MONTHLY_REVENUE_CHART,
-  OCCUPANCY_RATE_CHART,
-  REVENUE_EXPENSE_CHART,
+  AxisChartOptions,
+  DonutChartOptions,
   ROOM_STATUS_CHART,
-  ROOM_STATUS_LEGEND,
+  RoomStatusLegendItem,
+  buildDynamicBookingTrendChart,
+  buildDynamicMonthlyRevenueChart,
+  buildDynamicOccupancyRateChart,
+  buildDynamicRevenueExpenseChart,
+  buildDynamicRoomStatusLegend,
 } from './data/dashboard-charts.data';
 import {
-  DASHBOARD_KPIS,
   QUICK_ACTIONS,
-  RECENT_ACTIVITY,
-  RECENT_BOOKINGS,
-  RECENT_PAYMENTS,
   RecentBooking,
   RecentPayment,
 } from './data/dashboard.data';
@@ -63,6 +68,7 @@ import { LodgeDataService } from '../services/lodge-data.service';
     DashboardKpiCardComponent,
     DashboardSectionCardComponent,
     BookingsViewComponent,
+    PaymentsViewComponent,
     CustomersViewComponent,
     ExpensesViewComponent,
     HousekeepingViewComponent,
@@ -73,41 +79,39 @@ import { LodgeDataService } from '../services/lodge-data.service';
     RoomsViewComponent,
     SettingsViewComponent,
     StaffViewComponent,
+    LodgesViewComponent,
+    StaffDashboardComponent,
     ComingSoonViewComponent,
   ],
 })
 export class HomePage implements ViewWillEnter {
-  private readonly router = inject(Router);
   private readonly lodgeData = inject(LodgeDataService);
+  private readonly roleService = inject(RoleService);
+  private readonly propertyService = inject(PropertyService);
+
+  private readonly alertController = inject(AlertController);
+  private readonly authService = inject(AuthService);
+  private readonly appLockService = inject(AppLockService);
+  private readonly translate = inject(TranslateService);
 
   readonly activeNavId = signal(DEFAULT_NAV_ID);
   readonly todayLabel = 'DASHBOARD.SUBTITLE';
 
-  readonly dynamicKpis = computed(() => {
-    const rooms = this.lodgeData.rooms();
-    const inventory = this.lodgeData.inventory();
-    const staff = this.lodgeData.staff();
-    const bookings = this.lodgeData.bookings();
+  readonly isOwner = this.roleService.isOwner;
+  readonly isManager = this.roleService.isManager;
+  readonly isStaff = this.roleService.isStaff;
+  readonly currentRole = this.roleService.currentRole;
+  readonly selectedPropertyName = this.propertyService.selectedPropertyName;
+  readonly selectedPropertyId = this.propertyService.selectedPropertyId;
+  readonly properties = this.propertyService.properties;
 
-    const availableCount = rooms.filter((r) => r.status === 'Available').length;
-    const occupiedCount = rooms.filter((r) => r.status === 'Occupied').length;
-    const lowStockCount = inventory.filter((i) => i.status === 'Low Stock Alerts' || i.quantity <= i.min).length;
-    const staffPresentCount = staff.filter((s) => s.status === 'Present').length;
-
-    return DASHBOARD_KPIS.map((kpi) => {
-      if (kpi.id === 'available') return { ...kpi, value: String(availableCount) };
-      if (kpi.id === 'occupied') return { ...kpi, value: String(occupiedCount) };
-      if (kpi.id === 'low-stock') return { ...kpi, value: String(lowStockCount) };
-      if (kpi.id === 'staff-present') return { ...kpi, value: String(staffPresentCount) };
-      return kpi;
-    });
-  });
+  readonly dynamicKpis = computed(() => this.lodgeData.dynamicKpis());
 
   get kpis() {
     return this.dynamicKpis();
   }
 
-  readonly dynamicRoomStatusChart = computed(() => {
+  readonly dynamicRoomStatusChart = computed<DonutChartOptions>(() => {
     const rooms = this.lodgeData.rooms();
     const available = rooms.filter((r) => r.status === 'Available').length;
     const occupied = rooms.filter((r) => r.status === 'Occupied').length;
@@ -121,45 +125,102 @@ export class HomePage implements ViewWillEnter {
     };
   });
 
-  get roomStatusChart() {
+  get roomStatusChart(): DonutChartOptions {
     return this.dynamicRoomStatusChart();
   }
 
-  readonly dynamicRecentBookings = computed(() => {
-    const list = this.lodgeData.bookings();
-    if (list.length === 0) return RECENT_BOOKINGS;
-    return list
-      .filter((b) => b.status !== 'Cancelled')
-      .slice(0, 5)
-      .map((b) => ({
-        guest: b.guestName,
-        room: `Room ${b.room}`,
-        checkIn: b.checkIn,
-        amount: b.amount,
-        status: (b.status === 'Paid' ? 'Paid' : 'Due') as 'Paid' | 'Due',
-      }));
+  readonly dynamicRoomStatusLegend = computed<readonly RoomStatusLegendItem[]>(() => {
+    return buildDynamicRoomStatusLegend(this.lodgeData.rooms());
   });
 
-  get recentBookings() {
-    return this.dynamicRecentBookings();
+  get roomStatusLegend(): readonly RoomStatusLegendItem[] {
+    return this.dynamicRoomStatusLegend();
+  }
+
+  readonly dynamicRevenueExpenseChart = computed<AxisChartOptions>(() => {
+    return buildDynamicRevenueExpenseChart(this.lodgeData.payments(), this.lodgeData.expenseItems());
+  });
+
+  get revenueExpenseChart(): AxisChartOptions {
+    return this.dynamicRevenueExpenseChart();
+  }
+
+  readonly dynamicMonthlyRevenueChart = computed<AxisChartOptions>(() => {
+    return buildDynamicMonthlyRevenueChart(this.lodgeData.payments());
+  });
+
+  get monthlyRevenueChart(): AxisChartOptions {
+    return this.dynamicMonthlyRevenueChart();
+  }
+
+  readonly dynamicOccupancyRateChart = computed<AxisChartOptions>(() => {
+    return buildDynamicOccupancyRateChart(this.lodgeData.rooms(), this.lodgeData.bookings());
+  });
+
+  get occupancyRateChart(): AxisChartOptions {
+    return this.dynamicOccupancyRateChart();
+  }
+
+  readonly dynamicBookingTrendChart = computed<AxisChartOptions>(() => {
+    return buildDynamicBookingTrendChart(this.lodgeData.bookings());
+  });
+
+  get bookingTrendChart(): AxisChartOptions {
+    return this.dynamicBookingTrendChart();
+  }
+
+  navigateTo(navId: string): void {
+    this.activeNavId.set(navId);
   }
 
   readonly moreMenuItems = MORE_MENU_ITEMS;
   readonly quickActions = QUICK_ACTIONS;
-  readonly recentPayments = RECENT_PAYMENTS;
-  readonly recentActivity = RECENT_ACTIVITY;
-  readonly roomStatusLegend = ROOM_STATUS_LEGEND;
-  readonly revenueExpenseChart = REVENUE_EXPENSE_CHART;
-  readonly monthlyRevenueChart = MONTHLY_REVENUE_CHART;
-  readonly occupancyRateChart = OCCUPANCY_RATE_CHART;
-  readonly bookingTrendChart = BOOKING_TREND_CHART;
+
+  readonly dynamicRecentBookings = computed(() => this.lodgeData.recentBookings());
+  get recentBookings() {
+    return this.dynamicRecentBookings();
+  }
+
+  readonly dynamicRecentPayments = computed(() => this.lodgeData.recentPayments());
+  get recentPayments() {
+    return this.dynamicRecentPayments();
+  }
+
+  readonly dynamicRecentActivity = computed(() => this.lodgeData.recentActivity());
+  get recentActivity() {
+    return this.dynamicRecentActivity();
+  }
+
+  onQuickAction(actionId: string): void {
+    switch (actionId) {
+      case 'new-booking':
+        this.navigateTo('bookings');
+        break;
+      case 'new-customer':
+        this.navigateTo('customers');
+        break;
+      case 'add-expense':
+        this.navigateTo('expenses');
+        break;
+      case 'add-inventory':
+        this.navigateTo('inventory');
+        break;
+      case 'room-cleaning':
+        this.navigateTo('housekeeping');
+        break;
+      default:
+        break;
+    }
+  }
 
   readonly statusLabelKey = statusLabelKey;
   readonly paymentMethodLabelKey = paymentMethodLabelKey;
 
   readonly isDashboardActive = computed(() => this.activeNavId() === 'dashboard');
+  readonly isLodgesActive = computed(() => this.activeNavId() === 'lodges');
   readonly isRoomsActive = computed(() => this.activeNavId() === 'rooms');
   readonly isBookingsActive = computed(() => this.activeNavId() === 'bookings');
+  readonly isPaymentsActive = computed(() => this.activeNavId() === 'payments');
   readonly isInventoryActive = computed(() => this.activeNavId() === 'inventory');
   readonly isCustomersActive = computed(() => this.activeNavId() === 'customers');
   readonly isRevenueActive = computed(() => this.activeNavId() === 'revenue');
@@ -172,6 +233,40 @@ export class HomePage implements ViewWillEnter {
 
   ionViewWillEnter(): void {
     this.activeNavId.set(DEFAULT_NAV_ID);
+    void this.checkBiometricPrompt();
+  }
+
+  private async checkBiometricPrompt(): Promise<void> {
+    const isAvailable = await this.authService.checkBiometricAvailability();
+    if (!isAvailable) return;
+
+    const isPrompted = await this.authService.isBiometricPrompted();
+    if (isPrompted) return;
+
+    await this.authService.setBiometricPrompted(true);
+
+    const alert = await this.alertController.create({
+      header: this.translate.instant('AUTH.BIOMETRIC_ENABLE_TITLE'),
+      message: this.translate.instant('AUTH.BIOMETRIC_ENABLE_MSG'),
+      buttons: [
+        {
+          text: this.translate.instant('AUTH.SKIP_FOR_NOW'),
+          role: 'cancel',
+        },
+        {
+          text: this.translate.instant('AUTH.ENABLE_NOW'),
+          handler: async () => {
+            try {
+              await this.appLockService.setBiometricLock(true);
+            } catch (e) {
+              console.warn('Could not enable biometrics:', e);
+            }
+          },
+        },
+      ],
+    });
+
+    await alert.present();
   }
 
   trackBooking(_: number, booking: RecentBooking): string {
@@ -184,7 +279,7 @@ export class HomePage implements ViewWillEnter {
 
   async onMoreItemClick(item: MoreMenuItem): Promise<void> {
     if (item.id === 'logout') {
-      await this.router.navigateByUrl('/login');
+      await this.authService.logout();
       return;
     }
 

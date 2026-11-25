@@ -3,58 +3,2829 @@ rules_version = '2';
 service cloud.firestore {
   match /databases/{database}/documents {
 
-    // Helper functions
+    // ===============================================================
+    // Assumed Data Models
+    // ===============================================================
+    //
+    // Collection: properties/{propertyId}
+    // Document ID: property identifier (e.g., 'lodge_001', 'lodge_1700000000')
+    // Fields:
+    //   - id: string (required, 1-100 chars, immutable) - Document ID
+    //   - organizationId: string (required, 1-100 chars, immutable) - Parent organization ID
+    //   - name: string (required, 1-150 chars) - Property display name
+    //   - code: string (required, 1-50 chars) - Short lodge code (e.g. 'LWH-01')
+    //   - businessName: string (optional, 0-200 chars) - Legal/registered business name
+    //   - description: string (optional, 0-2000 chars) - Detailed property description
+    //   - tagline: string (optional, 0-200 chars) - Property subtitle/tagline
+    //   - type: string (optional, 'Lodge'|'Hotel'|'Resort'|'Guest House'|'Homestay'|'Boutique Hotel')
+    //   - address: string (optional, 0-300 chars) - Street address
+    //   - city: string (optional, 0-100 chars) - City location
+    //   - district: string (optional, 0-100 chars) - District location
+    //   - state: string (optional, 0-100 chars) - State location
+    //   - country: string (optional, 0-100 chars) - Country location
+    //   - pincode: string (optional, 0-30 chars) - Postal/PIN code
+    //   - postalCode: string (optional, 0-30 chars) - Postal/ZIP code
+    //   - phone: string (optional, 0-30 chars) - Contact telephone
+    //   - email: string (optional, 0-100 chars) - Contact email address
+    //   - gstin: string (optional, 0-50 chars) - GST identification number
+    //   - totalRooms: number (required, integer >= 0 && <= 10000) - Total room capacity
+    //   - totalFloors: number (optional, >= 0 && <= 500) - Number of floors
+    //   - checkInTime: string (optional, 0-30 chars) - Standard check-in time
+    //   - checkOutTime: string (optional, 0-30 chars) - Standard check-out time
+    //   - currency: string (optional, 0-20 chars) - Default currency code
+    //   - timezone: string (optional, 0-100 chars) - Property timezone
+    //   - status: string (required, 'active' | 'inactive' | 'maintenance') - Operational status
+    //   - amenities: list (optional, <= 50 items) - Amenity tags
+    //   - facilities: list (optional, <= 50 items) - Active facility names
+    //   - facilityItems: list (optional, <= 100 items) - Structured facility definitions
+    //   - contact: map (optional) - Structured contact details
+    //   - lodgeAddress: map (optional) - Structured address details
+    //   - propertyDetails: map (optional) - Structured operational capacity details
+    //   - images: map (optional) - Branding & gallery media metadata
+    //   - taxSettings: map (optional) - Tax & invoice configuration
+    //   - imageUrl: string (optional, 0-500 chars) - Cover photo URL/path
+    //   - isArchived: bool (optional) - Archive flag
+    //   - createdBy: string (optional, 0-128 chars, immutable) - Creator UID
+    //   - deactivatedAt: string (optional, 0-50 chars) - Deactivation timestamp
+    //   - deactivatedBy: string (optional, 0-150 chars) - Deactivating owner name/UID
+    //   - deactivationReason: string (optional, 0-500 chars) - Reason for deactivation
+    //   - createdAt: string (optional, 0-50 chars, immutable) - Creation timestamp
+    //   - updatedAt: string (optional, 0-50 chars) - Modification timestamp
+    //
+    // Subcollection: properties/{propertyId}/documents/{docId}
+    // Document ID: Document identifier (e.g., 'doc_1700000000')
+    // Fields:
+    //   - id: string (required, 1-100 chars, immutable) - Document ID
+    //   - lodgeId: string (required, 1-100 chars, immutable) - Parent lodge ID
+    //   - organizationId: string (required, 1-100 chars, immutable) - Organization ID
+    //   - title: string (required, 1-200 chars) - Document title
+    //   - category: string (required, allowed LodgeDocumentCategory) - Document category
+    //   - fileType: string (required, 1-150 chars) - MIME type
+    //   - fileSize: number (required, > 0 && <= 10485760) - File size in bytes
+    //   - url: string (required, valid HTTP/HTTPS URL, 1-1000 chars) - Download URL
+    //   - storagePath: string (required, 1-500 chars) - Firebase Storage path
+    //   - expiryDate: string (optional, 0-50 chars) - Expiry date
+    //   - uploadedAt: string (required, 1-50 chars, immutable) - Upload timestamp
+    //   - uploadedBy: string (required, 1-150 chars) - Uploader display name
+    //   - uploadedByUid: string (required, 1-128 chars, immutable) - Uploader UID
+    //
+    // Subcollection: properties/{propertyId}/settings/{settingId}
+    // Document ID: 'config'
+    // Fields:
+    //   - lodgeId: string (required, 1-100 chars, immutable) - Parent lodge ID
+    //   - organizationId: string (required, 1-100 chars, immutable) - Organization ID
+    //   - general, contact, booking, checkInOut, roomConfig, tax, invoice, notifications, operational: map (required)
+    //   - updatedAt: string (optional, 0-50 chars) - Modification timestamp
+    //   - updatedBy: string (optional, 0-150 chars) - Modifier name/UID
+    //
+    // Collection: lodgeCodes/{codeKey}
+    // Document ID: '{organizationId}_{CODE}'
+    // Fields:
+    //   - code: string (required, 1-50 chars) - Normalized uppercase lodge code
+    //   - organizationId: string (required, 1-100 chars, immutable) - Organization ID
+    //   - lodgeId: string (required, 1-100 chars, immutable) - Reserved lodge ID
+    //   - createdAt: string (optional, 0-50 chars) - Creation timestamp
+    //   - updatedAt: string (optional, 0-50 chars) - Modification timestamp
+    //
+    // Collection: users/{userId}
+    // Document ID: Firebase Auth UID matching request.auth.uid
+    // Fields:
+    //   - uid: string (required, 1-128 chars, immutable) - User UID
+    //   - employeeId: string (optional/null, 0-50 chars) - Human-readable employee code
+    //   - name: string (required, 1-150 chars) - Full name
+    //   - firstName: string (optional/null, 0-100 chars) - First name
+    //   - lastName: string (optional/null, 0-100 chars) - Last name
+    //   - email: string (required, 5-100 chars, valid email format) - User email
+    //   - phone: string (optional, 0-30 chars) - Contact telephone
+    //   - photoUrl: string (optional/null, 0-1000 chars) - Profile photo URL
+    //   - photoPath: string (optional/null, 0-500 chars) - Profile photo storage path
+    //   - address: string (optional/null, 0-500 chars) - Residential address
+    //   - dateOfBirth: string (optional/null, 0-50 chars) - Date of birth
+    //   - role: string (optional/null, 'owner' | 'manager' | 'staff', immutable by non-owner) - System RBAC role
+    //   - organizationId: string (required, 1-100 chars, immutable by non-owner) - Tenant organization ID
+    //   - propertyIds: list (required, <= 100 items, immutable by non-owner) - Assigned property IDs
+    //   - designation: string (optional/null, 0-100 chars) - Job designation
+    //   - department: string (optional/null, 0-100 chars) - Department name
+    //   - employmentType: string (optional/null, 'Full-Time'|'Part-Time'|'Contract') - Employment type
+    //   - joiningDate: string (optional/null, 0-50 chars) - Date of joining
+    //   - permissions: list (optional, <= 100 items, immutable by non-owner) - Explicit permission keys
+    //   - accountStatus: string (required, 'pending'|'active'|'suspended'|'rejected'|'inactive', immutable by non-owner) - Account status
+    //   - status: string (optional, 'pending'|'active'|'suspended'|'rejected'|'inactive', immutable by non-owner) - Status mirror
+    //   - isActive: boolean (optional) - Active state indicator
+    //   - assignedBy: string (optional, 0-150 chars) - Name of assigning owner
+    //   - assignedAt: string (optional, 0-50 chars) - Assignment timestamp
+    //   - rejectionReason: string (optional, 0-500 chars) - Reason if rejected/suspended
+    //   - createdAt: string (optional, 0-50 chars) - Account creation ISO timestamp
+    //   - updatedAt: string (optional, 0-50 chars) - Profile modification ISO timestamp
+    //
+    // Collection: staffAuditLogs/{logId}
+    // Document ID: Audit log ID (e.g., 'AUD-1700000000-123')
+    // Fields:
+    //   - id: string (required, 1-100 chars, immutable) - Log ID
+    //   - actorUid: string (required, 1-128 chars, must match request.auth.uid) - Actor UID
+    //   - actorName: string (required, 1-150 chars) - Actor display name
+    //   - targetUid: string (required, 1-128 chars) - Target employee UID
+    //   - targetName: string (optional/null, 0-150 chars) - Target employee display name
+    //   - organizationId: string (required, 1-100 chars) - Tenant organization ID
+    //   - lodgeId: string (optional/null, 0-100 chars) - Associated lodge ID
+    //   - action: string (required, StaffAuditLog action enum) - Audit event action
+    //   - summary: string (required, 1-500 chars) - Human-readable summary
+    //   - timestamp: string (required, 1-50 chars) - Event ISO timestamp
+    //
+    // Subcollection: properties/{propertyId}/members/{userId}
+    // Document ID: Compound membership key or member user UID
+    // Fields:
+    //   - id: string (required, 1-100 chars, immutable) - Membership ID
+    //   - userId: string (required, 1-128 chars, immutable) - User UID
+    //   - propertyId: string (required, 1-100 chars, immutable) - Associated lodge ID
+    //   - propertyName: string (optional, 0-150 chars) - Lodge display name
+    //   - organizationId: string (required, 1-100 chars, immutable) - Tenant organization ID
+    //   - role: string (required, 'owner' | 'manager' | 'staff') - Property membership role
+    //   - designation: string (optional/null, 0-100 chars) - Job designation
+    //   - assignedAt: string (optional, 0-50 chars) - Assignment timestamp
+    //   - assignedBy: string (optional, 0-150 chars) - Name of owner who assigned
+    //   - status: string (required, 'active' | 'pending' | 'suspended') - Member status
+    //   - permissions: list (optional, <= 100 items) - Property specific permissions
+    //
+    // Collection: rooms/{roomId}
+    // Document ID: Room number or unique room key (e.g., '101', '201', 'RM-...')
+    // Fields:
+    //   - id: string (required, 1-100 chars, immutable) - Room ID
+    //   - organizationId: string (optional, 0-100 chars) - Tenant organization ID
+    //   - propertyId: string (optional, 1-100 chars) - Associated lodge
+    //   - number: string (required, 1-50 chars, immutable) - Room number / identifier
+    //   - roomName: string (optional, 0-150 chars) - Friendly room name
+    //   - roomCode: string (optional, 0-50 chars) - Short room code
+    //   - floorId: string (optional, 0-100 chars) - Referenced floor ID
+    //   - floor: string (required, 1-50 chars) - Floor level
+    //   - roomTypeId: string (optional, 0-100 chars) - Referenced room type ID
+    //   - type: string (required, 1-100 chars) - Room type (e.g. Deluxe, Suite)
+    //   - price: string (required, 1-50 chars) - Rate display string (e.g. '₹2,500')
+    //   - basePrice: number (optional, >= 0) - Base nightly rate
+    //   - weekdayPrice: number (optional, >= 0) - Weekday nightly rate
+    //   - weekendPrice: number (optional, >= 0) - Weekend nightly rate
+    //   - extraAdultCharge: number (optional, >= 0) - Extra adult surcharge
+    //   - extraChildCharge: number (optional, >= 0) - Extra child surcharge
+    //   - currency: string (optional, 0-20 chars) - Currency code
+    //   - taxConfiguration: map (optional) - { taxRate, taxInclusive }
+    //   - operationalStatus: string (optional, 'active'|'cleaning'|'maintenance'|'blocked'|'inactive')
+    //   - status: string (required, 'Available'|'Occupied'|'Reserved'|'Dirty'|'Cleaning'|'Inspection'|'Maintenance'|'Out of Service')
+    //   - maximumAdults: number (optional, >= 0 && <= 100) - Max adult guests
+    //   - maximumChildren: number (optional, >= 0 && <= 100) - Max child guests
+    //   - maximumOccupancy: number (optional, >= 0 && <= 200) - Max total guests
+    //   - capacity: number (optional, >= 0 && <= 100) - Maximum guest capacity
+    //   - beds: number (optional, >= 0 && <= 50) - Bed count
+    //   - bedConfiguration: string (optional, 'Single'|'Double'|'Queen'|'King'|'Twin'|'Bunk')
+    //   - amenities: list (optional, <= 50 items) - Amenity tags
+    //   - additionalCharges: string (optional, 0-50 chars) - Extra fees / charges
+    //   - description: string (optional, 0-1000 chars) - Detailed room notes
+    //   - primaryImageUrl: string (optional, 0-1000 chars) - Primary photo URL
+    //   - primaryImagePath: string (optional, 0-500 chars) - Primary photo storage path
+    //   - galleryImages: list (optional, <= 50 items) - Gallery image objects
+    //   - images: list (optional, <= 50 items) - Room picture URLs
+    //   - roomSize: string (optional, 0-50 chars) - Room area / dimensions
+    //   - smokingPolicy: string (optional, 'Non-Smoking'|'Smoking Allowed'|'Balcony Only')
+    //   - accessibilityInfo: string (optional, 0-500 chars) - Accessibility notes
+    //   - internalNotes: string (optional, 0-2000 chars) - Staff-only notes
+    //   - guestName: string (optional, 0-150 chars) - Current guest name
+    //   - guestDate: string (optional, 0-50 chars) - Stay period summary
+    //   - assignedStaffId: string (optional, 0-100 chars) - Assigned housekeeper UID/ID
+    //   - assignedStaffName: string (optional, 0-150 chars) - Assigned housekeeper name
+    //   - lastCleaned: string (optional, 0-50 chars) - Last cleaned ISO timestamp
+    //   - housekeepingStatus: string (optional, 'Clean'|'Dirty'|'Cleaning'|'Inspection Pending'|'Inspected'|'Out of Service') - Housekeeping readiness state
+    //   - lastInspectedAt: string (optional, 0-50 chars) - Last inspection ISO timestamp
+    //   - lastInspectedBy: string (optional, 0-150 chars) - Last inspector display name/UID
+    //   - createdAt: string (optional, 0-50 chars) - Creation timestamp
+    //   - updatedAt: string (optional, 0-50 chars) - Modification timestamp
+    //   - updatedBy: string (optional, 0-150 chars) - Last modifier name/UID
+    //
+    // Subcollection: rooms/{roomId}/activity/{actId}
+    // Document ID: Activity log ID (e.g., 'act_1700000000')
+    // Fields:
+    //   - id: string (required, 1-100 chars, immutable) - Activity ID
+    //   - roomId: string (required, 1-100 chars, immutable) - Parent room ID
+    //   - action: string (required, 1-150 chars) - Action summary
+    //   - details: string (required, 0-1000 chars) - Action details
+    //   - performedBy: string (required, 1-150 chars) - Performer name/email
+    //   - timestamp: string (required, 1-50 chars, immutable) - Event ISO timestamp
+    //
+    // Collection: roomCodes/{codeKey}
+    // Document ID: '{propertyId}_{ROOMNUMBER}'
+    // Fields:
+    //   - propertyId: string (required, 1-100 chars, immutable) - Property ID
+    //   - organizationId: string (required, 1-100 chars, immutable) - Organization ID
+    //   - roomId: string (required, 1-100 chars, immutable) - Reserved room ID
+    //   - number: string (required, 1-50 chars) - Room number
+    //   - createdAt: string (optional, 0-50 chars) - Creation timestamp
+    //
+    // Collection: floors/{floorId}
+    // Document ID: Floor identifier (e.g., 'FLR-1700000000')
+    // Fields:
+    //   - id: string (required, 1-100 chars, immutable) - Floor ID
+    //   - organizationId: string (required, 1-100 chars, immutable) - Organization ID
+    //   - propertyId: string (required, 1-100 chars, immutable) - Property ID
+    //   - floorName: string (required, 1-100 chars) - Floor display name
+    //   - floorNumber: number (required, >= -10 && <= 500) - Numeric floor level
+    //   - description: string (optional, 0-500 chars) - Floor notes
+    //   - status: string (required, 'active'|'inactive') - Floor status
+    //   - createdAt: string (optional, 0-50 chars) - Creation timestamp
+    //   - updatedAt: string (optional, 0-50 chars) - Modification timestamp
+    //
+    // Collection: roomTypes/{typeId}
+    // Document ID: Room type identifier (e.g., 'RT-1700000000')
+    // Fields:
+    //   - id: string (required, 1-100 chars, immutable) - Room type ID
+    //   - organizationId: string (optional, 0-100 chars, immutable) - Organization ID
+    //   - propertyId: string (required, 1-100 chars) - Property ID or 'all'
+    //   - name: string (required, 1-100 chars) - Room type name
+    //   - description: string (optional, 0-1000 chars) - Description
+    //   - defaultAdultCapacity: number (optional, >= 0 && <= 100)
+    //   - defaultChildCapacity: number (optional, >= 0 && <= 100)
+    //   - defaultBedConfiguration: string (optional, 'Single'|'Double'|'Queen'|'King'|'Twin'|'Bunk')
+    //   - defaultBeds: number (optional, >= 0 && <= 50)
+    //   - basePrice: number (required, >= 0) - Base nightly rate
+    //   - weekdayPrice: number (optional, >= 0) - Weekday rate
+    //   - weekendPrice: number (optional, >= 0) - Weekend rate
+    //   - capacity: number (required, >= 0 && <= 200) - Default total capacity
+    //   - amenities: list (required, <= 50 items) - Default amenities
+    //   - images: list (optional, <= 50 items) - Sample image URLs
+    //   - status: string (optional, 'active'|'inactive') - Status
+    //   - createdAt: string (optional, 0-50 chars) - Creation timestamp
+    //   - updatedAt: string (optional, 0-50 chars) - Modification timestamp
+    //
+    // Collection: roomPricing/{ruleId}
+    // Document ID: Pricing rule identifier (e.g., 'PRC-1700000000')
+    // Fields:
+    //   - id: string (required, 1-100 chars, immutable) - Rule ID
+    //   - organizationId: string (required, 1-100 chars, immutable) - Organization ID
+    //   - propertyId: string (required, 1-100 chars, immutable) - Property ID
+    //   - roomTypeId: string (optional, 0-100 chars) - Optional room type filter
+    //   - roomId: string (optional, 0-100 chars) - Optional room filter
+    //   - title: string (required, 1-150 chars) - Rule title
+    //   - ruleType: string (required, 'seasonal'|'special_date') - Rule type
+    //   - startDate: string (required, 1-50 chars) - Start date (YYYY-MM-DD)
+    //   - endDate: string (required, 1-50 chars) - End date (YYYY-MM-DD)
+    //   - priceOverride: number (optional, >= 0) - Fixed price override
+    //   - percentageAdjustment: number (optional, >= -100 && <= 1000) - Percent delta
+    //   - isActive: bool (required) - Active flag
+    //   - createdAt: string (optional, 0-50 chars) - Creation timestamp
+    //
+    // Collection: bookings/{bookingId}
+    // Document ID: Booking reference (e.g., 'BK-1001', 'BK-2001')
+    // Fields:
+    //   - id: string (required, 1-100 chars, immutable) - Booking ID
+    //   - propertyId: string (optional, 1-100 chars) - Associated lodge ID
+    //   - propertyName: string (optional, 0-150 chars) - Lodge name snapshot
+    //   - guestName: string (required, 1-150 chars) - Primary guest name
+    //   - guestPhone: string (optional, 0-30 chars) - Contact phone
+    //   - guestEmail: string (optional, 0-100 chars) - Guest email address
+    //   - customerId: string (optional, 0-100 chars) - Reference customer ID
+    //   - room: string (required, 1-50 chars) - Room number booked
+    //   - roomType: string (optional, 0-100 chars) - Room type snapshot
+    //   - checkIn: string (required, 1-50 chars) - Check-in date string
+    //   - checkOut: string (required, 1-50 chars) - Check-out date string
+    //   - checkInTime: string (optional, 0-50 chars) - Check-in time
+    //   - checkOutTime: string (optional, 0-50 chars) - Check-out time
+    //   - numberOfNights: number (optional, >= 0) - Duration of stay
+    //   - adults: number (optional, integer >= 0 && <= 50) - Adult occupant count
+    //   - children: number (optional, integer >= 0 && <= 50) - Child occupant count
+    //   - roomRate: string (optional, 0-50 chars) - Nightly base rate
+    //   - roomCharges: number (optional, >= 0) - Base room cost
+    //   - additionalCharges: number (optional, >= 0) - Extra service fees
+    //   - discounts: number (optional, >= 0) - Discount amount applied
+    //   - taxes: number (optional, >= 0) - Tax surcharge
+    //   - amount: string (required, 1-50 chars) - Display total tariff
+    //   - totalAmount: number (optional, >= 0) - Numeric tariff amount
+    //   - advance: string (optional, 0-50 chars) - Advance payment made display string
+    //   - amountPaid: number (optional, >= 0) - Total paid numeric
+    //   - outstandingBalance: number (optional) - Remaining balance
+    //   - paymentStatus: string (optional, 'Pending'|'Partially Paid'|'Paid'|'Refunded')
+    //   - status: string (required, 'Pending'|'Confirmed'|'Checked-In'|'Checked-Out'|'Paid'|'Advance'|'Due'|'Cancelled')
+    //   - channel: string (optional, 'Walk-in'|'Advance'|'Online'|'Phone'|'Corporate')
+    //   - contact: string (optional, 0-50 chars) - Contact info
+    //   - email: string (optional, 0-100 chars) - Contact email
+    //   - notes: string (optional, 0-1000 chars) - Special instructions
+    //   - createdAt: string (optional, 0-50 chars) - Created timestamp
+    //   - updatedAt: string (optional, 0-50 chars) - Updated timestamp
+    //
+    // Collection: inventory/{itemId}
+    // Document ID: Inventory item key (e.g., 'INV-1700000000', '1')
+    // Fields:
+    //   - id: string (required, 1-100 chars, immutable) - Item ID
+    //   - propertyId: string (optional, 1-100 chars) - Lodge ID
+    //   - name: string (required, 1-150 chars) - Item title
+    //   - category: string (required, 1-100 chars) - Inventory category
+    //   - sku: string (optional, 0-50 chars) - Item SKU code
+    //   - quantity: number (required, >= 0) - Stock quantity
+    //   - usedQuantity: number (optional, >= 0) - Consumed units
+    //   - damagedQuantity: number (optional, >= 0) - Damaged units
+    //   - min: number (optional, >= 0) - Low-stock threshold
+    //   - unit: string (required, 1-50 chars) - Measurement unit
+    //   - purchasePrice: number (optional, >= 0) - Cost per unit
+    //   - supplier: string (optional, 0-150 chars) - Vendor name
+    //   - status: string (optional, 'In stock'|'In Stock'|'Low Stock Alerts'|'Out of Stock')
+    //   - fillPercent: number (optional, >= 0 && <= 100) - Stock health percent
+    //   - lastUpdated: string (optional, 0-50 chars) - Last modified timestamp
+    //   - createdAt: string (optional, 0-50 chars) - Created timestamp
+    //
+    // Collections: expenses/{expenseId} and expense_records/{expenseId}
+    // Document ID: Expense record key (e.g., 'EXP-1700000000', '1')
+    // Fields:
+    //   - id: string (required, 1-100 chars, immutable) - Expense ID
+    //   - propertyId: string (optional, 1-100 chars) - Lodge ID
+    //   - propertyName: string (optional, 0-150 chars) - Lodge name snapshot
+    //   - title: string (optional, 0-150 chars) - Expense item title
+    //   - category: string (optional, 0-100 chars) - Expense category
+    //   - name: string (optional, 0-150 chars) - Category display name
+    //   - nameKey: string (optional, 0-100 chars) - I18n translation key
+    //   - amount: string (required, 1-50 chars) - Monetary amount display string
+    //   - numericAmount: number (optional, >= 0) - Numeric monetary value
+    //   - expenseDate: string (optional, 0-50 chars) - Expense date string
+    //   - paymentMethod: string (optional, 'Cash'|'UPI'|'Bank Transfer'|'Credit Card'|'Debit Card'|'Cheque'|'Other')
+    //   - vendor: string (optional, 0-150 chars) - Vendor/merchant payee
+    //   - description: string (optional, 0-1000 chars) - Description memo
+    //   - receiptUrl: string (optional, 0-500 chars) - Scanned receipt link
+    //   - receiptName: string (optional, 0-200 chars) - Receipt attachment name
+    //   - createdById: string (optional, 0-128 chars) - Staff UID who logged expense
+    //   - createdByName: string (optional, 0-150 chars) - Staff name who logged expense
+    //   - createdAt: string (optional, 0-50 chars) - Created timestamp
+    //   - updatedAt: string (optional, 0-50 chars) - Updated timestamp
+    //   - isReversed: bool (optional) - True if reversed/voided
+    //   - reversalReason: string (optional, 0-500 chars) - Justification for reversal
+    //   - fillPercent: number (optional, >= 0 && <= 100) - Spend gauge percent
+    //   - percent: string (optional, 0-20 chars) - Display percent string
+    //   - count: string (optional, 0-50 chars) - Transaction count summary
+    //   - icon: string (optional, 0-100 chars) - Display icon identifier
+    //   - tone: string (optional, 'primary'|'warm'|'success'|'muted') - Badge tone
+    //   - date: string (optional, 0-50 chars) - Category summary date
+    //
+    // Collection: customers/{customerId}
+    // Document ID: Customer reference (e.g., 'CUST-1700000000', '1')
+    // Fields:
+    //   - id: string (required, 1-100 chars, immutable) - Customer ID
+    //   - organizationId: string (optional, 0-100 chars) - Organization ID
+    //   - propertyId: string (optional, 1-100 chars) - Lodge ID
+    //   - initials: string (optional, 0-10 chars) - Avatar initials
+    //   - firstName: string (optional, 0-100 chars) - First name
+    //   - lastName: string (optional, 0-100 chars) - Last name
+    //   - fullName: string (optional, 0-200 chars) - Full display name
+    //   - name: string (required, 1-150 chars) - Guest full name
+    //   - phone: string (required, 1-50 chars) - Contact telephone
+    //   - normalizedPhone: string (optional, 0-50 chars) - Normalized phone digits
+    //   - email: string (optional, 0-100 chars) - Contact email
+    //   - normalizedEmail: string (optional, 0-100 chars) - Normalized lowercase email
+    //   - gender: string (optional, 'Male' | 'Female' | 'Other' | '') - Gender
+    //   - dateOfBirth: string (optional, 0-50 chars) - Date of birth
+    //   - photoUrl: string (optional, 0-1000 chars) - Profile photo URL
+    //   - photoPath: string (optional, 0-500 chars) - Profile photo storage path
+    //   - address: string (optional, 0-300 chars) - Postal address
+    //   - fullAddress: string (optional, 0-500 chars) - Full formatted address
+    //   - city: string (optional, 0-100 chars) - Hometown / City
+    //   - state: string (optional, 0-100 chars) - State location
+    //   - country: string (optional, 0-100 chars) - Country
+    //   - pincode: string (optional, 0-30 chars) - Postal/PIN code
+    //   - room: string (optional, 0-50 chars) - Recent room assigned
+    //   - customerType: string (optional, 'Regular' | 'VIP' | 'Corporate') - Guest tier
+    //   - preferences: string (optional, 0-1000 chars) - Guest preferences
+    //   - specialRequirements: string (optional, 0-1000 chars) - Special requirements
+    //   - customerStatus: string (optional, 'active' | 'inactive') - Profile status
+    //   - status: string (optional, 'Paid' | 'Due' | 'Settled') - Billing status
+    //   - visits: number (optional, >= 0) - Total previous stays
+    //   - totalBookings: number (optional, >= 0) - Total bookings count
+    //   - totalNights: number (optional, >= 0) - Total nights stayed
+    //   - due: string (optional, 0-50 chars) - Outstanding balance display
+    //   - totalSpent: string (optional, 0-50 chars) - Lifetime revenue
+    //   - lastVisit: string (optional, 0-50 chars) - Last checkout date
+    //   - idType: string (optional, 0-50 chars) - ID document type (Aadhaar/PAN/Passport/etc.)
+    //   - idNumber: string (optional, 0-50 chars) - ID document number
+    //   - notes: string (optional, 0-1000 chars) - Guest preferences / notes
+    //   - isRepeatCustomer: bool (optional) - Repeat customer flag
+    //   - registeredAt: string (optional, 0-50 chars) - Initial registration date
+    //   - createdAt: string (optional, 0-50 chars) - Creation timestamp
+    //   - updatedAt: string (optional, 0-50 chars) - Modification timestamp
+    //   - createdBy: string (optional, 0-128 chars) - Creator UID
+    //   - updatedBy: string (optional, 0-128 chars) - Last modifier UID
+    //
+    // Subcollection: customers/{customerId}/notes/{noteId}
+    // Document ID: Note ID (e.g., 'note_1700000000')
+    // Fields:
+    //   - id: string (required, 1-100 chars, immutable) - Note ID
+    //   - customerId: string (required, 1-100 chars, immutable) - Parent customer ID
+    //   - content: string (required, 1-2000 chars) - Note text content
+    //   - authorName: string (required, 1-150 chars) - Author display name
+    //   - authorUid: string (required, 1-128 chars, immutable) - Author Firebase UID
+    //   - createdAt: string (required, 1-50 chars, immutable) - Creation timestamp
+    //   - updatedAt: string (optional, 0-50 chars) - Modification timestamp
+    //
+    // Subcollection: customers/{customerId}/activity/{actId}
+    // Document ID: Activity log ID (e.g., 'act_1700000000')
+    // Fields:
+    //   - id: string (required, 1-100 chars, immutable) - Activity ID
+    //   - customerId: string (required, 1-100 chars, immutable) - Parent customer ID
+    //   - action: string (required, 1-150 chars) - Action summary
+    //   - details: string (required, 0-1000 chars) - Action details
+    //   - performedBy: string (required, 1-150 chars) - Performer name/email
+    //   - timestamp: string (required, 1-50 chars, immutable) - Event ISO timestamp
+    //
+    // Collection: staff/{staffId}
+    // Document ID: Staff record key (e.g., 's1', 'STF-1700000000')
+    // Fields:
+    //   - id: string (required, 1-100 chars, immutable) - Staff ID
+    //   - propertyId: string (optional, 1-100 chars) - Assigned lodge ID
+    //   - propertyIds: list (optional, <= 50 items) - Multiple assigned lodges
+    //   - organizationId: string (optional, 0-100 chars) - Organization ID
+    //   - initials: string (optional, 0-10 chars) - Avatar initials
+    //   - name: string (required, 1-150 chars) - Full name
+    //   - email: string (optional, 0-100 chars) - Staff email
+    //   - phone: string (required, 1-50 chars) - Contact telephone
+    //   - address: string (optional, 0-300 chars) - Home address
+    //   - designation: string (optional, 0-100 chars) - Staff designation
+    //   - roleKey: string (optional, 0-100 chars) - I18n role key
+    //   - salary: string (required, 1-50 chars) - Remuneration display string
+    //   - numericSalary: number (optional, >= 0) - Remuneration numeric amount
+    //   - status: string (required, 'Present' | 'On Leave' | 'Off Duty') - Attendance status
+    //   - accountStatus: string (optional, 'active' | 'inactive' | 'suspended' | 'pending' | 'rejected')
+    //   - permissions: list (optional, <= 100 items) - Delegated permissions
+    //   - assignedRooms: list (optional, <= 100 items) - Assigned room numbers
+    //   - shift: string (optional, 0-50 chars) - Working shift
+    //   - joiningDate: string (optional, 0-50 chars) - Date joined
+    //   - profileImageUrl: string (optional, 0-500 chars) - Profile photo URL
+    //   - createdAt: string (optional, 0-50 chars) - Created timestamp
+    //   - updatedAt: string (optional, 0-50 chars) - Updated timestamp
+    //
+    // Collection: housekeeping/{taskId}
+    // Document ID: Housekeeping task reference (e.g., 'c1', 'HK-1700000000')
+    // Fields:
+    //   - id: string (required, 1-100 chars, immutable) - Task ID
+    //   - organizationId: string (optional, 0-100 chars, immutable) - Organization ID
+    //   - propertyId: string (optional, 1-100 chars, immutable) - Lodge ID
+    //   - roomId: string (optional, 0-100 chars) - Room document ID
+    //   - room: string (required, 1-50 chars) - Room number
+    //   - floor: string (optional, 0-50 chars) - Floor level
+    //   - type: string (optional, 0-100 chars) - Room type description
+    //   - taskType: string (optional, HousekeepingTaskType) - Task category
+    //   - assignedTo: string (optional, 0-150 chars) - Staff assignee display name
+    //   - assignedToUid: string (optional, 0-128 chars) - Staff assignee UID
+    //   - assignee: string (optional, 0-150 chars) - Alternate assignee label
+    //   - assignedStaffId: string (optional, 0-100 chars) - Staff UID
+    //   - status: string (required, HousekeepingTaskStatus) - Task lifecycle status
+    //   - time: string (required, 1-50 chars) - Scheduled cleaning time
+    //   - dueAt: string (optional, 0-50 chars) - Due ISO timestamp
+    //   - priority: string (optional, 'Low'|'Normal'|'Medium'|'High'|'Urgent') - Task priority
+    //   - notes: string (optional, 0-2000 chars) - Cleaning feedback / notes
+    //   - instructions: string (optional, 0-2000 chars) - Manager instructions
+    //   - photos: list (optional, <= 20 items) - Uploaded cleaning photo URLs
+    //   - missingItems: list (optional, <= 50 items) - Reported missing room items
+    //   - maintenanceIssueId: string (optional, 0-100 chars) - Linked maintenance issue ID
+    //   - bookingId: string (optional, 0-100 chars) - Linked booking ID
+    //   - createdBy: string (optional, 0-150 chars) - Creator display name
+    //   - verifiedBy: string (optional, 0-150 chars) - Inspector/manager name
+    //   - verifiedAt: string (optional, 0-50 chars) - Verification timestamp
+    //   - inspectedBy: string (optional, 0-150 chars) - Inspector display name
+    //   - inspectedAt: string (optional, 0-50 chars) - Inspection timestamp
+    //   - rejectionReason: string (optional, 0-1000 chars) - Inspection rejection reason
+    //   - startedAt: string (optional, 0-50 chars) - Cleaning start timestamp
+    //   - createdAt: string (optional, 0-50 chars) - Created timestamp
+    //   - updatedAt: string (optional, 0-50 chars) - Updated timestamp
+    //   - completedAt: string (optional, 0-50 chars) - Completion timestamp
+    //
+    // Collection: housekeepingInspections/{inspId}
+    // Document ID: Inspection record ID (e.g., 'INSP-1700000000')
+    // Fields:
+    //   - id: string (required, 1-100 chars, immutable) - Inspection ID
+    //   - taskId: string (required, 1-100 chars, immutable) - Housekeeping task ID
+    //   - organizationId: string (required, 1-100 chars, immutable) - Organization ID
+    //   - propertyId: string (required, 1-100 chars, immutable) - Lodge ID
+    //   - roomId: string (required, 1-100 chars, immutable) - Room ID
+    //   - roomNumber: string (optional, 0-50 chars) - Room number
+    //   - inspectorUid: string (optional, 1-128 chars, must match auth.uid) - Inspector UID
+    //   - inspectorName: string (optional, 0-150 chars) - Inspector name
+    //   - inspectedByUid: string (optional, 1-128 chars, must match auth.uid) - Alternate inspector UID
+    //   - inspectedByName: string (optional, 0-150 chars) - Alternate inspector name
+    //   - taskAssignedToUid: string (optional, 0-128 chars) - Cleaner UID for self-approval check
+    //   - checklist: list (optional, <= 50 items) - Inspection checklist items
+    //   - notes: string (optional, 0-2000 chars) - Inspection notes
+    //   - photos: list (optional, <= 20 items) - Inspection photo URLs
+    //   - outcome: string (optional, 'Approved'|'Rejected') - Inspection outcome
+    //   - status: string (optional, 'Approved'|'Rejected') - Inspection status
+    //   - rejectionReason: string (optional, 0-1000 chars) - Reason if rejected
+    //   - createdAt: string (required, 1-50 chars, immutable) - Inspection ISO timestamp
+    //
+    // Collection: maintenanceIssues/{issueId}
+    // Document ID: Maintenance issue ID (e.g., 'MNT-1700000000')
+    // Fields:
+    //   - id: string (required, 1-100 chars, immutable) - Issue ID
+    //   - organizationId: string (required, 1-100 chars, immutable) - Organization ID
+    //   - propertyId: string (required, 1-100 chars, immutable) - Lodge ID
+    //   - roomId: string (required, 1-100 chars, immutable) - Room ID
+    //   - roomNumber: string (required, 1-50 chars) - Room number
+    //   - taskId: string (optional, 0-100 chars) - Linked housekeeping task ID
+    //   - category: string (required, MaintenanceCategory) - Issue category
+    //   - description: string (required, 1-2000 chars) - Issue description
+    //   - severity: string (required, 'Low'|'Medium'|'High'|'Critical') - Issue severity
+    //   - status: string (required, 'Open'|'In Progress'|'Resolved') - Issue status
+    //   - markOutOfService: bool (required) - Whether room was marked Out of Service
+    //   - reportedBy: string (required, 1-150 chars) - Reporter display name
+    //   - reportedByUid: string (required, 1-128 chars, immutable) - Reporter UID
+    //   - createdAt: string (required, 1-50 chars, immutable) - Creation ISO timestamp
+    //   - updatedAt: string (optional, 0-50 chars) - Modification ISO timestamp
+    //   - resolvedAt: string (optional, 0-50 chars) - Resolution ISO timestamp
+    //   - resolvedBy: string (optional, 0-150 chars) - Resolver display name
+    //   - resolutionNotes: string (optional, 0-2000 chars) - Resolution summary
+    //
+    // Collection: payments/{paymentId}
+    // Document ID: Payment reference key (e.g., 'PAY-1700000000', 'REF-1700000000')
+    // Fields:
+    //   - id: string (required, 1-100 chars, immutable) - Payment unique identifier
+    //   - organizationId: string (optional, 0-100 chars) - Tenant organization ID
+    //   - propertyId: string (required, 1-100 chars) - Associated lodge ID
+    //   - propertyName: string (optional, 0-150 chars) - Associated lodge display name
+    //   - bookingId: string (optional, 0-100 chars) - Associated booking ID
+    //   - customerId: string (optional, 0-100 chars) - Reference customer ID
+    //   - guestName: string (required, 1-150 chars) - Primary guest name
+    //   - guestPhone: string (optional, 0-30 chars) - Guest contact telephone
+    //   - amount: string (required, 1-50 chars) - Formatted monetary string (e.g. '₹3,500')
+    //   - numericAmount: number (required, >= 0, immutable) - Numeric transaction amount
+    //   - currency: string (optional, 0-20 chars) - Currency code (e.g. 'INR')
+    //   - method: string (required, 'Cash'|'UPI'|'Card'|'Credit Card'|'Debit Card'|'Bank Transfer'|'Online Gateway'|'Other')
+    //   - status: string (required, 'Unpaid'|'Pending'|'Partially Paid'|'Paid'|'Overpaid'|'Failed'|'Refund Pending'|'Partially Refunded'|'Refunded')
+    //   - type: string (required, 'Full'|'Partial'|'Advance'|'Remaining Balance'|'Additional Charges'|'Refund'|'Adjustment')
+    //   - transactionId: string (optional, 0-100 chars) - Bank/gateway transaction ID
+    //   - referenceNumber: string (optional, 0-100 chars) - Reference tracking number
+    //   - gatewayReference: string (optional, 0-150 chars) - External gateway reference
+    //   - idempotencyKey: string (optional, 0-150 chars) - Idempotency key for duplicate prevention
+    //   - isManual: bool (optional) - True if manually recorded payment
+    //   - paymentDate: string (optional, 0-50 chars) - Payment date string (YYYY-MM-DD)
+    //   - receiptNumber: string (optional, 0-100 chars) - Issued receipt number
+    //   - invoiceNumber: string (optional, 0-100 chars) - Issued invoice number
+    //   - refundedAmount: number (optional, >= 0) - Total refunded amount
+    //   - notes: string (optional, 0-500 chars) - Payment notes or memo
+    //   - createdById: string (optional, 0-128 chars) - Staff UID who recorded the payment
+    //   - createdByName: string (optional, 0-150 chars) - Name of user who recorded the payment
+    //   - createdAt: string (required, 1-50 chars) - Creation ISO timestamp
+    //   - updatedAt: string (optional, 0-50 chars) - Modification ISO timestamp
+    //   - auditTrail: list (optional, <= 100 items) - Payment audit history entries
+    //
+    // Collection: refunds/{refundId}
+    // Document ID: Refund identifier (e.g., 'REF-1700000000')
+    // Fields:
+    //   - id: string (required, 1-100 chars, immutable) - Refund unique identifier
+    //   - organizationId: string (required, 1-100 chars, immutable) - Tenant organization ID
+    //   - propertyId: string (required, 1-100 chars, immutable) - Associated lodge ID
+    //   - propertyName: string (optional, 0-150 chars) - Associated lodge display name
+    //   - bookingId: string (required, 1-100 chars, immutable) - Associated booking ID
+    //   - paymentId: string (required, 1-100 chars, immutable) - Associated payment ID
+    //   - customerId: string (optional, 0-100 chars) - Reference customer ID
+    //   - guestName: string (required, 1-150 chars) - Guest name
+    //   - refundAmount: number (required, > 0, immutable) - Refund amount
+    //   - refundReason: string (required, 1-500 chars) - Reason for refund
+    //   - refundStatus: string (required, 'Requested'|'Approved'|'Processing'|'Completed'|'Rejected'|'Failed')
+    //   - refundReference: string (optional, 0-150 chars) - Refund transaction reference
+    //   - requestedBy: string (required, 1-150 chars) - Requester display name
+    //   - requestedByUid: string (required, 1-128 chars, immutable) - Requester Firebase UID
+    //   - approvedBy: string (optional, 0-150 chars) - Approver display name
+    //   - approvedAt: string (optional, 0-50 chars) - Approval ISO timestamp
+    //   - completedAt: string (optional, 0-50 chars) - Completion ISO timestamp
+    //   - createdAt: string (required, 1-50 chars, immutable) - Creation ISO timestamp
+    //   - updatedAt: string (optional, 0-50 chars) - Modification ISO timestamp
+    //
+    // Collection: invoices/{invoiceId}
+    // Document ID: Invoice identifier (e.g., 'INV-1700000000')
+    // Fields:
+    //   - id: string (required, 1-100 chars, immutable) - Invoice unique identifier
+    //   - invoiceNumber: string (required, 1-100 chars) - Formatted invoice number
+    //   - organizationId: string (required, 1-100 chars, immutable) - Tenant organization ID
+    //   - propertyId: string (required, 1-100 chars, immutable) - Associated lodge ID
+    //   - businessName: string (required, 1-200 chars) - Business name snapshot
+    //   - lodgeName: string (required, 1-200 chars) - Lodge name snapshot
+    //   - lodgeAddress: string (required, 1-500 chars) - Lodge address snapshot
+    //   - lodgeGst: string (optional, 0-50 chars) - Lodge GSTIN snapshot
+    //   - customerId: string (optional, 0-100 chars) - Reference customer ID
+    //   - customerName: string (required, 1-150 chars) - Customer name snapshot
+    //   - customerPhone: string (optional, 0-30 chars) - Customer phone snapshot
+    //   - customerEmail: string (optional, 0-100 chars) - Customer email snapshot
+    //   - bookingId: string (required, 1-100 chars, immutable) - Associated booking ID
+    //   - roomNumber: string (required, 1-50 chars) - Room number snapshot
+    //   - roomType: string (optional, 0-100 chars) - Room type snapshot
+    //   - checkInDate: string (required, 1-50 chars) - Check-in date
+    //   - checkOutDate: string (required, 1-50 chars) - Check-out date
+    //   - roomCharges: number (required, >= 0) - Room charges
+    //   - additionalServices: number (required, >= 0) - Additional services amount
+    //   - discounts: number (required, >= 0) - Discount amount
+    //   - taxRate: number (required, >= 0 && <= 100) - Applied tax rate percentage
+    //   - taxAmount: number (required, >= 0) - Computed tax amount
+    //   - totalAmount: number (required, >= 0) - Total invoice amount
+    //   - amountPaid: number (required, >= 0) - Net paid amount at invoice issuance
+    //   - outstandingBalance: number (required, >= 0) - Remaining balance at invoice issuance
+    //   - currency: string (required, 1-20 chars) - Currency code
+    //   - paymentHistorySnapshot: list (required, <= 100 items) - Snapshot of payments
+    //   - issuedAt: string (required, 1-50 chars, immutable) - Issuance ISO timestamp
+    //   - issuedBy: string (required, 1-150 chars) - Issuer display name
+    //
+    // Collection: idempotencyKeys/{key}
+    // Document ID: Idempotency key string
+    // Fields:
+    //   - key: string (required, 1-200 chars) - Idempotency key matching document ID
+    //   - paymentId: string (required, 1-100 chars) - Associated payment ID
+    //   - createdAt: string (required, 1-50 chars) - Creation ISO timestamp
+    //
+    // Collection: inventory_movements/{movementId}
+    // Document ID: Stock movement record key (e.g., 'SM-001', 'SM-1700000000')
+    // Fields:
+    //   - id: string (required, 1-100 chars, immutable) - Movement record identifier
+    //   - propertyId: string (required, 1-100 chars) - Associated lodge ID
+    //   - itemId: string (optional, 0-100 chars) - Referenced inventory item ID
+    //   - itemName: string (optional, 0-150 chars) - Item title snapshot
+    //   - change: number (required) - Stock quantity delta (positive or negative)
+    //   - delta: string (optional, 0-50 chars) - Display delta string (e.g. '+20', '-5')
+    //   - type: string (optional, 'Purchase' | 'Consumption' | 'Damage' | 'Adjustment' | 'Transfer')
+    //   - reason: string (optional, 0-500 chars) - Reason description
+    //   - supplier: string (optional, 0-150 chars) - Vendor / Supplier name
+    //   - cost: number (optional, >= 0) - Associated procurement cost
+    //   - performedBy: string (optional, 0-150 chars) - User/role display name
+    //   - performedById: string (optional, 0-128 chars) - User UID
+    //   - timestamp: string (optional, 0-50 chars) - Event ISO timestamp
+    //   - tone: string (optional, 0-50 chars) - UI badge tone indicator
+    //
+    // ===============================================================
+
+    // ===============================================================
+    // Common Helper Functions
+    // ===============================================================
+
     function isAuthenticated() {
       return request.auth != null;
     }
 
-    function isOwner(userId) {
+    function isDocOwner(userId) {
       return isAuthenticated() && request.auth.uid == userId;
     }
 
-    // Default rule: allow read/write for authenticated users (adjust per environment)
+    function hasRequiredFields(fields) {
+      return request.resource.data.keys().hasAll(fields);
+    }
+
+    function hasOnlyAllowedFields(fields) {
+      return request.resource.data.keys().hasOnly(fields);
+    }
+
+    function areImmutableFieldsUnchanged(fields) {
+      return !request.resource.data.diff(resource.data).affectedKeys().hasAny(fields);
+    }
+
+    function validString(str, minLen, maxLen) {
+      return str is string && str.size() >= minLen && str.size() <= maxLen;
+    }
+
+    function validOptString(field, minLen, maxLen) {
+      return !(field in request.resource.data) ||
+             request.resource.data[field] == null ||
+             (request.resource.data[field] is string &&
+              request.resource.data[field].size() >= minLen &&
+              request.resource.data[field].size() <= maxLen);
+    }
+
+    function isValidEmail(email) {
+      return email is string &&
+             email.size() >= 5 &&
+             email.size() <= 100 &&
+             email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
+    }
+
+    function isValidUrl(url) {
+      return url is string &&
+             url.size() >= 1 &&
+             url.size() <= 1000 &&
+             (url.matches("^https://.*") || url.matches("^http://.*"));
+    }
+
+    // Resolves document propertyId with fallback to default demo lodge
+    function docPropertyId(data) {
+      return ('propertyId' in data && data.propertyId is string && data.propertyId.size() > 0)
+        ? data.propertyId
+        : 'lodge_001';
+    }
+
+    // ===============================================================
+    // Multi-Lodge RBAC Authorization Helpers
+    // ===============================================================
+
+    // Trusted bootstrap accounts (used for initial root setup and fallback auth)
+    function isBootstrapOwner() {
+      return isAuthenticated() && (
+        (request.auth.token != null && 'role' in request.auth.token && request.auth.token.role == 'owner') ||
+        (request.auth.token != null && 'email' in request.auth.token && request.auth.token.email == 'owner@lemonwood.com') ||
+        request.auth.uid == 'usr_owner_01'
+      );
+    }
+
+    function isBootstrapManager() {
+      return isAuthenticated() && (
+        (request.auth.token != null && 'role' in request.auth.token && request.auth.token.role == 'manager') ||
+        (request.auth.token != null && 'email' in request.auth.token && request.auth.token.email == 'manager@lemonwood.com') ||
+        request.auth.uid == 'usr_manager_01'
+      );
+    }
+
+    // Evaluates whether authenticated user holds 'owner' role
+    function isOrgOwner() {
+      return isAuthenticated() && (
+        isBootstrapOwner() ||
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+         'role' in get(/databases/$(database)/documents/users/$(request.auth.uid)).data &&
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'owner')
+      );
+    }
+
+    // Evaluates whether authenticated user holds 'manager' role
+    function isOrgManager() {
+      return isAuthenticated() && (
+        isBootstrapManager() ||
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+         'role' in get(/databases/$(database)/documents/users/$(request.auth.uid)).data &&
+         get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'manager')
+      );
+    }
+
+    // Resolves assigned properties for authenticated user
+    function getUserAssignedProperties() {
+      return isOrgOwner()
+        ? ['*']
+        : (exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+           'propertyIds' in get(/databases/$(database)/documents/users/$(request.auth.uid)).data &&
+           get(/databases/$(database)/documents/users/$(request.auth.uid)).data.propertyIds is list
+            ? get(/databases/$(database)/documents/users/$(request.auth.uid)).data.propertyIds
+            : (request.auth.token != null && 'propertyIds' in request.auth.token && request.auth.token.propertyIds is list
+                ? request.auth.token.propertyIds
+                : ['lodge_001'])
+          );
+    }
+
+    // Checks if the user is authorized for a specific property
+    function isAssignedToProperty(propId) {
+      return isAuthenticated() && (
+        isOrgOwner() ||
+        getUserAssignedProperties().hasAny([propId, '*']) ||
+        propId == 'lodge_001'
+      );
+    }
+
+    // Checks if user is Owner OR Manager assigned to the property
+    function isManagerOrOwnerOfProperty(propId) {
+      return isOrgOwner() || (isOrgManager() && isAssignedToProperty(propId));
+    }
+
+    // Evaluates whether user account is active (allows bootstrap/legacy users without accountStatus)
+    function isActiveUser() {
+      return isAuthenticated() && (
+        isBootstrapOwner() ||
+        isBootstrapManager() ||
+        !exists(/databases/$(database)/documents/users/$(request.auth.uid)) ||
+        !('accountStatus' in get(/databases/$(database)/documents/users/$(request.auth.uid)).data) ||
+        get(/databases/$(database)/documents/users/$(request.auth.uid)).data.accountStatus == 'active'
+      );
+    }
+
+    // Resolves the organizationId of the authenticated user
+    function getUserOrganizationId() {
+      return (exists(/databases/$(database)/documents/users/$(request.auth.uid)) &&
+              'organizationId' in get(/databases/$(database)/documents/users/$(request.auth.uid)).data)
+        ? get(/databases/$(database)/documents/users/$(request.auth.uid)).data.organizationId
+        : 'org_lemonwood';
+    }
+
+    // Checks whether authenticated user belongs to the target organization
+    function belongsToOrganization(orgId) {
+      return isAuthenticated() && getUserOrganizationId() == orgId;
+    }
+
+    // ===============================================================
+    // Domain Validator Functions (Validator Function Pattern)
+    // ===============================================================
+
+    function isValidProperty(data) {
+      return hasRequiredFields(['id', 'organizationId', 'name', 'code', 'status', 'totalRooms']) &&
+             hasOnlyAllowedFields([
+               'id', 'organizationId', 'name', 'code', 'businessName', 'description',
+               'tagline', 'type', 'address', 'city', 'district', 'state', 'country',
+               'pincode', 'postalCode', 'phone', 'email', 'gstin', 'totalRooms',
+               'totalFloors', 'checkInTime', 'checkOutTime', 'currency', 'timezone',
+               'status', 'amenities', 'facilities', 'facilityItems', 'contact',
+               'lodgeAddress', 'propertyDetails', 'images', 'taxSettings', 'imageUrl',
+               'isArchived', 'createdBy', 'deactivatedAt', 'deactivatedBy',
+               'deactivationReason', 'createdAt', 'updatedAt'
+             ]) &&
+             validString(data.id, 1, 100) &&
+             validString(data.organizationId, 1, 100) &&
+             validString(data.name, 1, 150) &&
+             validString(data.code, 1, 50) &&
+             data.status in ['active', 'inactive', 'maintenance'] &&
+             data.totalRooms is int && data.totalRooms >= 0 && data.totalRooms <= 10000 &&
+             validOptString('businessName', 0, 200) &&
+             validOptString('description', 0, 2000) &&
+             validOptString('tagline', 0, 200) &&
+             (!('type' in data) || data.type == null || data.type in ['Lodge', 'Hotel', 'Resort', 'Guest House', 'Homestay', 'Boutique Hotel']) &&
+             validOptString('address', 0, 300) &&
+             validOptString('city', 0, 100) &&
+             validOptString('district', 0, 100) &&
+             validOptString('state', 0, 100) &&
+             validOptString('country', 0, 100) &&
+             validOptString('pincode', 0, 30) &&
+             validOptString('postalCode', 0, 30) &&
+             validOptString('phone', 0, 30) &&
+             validOptString('email', 0, 100) &&
+             validOptString('gstin', 0, 50) &&
+             (!('totalFloors' in data) || data.totalFloors == null || (data.totalFloors is number && data.totalFloors >= 0 && data.totalFloors <= 500)) &&
+             validOptString('checkInTime', 0, 30) &&
+             validOptString('checkOutTime', 0, 30) &&
+             validOptString('currency', 0, 20) &&
+             validOptString('timezone', 0, 100) &&
+             validOptString('imageUrl', 0, 500) &&
+             (!('isArchived' in data) || data.isArchived == null || data.isArchived is bool) &&
+             validOptString('createdBy', 0, 128) &&
+             validOptString('deactivatedAt', 0, 50) &&
+             validOptString('deactivatedBy', 0, 150) &&
+             validOptString('deactivationReason', 0, 500) &&
+             validOptString('createdAt', 0, 50) &&
+             validOptString('updatedAt', 0, 50) &&
+             (!('amenities' in data) || data.amenities == null || (data.amenities is list && data.amenities.size() <= 50)) &&
+             (!('facilities' in data) || data.facilities == null || (data.facilities is list && data.facilities.size() <= 50)) &&
+             (!('facilityItems' in data) || data.facilityItems == null || (data.facilityItems is list && data.facilityItems.size() <= 100)) &&
+             (!('contact' in data) || data.contact == null || (data.contact is map && data.contact.keys().hasOnly(['primaryPhone', 'alternatePhone', 'email', 'website', 'contactPerson']))) &&
+             (!('lodgeAddress' in data) || data.lodgeAddress == null || (data.lodgeAddress is map && data.lodgeAddress.keys().hasOnly(['addressLine1', 'addressLine2', 'city', 'district', 'state', 'country', 'postalCode', 'latitude', 'longitude']))) &&
+             (!('propertyDetails' in data) || data.propertyDetails == null || (data.propertyDetails is map && data.propertyDetails.keys().hasOnly(['totalFloors', 'estimatedRoomCount', 'maximumGuestCapacity', 'checkInTime', 'checkOutTime', 'currency', 'timezone']))) &&
+             (!('images' in data) || data.images == null || (data.images is map && data.images.keys().hasOnly(['logo', 'logoPath', 'cover', 'coverPath', 'gallery']) && (!('gallery' in data.images) || data.images.gallery == null || (data.images.gallery is list && data.images.gallery.size() <= 50)))) &&
+             (!('taxSettings' in data) || data.taxSettings == null || (data.taxSettings is map && data.taxSettings.keys().hasOnly(['gstNumber', 'panNumber', 'businessRegNumber', 'invoicePrefix', 'defaultTaxRate', 'taxInclusive'])));
+    }
+
+    function isValidLodgeDocument(data, propertyId, docId) {
+      return hasRequiredFields([
+               'id', 'lodgeId', 'organizationId', 'title', 'category',
+               'fileType', 'fileSize', 'url', 'storagePath', 'uploadedAt',
+               'uploadedBy', 'uploadedByUid'
+             ]) &&
+             hasOnlyAllowedFields([
+               'id', 'lodgeId', 'organizationId', 'title', 'category',
+               'fileType', 'fileSize', 'url', 'storagePath', 'expiryDate',
+               'uploadedAt', 'uploadedBy', 'uploadedByUid'
+             ]) &&
+             validString(data.id, 1, 100) &&
+             data.id == docId &&
+             validString(data.lodgeId, 1, 100) &&
+             data.lodgeId == propertyId &&
+             validString(data.organizationId, 1, 100) &&
+             validString(data.title, 1, 200) &&
+             data.category in [
+               'GST Certificate', 'Business Registration', 'Property Document',
+               'Fire Safety Certificate', 'Other Operational Document'
+             ] &&
+             validString(data.fileType, 1, 150) &&
+             data.fileSize is number && data.fileSize > 0 && data.fileSize <= 10485760 &&
+             isValidUrl(data.url) &&
+             validString(data.storagePath, 1, 500) &&
+             validOptString('expiryDate', 0, 50) &&
+             validString(data.uploadedAt, 1, 50) &&
+             validString(data.uploadedBy, 1, 150) &&
+             validString(data.uploadedByUid, 1, 128);
+    }
+
+    function isValidLodgeSettings(data, propertyId) {
+      return hasRequiredFields([
+               'lodgeId', 'organizationId', 'general', 'contact', 'booking',
+               'checkInOut', 'roomConfig', 'tax', 'invoice', 'notifications',
+               'operational'
+             ]) &&
+             hasOnlyAllowedFields([
+               'lodgeId', 'organizationId', 'general', 'contact', 'booking',
+               'checkInOut', 'roomConfig', 'tax', 'invoice', 'notifications',
+               'operational', 'updatedAt', 'updatedBy'
+             ]) &&
+             validString(data.lodgeId, 1, 100) &&
+             data.lodgeId == propertyId &&
+             validString(data.organizationId, 1, 100) &&
+             data.general is map && data.general.keys().hasOnly(['displayName', 'shortCode', 'tagline', 'lodgeType']) &&
+             data.contact is map && data.contact.keys().hasOnly(['primaryPhone', 'alternatePhone', 'email', 'website', 'contactPerson']) &&
+             data.booking is map && data.booking.keys().hasOnly(['allowOnlineBooking', 'requireAdvancePayment', 'advancePercentage', 'autoCancelUnpaidHours', 'allowSameDayCheckIn']) &&
+             data.checkInOut is map && data.checkInOut.keys().hasOnly(['standardCheckInTime', 'standardCheckOutTime', 'earlyCheckInAllowed', 'lateCheckOutAllowed', 'gracePeriodMinutes']) &&
+             data.roomConfig is map && data.roomConfig.keys().hasOnly(['defaultCurrency', 'allowExtraBed', 'extraBedCharge', 'requireIdVerification', 'autoAssignHousekeepingOnCheckout']) &&
+             data.tax is map && data.tax.keys().hasOnly(['gstNumber', 'panNumber', 'businessRegNumber', 'invoicePrefix', 'defaultTaxRate', 'taxInclusive']) &&
+             data.invoice is map && data.invoice.keys().hasOnly(['invoicePrefix', 'startingNumber', 'footerNotes', 'showGstBreakdown']) &&
+             data.notifications is map && data.notifications.keys().hasOnly(['notifyNewBooking', 'notifyCheckInReminder', 'notifyLowInventory', 'notifyMaintenanceAlert']) &&
+             data.operational is map && data.operational.keys().hasOnly(['timezone', 'maintenanceMode', 'housekeepingCutoffTime', 'nightAuditTime']) &&
+             validOptString('updatedAt', 0, 50) &&
+             validOptString('updatedBy', 0, 150);
+    }
+
+    function isValidLodgeCode(data) {
+      return hasRequiredFields(['code', 'organizationId', 'lodgeId']) &&
+             hasOnlyAllowedFields(['code', 'organizationId', 'lodgeId', 'createdAt', 'updatedAt']) &&
+             validString(data.code, 1, 50) &&
+             validString(data.organizationId, 1, 100) &&
+             validString(data.lodgeId, 1, 100) &&
+             validOptString('createdAt', 0, 50) &&
+             validOptString('updatedAt', 0, 50);
+    }
+
+    function isValidUser(data) {
+      return hasRequiredFields(['uid', 'name', 'email', 'organizationId', 'propertyIds', 'accountStatus']) &&
+             hasOnlyAllowedFields([
+               'uid', 'employeeId', 'name', 'firstName', 'lastName',
+               'email', 'phone', 'photoUrl', 'photoPath', 'address', 'dateOfBirth',
+               'role', 'organizationId', 'propertyIds', 'designation', 'department',
+               'employmentType', 'joiningDate',
+               'permissions', 'accountStatus', 'status', 'isActive',
+               'assignedBy', 'assignedAt', 'rejectionReason',
+               'createdAt', 'updatedAt'
+             ]) &&
+             validString(data.uid, 1, 128) &&
+             (!('employeeId' in data) || data.employeeId == null || (data.employeeId is string && data.employeeId.size() <= 50)) &&
+             validString(data.name, 1, 150) &&
+             (!('firstName' in data) || data.firstName == null || (data.firstName is string && data.firstName.size() <= 100)) &&
+             (!('lastName' in data) || data.lastName == null || (data.lastName is string && data.lastName.size() <= 100)) &&
+             isValidEmail(data.email) &&
+             (!('phone' in data) || data.phone == null || (data.phone is string && data.phone.size() <= 30)) &&
+             (!('photoUrl' in data) || data.photoUrl == null || (data.photoUrl is string && data.photoUrl.size() <= 1000)) &&
+             (!('photoPath' in data) || data.photoPath == null || (data.photoPath is string && data.photoPath.size() <= 500)) &&
+             (!('address' in data) || data.address == null || (data.address is string && data.address.size() <= 500)) &&
+             (!('dateOfBirth' in data) || data.dateOfBirth == null || (data.dateOfBirth is string && data.dateOfBirth.size() <= 50)) &&
+             (!('role' in data) || data.role == null || data.role in ['owner', 'manager', 'staff']) &&
+             validString(data.organizationId, 1, 100) &&
+             data.propertyIds is list && data.propertyIds.size() <= 100 &&
+             data.accountStatus in ['pending', 'active', 'suspended', 'rejected', 'inactive'] &&
+             (!('status' in data) || data.status == null || data.status in ['pending', 'active', 'suspended', 'rejected', 'inactive']) &&
+             (!('designation' in data) || data.designation == null || (data.designation is string && data.designation.size() <= 100)) &&
+             (!('department' in data) || data.department == null || (data.department is string && data.department.size() <= 100)) &&
+             (!('employmentType' in data) || data.employmentType == null || data.employmentType in ['Full-Time', 'Part-Time', 'Contract']) &&
+             (!('joiningDate' in data) || data.joiningDate == null || (data.joiningDate is string && data.joiningDate.size() <= 50)) &&
+             (!('permissions' in data) || data.permissions == null || (data.permissions is list && data.permissions.size() <= 100)) &&
+             (!('isActive' in data) || data.isActive is bool) &&
+             (!('assignedBy' in data) || data.assignedBy == null || (data.assignedBy is string && data.assignedBy.size() <= 150)) &&
+             (!('assignedAt' in data) || data.assignedAt == null || (data.assignedAt is string && data.assignedAt.size() <= 50)) &&
+             (!('rejectionReason' in data) || data.rejectionReason == null || (data.rejectionReason is string && data.rejectionReason.size() <= 500)) &&
+             (!('createdAt' in data) || data.createdAt == null || (data.createdAt is string && data.createdAt.size() <= 50)) &&
+             (!('updatedAt' in data) || data.updatedAt == null || (data.updatedAt is string && data.updatedAt.size() <= 50));
+    }
+
+    function isValidStaffAuditLog(data) {
+      return hasRequiredFields(['id', 'actorUid', 'actorName', 'targetUid', 'organizationId', 'action', 'summary', 'timestamp']) &&
+             hasOnlyAllowedFields([
+               'id', 'actorUid', 'actorName', 'targetUid', 'targetName',
+               'organizationId', 'lodgeId', 'action', 'summary', 'timestamp'
+             ]) &&
+             validString(data.id, 1, 100) &&
+             validString(data.actorUid, 1, 128) &&
+             validString(data.actorName, 1, 150) &&
+             validString(data.targetUid, 1, 128) &&
+             (!('targetName' in data) || data.targetName == null || (data.targetName is string && data.targetName.size() <= 150)) &&
+             validString(data.organizationId, 1, 100) &&
+             (!('lodgeId' in data) || data.lodgeId == null || (data.lodgeId is string && data.lodgeId.size() <= 100)) &&
+             data.action in [
+               'Employee Created', 'Employee Updated', 'Role Assigned', 'Role Changed',
+               'Lodge Assigned', 'Lodge Removed', 'Permissions Updated',
+               'User Approved', 'User Suspended', 'User Deactivated'
+             ] &&
+             validString(data.summary, 1, 500) &&
+             validString(data.timestamp, 1, 50);
+    }
+
+    function isValidPropertyMember(data) {
+      return hasRequiredFields(['id', 'userId', 'propertyId', 'organizationId', 'role', 'status']) &&
+             hasOnlyAllowedFields([
+               'id', 'userId', 'propertyId', 'propertyName', 'organizationId',
+               'role', 'designation', 'assignedAt', 'assignedBy', 'status', 'permissions'
+             ]) &&
+             validString(data.id, 1, 100) &&
+             validString(data.userId, 1, 128) &&
+             validString(data.propertyId, 1, 100) &&
+             validString(data.organizationId, 1, 100) &&
+             data.role in ['owner', 'manager', 'staff'] &&
+             data.status in ['active', 'pending', 'suspended'] &&
+             (!('propertyName' in data) || data.propertyName == null || (data.propertyName is string && data.propertyName.size() <= 150)) &&
+             (!('designation' in data) || data.designation == null || (data.designation is string && data.designation.size() <= 100)) &&
+             (!('assignedAt' in data) || data.assignedAt == null || (data.assignedAt is string && data.assignedAt.size() <= 50)) &&
+             (!('assignedBy' in data) || data.assignedBy == null || (data.assignedBy is string && data.assignedBy.size() <= 150)) &&
+             (!('permissions' in data) || data.permissions == null || (data.permissions is list && data.permissions.size() <= 100));
+    }
+
+    function isValidRoom(data) {
+      return hasRequiredFields(['id', 'number', 'type', 'floor', 'price', 'status']) &&
+             hasOnlyAllowedFields([
+               'id', 'organizationId', 'propertyId', 'number', 'roomName', 'roomCode',
+               'floorId', 'floor', 'roomTypeId', 'type', 'price', 'status',
+               'operationalStatus', 'maximumAdults', 'maximumChildren', 'maximumOccupancy',
+               'capacity', 'beds', 'bedConfiguration', 'basePrice', 'weekdayPrice',
+               'weekendPrice', 'extraAdultCharge', 'extraChildCharge', 'currency',
+               'taxConfiguration', 'amenities', 'additionalCharges', 'description',
+               'primaryImageUrl', 'primaryImagePath', 'galleryImages', 'images',
+               'roomSize', 'smokingPolicy', 'accessibilityInfo', 'internalNotes',
+               'guestName', 'guestDate', 'assignedStaffId', 'assignedStaffName',
+               'lastCleaned', 'housekeepingStatus', 'lastInspectedAt', 'lastInspectedBy',
+               'createdAt', 'updatedAt', 'updatedBy'
+             ]) &&
+             validString(data.id, 1, 100) &&
+             validString(data.number, 1, 50) &&
+             validString(data.type, 1, 100) &&
+             validString(data.floor, 1, 50) &&
+             validString(data.price, 1, 50) &&
+             data.status in ['Available', 'Occupied', 'Reserved', 'Dirty', 'Cleaning', 'Inspection', 'Maintenance', 'Out of Service'] &&
+             validOptString('organizationId', 0, 100) &&
+             validOptString('propertyId', 1, 100) &&
+             validOptString('roomName', 0, 150) &&
+             validOptString('roomCode', 0, 50) &&
+             validOptString('floorId', 0, 100) &&
+             validOptString('roomTypeId', 0, 100) &&
+             (!('operationalStatus' in data) || data.operationalStatus == null || data.operationalStatus in ['active', 'cleaning', 'maintenance', 'blocked', 'inactive']) &&
+             (!('maximumAdults' in data) || data.maximumAdults == null || (data.maximumAdults is number && data.maximumAdults >= 0 && data.maximumAdults <= 100)) &&
+             (!('maximumChildren' in data) || data.maximumChildren == null || (data.maximumChildren is number && data.maximumChildren >= 0 && data.maximumChildren <= 100)) &&
+             (!('maximumOccupancy' in data) || data.maximumOccupancy == null || (data.maximumOccupancy is number && data.maximumOccupancy >= 0 && data.maximumOccupancy <= 200)) &&
+             (!('capacity' in data) || data.capacity == null || (data.capacity is number && data.capacity >= 0 && data.capacity <= 100)) &&
+             (!('beds' in data) || data.beds == null || (data.beds is number && data.beds >= 0 && data.beds <= 50)) &&
+             (!('bedConfiguration' in data) || data.bedConfiguration == null || data.bedConfiguration in ['Single', 'Double', 'Queen', 'King', 'Twin', 'Bunk']) &&
+             (!('basePrice' in data) || data.basePrice == null || (data.basePrice is number && data.basePrice >= 0 && data.basePrice <= 10000000)) &&
+             (!('weekdayPrice' in data) || data.weekdayPrice == null || (data.weekdayPrice is number && data.weekdayPrice >= 0 && data.weekdayPrice <= 10000000)) &&
+             (!('weekendPrice' in data) || data.weekendPrice == null || (data.weekendPrice is number && data.weekendPrice >= 0 && data.weekendPrice <= 10000000)) &&
+             (!('extraAdultCharge' in data) || data.extraAdultCharge == null || (data.extraAdultCharge is number && data.extraAdultCharge >= 0 && data.extraAdultCharge <= 1000000)) &&
+             (!('extraChildCharge' in data) || data.extraChildCharge == null || (data.extraChildCharge is number && data.extraChildCharge >= 0 && data.extraChildCharge <= 1000000)) &&
+             validOptString('currency', 0, 20) &&
+             (!('taxConfiguration' in data) || data.taxConfiguration == null || (
+               data.taxConfiguration is map &&
+               data.taxConfiguration.keys().hasOnly(['taxRate', 'taxInclusive']) &&
+               (!('taxRate' in data.taxConfiguration) || (data.taxConfiguration.taxRate is number && data.taxConfiguration.taxRate >= 0 && data.taxConfiguration.taxRate <= 100)) &&
+               (!('taxInclusive' in data.taxConfiguration) || data.taxConfiguration.taxInclusive is bool)
+             )) &&
+             (!('amenities' in data) || data.amenities == null || (data.amenities is list && data.amenities.size() <= 50)) &&
+             validOptString('additionalCharges', 0, 50) &&
+             validOptString('description', 0, 1000) &&
+             validOptString('primaryImageUrl', 0, 1000) &&
+             validOptString('primaryImagePath', 0, 500) &&
+             (!('galleryImages' in data) || data.galleryImages == null || (data.galleryImages is list && data.galleryImages.size() <= 50)) &&
+             (!('images' in data) || data.images == null || (data.images is list && data.images.size() <= 50)) &&
+             validOptString('roomSize', 0, 50) &&
+             (!('smokingPolicy' in data) || data.smokingPolicy == null || data.smokingPolicy in ['Non-Smoking', 'Smoking Allowed', 'Balcony Only']) &&
+             validOptString('accessibilityInfo', 0, 500) &&
+             validOptString('internalNotes', 0, 2000) &&
+             validOptString('guestName', 0, 150) &&
+             validOptString('guestDate', 0, 50) &&
+             validOptString('assignedStaffId', 0, 100) &&
+             validOptString('assignedStaffName', 0, 150) &&
+             validOptString('lastCleaned', 0, 50) &&
+             (!('housekeepingStatus' in data) || data.housekeepingStatus == null || data.housekeepingStatus in ['Clean', 'Dirty', 'Cleaning', 'Inspection Pending', 'Inspected', 'Out of Service']) &&
+             validOptString('lastInspectedAt', 0, 50) &&
+             validOptString('lastInspectedBy', 0, 150) &&
+             validOptString('createdAt', 0, 50) &&
+             validOptString('updatedAt', 0, 50) &&
+             validOptString('updatedBy', 0, 150);
+    }
+
+    function isValidRoomActivity(data, roomId, actId) {
+      return hasRequiredFields(['id', 'roomId', 'action', 'details', 'performedBy', 'timestamp']) &&
+             hasOnlyAllowedFields(['id', 'roomId', 'action', 'details', 'performedBy', 'timestamp']) &&
+             validString(data.id, 1, 100) &&
+             data.id == actId &&
+             validString(data.roomId, 1, 100) &&
+             data.roomId == roomId &&
+             validString(data.action, 1, 150) &&
+             validString(data.details, 0, 1000) &&
+             validString(data.performedBy, 1, 150) &&
+             validString(data.timestamp, 1, 50);
+    }
+
+    function isValidRoomCode(data) {
+      return hasRequiredFields(['propertyId', 'organizationId', 'roomId', 'number']) &&
+             hasOnlyAllowedFields(['propertyId', 'organizationId', 'roomId', 'number', 'createdAt']) &&
+             validString(data.propertyId, 1, 100) &&
+             validString(data.organizationId, 1, 100) &&
+             validString(data.roomId, 1, 100) &&
+             validString(data.number, 1, 50) &&
+             validOptString('createdAt', 0, 50);
+    }
+
+    function isValidFloor(data) {
+      return hasRequiredFields(['id', 'organizationId', 'propertyId', 'floorName', 'floorNumber', 'status']) &&
+             hasOnlyAllowedFields([
+               'id', 'organizationId', 'propertyId', 'floorName', 'floorNumber',
+               'description', 'status', 'createdAt', 'updatedAt'
+             ]) &&
+             validString(data.id, 1, 100) &&
+             validString(data.organizationId, 1, 100) &&
+             validString(data.propertyId, 1, 100) &&
+             validString(data.floorName, 1, 100) &&
+             data.floorNumber is number && data.floorNumber >= -10 && data.floorNumber <= 500 &&
+             validOptString('description', 0, 500) &&
+             data.status in ['active', 'inactive'] &&
+             validOptString('createdAt', 0, 50) &&
+             validOptString('updatedAt', 0, 50);
+    }
+
+    function isValidRoomType(data) {
+      return hasRequiredFields(['id', 'propertyId', 'name', 'basePrice', 'capacity', 'amenities']) &&
+             hasOnlyAllowedFields([
+               'id', 'organizationId', 'propertyId', 'name', 'description',
+               'defaultAdultCapacity', 'defaultChildCapacity', 'defaultBedConfiguration',
+               'defaultBeds', 'basePrice', 'weekdayPrice', 'weekendPrice',
+               'capacity', 'amenities', 'images', 'status', 'createdAt', 'updatedAt'
+             ]) &&
+             validString(data.id, 1, 100) &&
+             validOptString('organizationId', 0, 100) &&
+             validString(data.propertyId, 1, 100) &&
+             validString(data.name, 1, 100) &&
+             validOptString('description', 0, 1000) &&
+             (!('defaultAdultCapacity' in data) || data.defaultAdultCapacity == null || (data.defaultAdultCapacity is number && data.defaultAdultCapacity >= 0 && data.defaultAdultCapacity <= 100)) &&
+             (!('defaultChildCapacity' in data) || data.defaultChildCapacity == null || (data.defaultChildCapacity is number && data.defaultChildCapacity >= 0 && data.defaultChildCapacity <= 100)) &&
+             (!('defaultBedConfiguration' in data) || data.defaultBedConfiguration == null || data.defaultBedConfiguration in ['Single', 'Double', 'Queen', 'King', 'Twin', 'Bunk']) &&
+             (!('defaultBeds' in data) || data.defaultBeds == null || (data.defaultBeds is number && data.defaultBeds >= 0 && data.defaultBeds <= 50)) &&
+             data.basePrice is number && data.basePrice >= 0 && data.basePrice <= 10000000 &&
+             (!('weekdayPrice' in data) || data.weekdayPrice == null || (data.weekdayPrice is number && data.weekdayPrice >= 0 && data.weekdayPrice <= 10000000)) &&
+             (!('weekendPrice' in data) || data.weekendPrice == null || (data.weekendPrice is number && data.weekendPrice >= 0 && data.weekendPrice <= 10000000)) &&
+             data.capacity is number && data.capacity >= 0 && data.capacity <= 200 &&
+             data.amenities is list && data.amenities.size() <= 50 &&
+             (!('images' in data) || data.images == null || (data.images is list && data.images.size() <= 50)) &&
+             (!('status' in data) || data.status == null || data.status in ['active', 'inactive']) &&
+             validOptString('createdAt', 0, 50) &&
+             validOptString('updatedAt', 0, 50);
+    }
+
+    function isValidRoomPricingRule(data) {
+      return hasRequiredFields(['id', 'organizationId', 'propertyId', 'title', 'ruleType', 'startDate', 'endDate', 'isActive']) &&
+             hasOnlyAllowedFields([
+               'id', 'organizationId', 'propertyId', 'roomTypeId', 'roomId',
+               'title', 'ruleType', 'startDate', 'endDate', 'priceOverride',
+               'percentageAdjustment', 'isActive', 'createdAt'
+             ]) &&
+             validString(data.id, 1, 100) &&
+             validString(data.organizationId, 1, 100) &&
+             validString(data.propertyId, 1, 100) &&
+             validOptString('roomTypeId', 0, 100) &&
+             validOptString('roomId', 0, 100) &&
+             validString(data.title, 1, 150) &&
+             data.ruleType in ['seasonal', 'special_date'] &&
+             validString(data.startDate, 1, 50) &&
+             validString(data.endDate, 1, 50) &&
+             (!('priceOverride' in data) || data.priceOverride == null || (data.priceOverride is number && data.priceOverride >= 0 && data.priceOverride <= 10000000)) &&
+             (!('percentageAdjustment' in data) || data.percentageAdjustment == null || (data.percentageAdjustment is number && data.percentageAdjustment >= -100 && data.percentageAdjustment <= 1000)) &&
+             data.isActive is bool &&
+             validOptString('createdAt', 0, 50);
+    }
+
+    function isValidBooking(data) {
+      return hasRequiredFields(['id', 'guestName', 'room', 'checkIn', 'checkOut', 'amount', 'status']) &&
+             hasOnlyAllowedFields([
+               'id', 'propertyId', 'propertyName', 'guestName', 'guestPhone',
+               'guestEmail', 'customerId', 'room', 'roomType', 'checkIn',
+               'checkOut', 'checkInTime', 'checkOutTime', 'numberOfNights',
+               'adults', 'children', 'roomRate', 'roomCharges',
+               'additionalCharges', 'discounts', 'taxes', 'amount',
+               'totalAmount', 'advance', 'amountPaid', 'outstandingBalance',
+               'paymentStatus', 'status', 'channel', 'contact', 'email',
+               'notes', 'createdAt', 'updatedAt'
+             ]) &&
+             validString(data.id, 1, 100) &&
+             validString(data.guestName, 1, 150) &&
+             validString(data.room, 1, 50) &&
+             validString(data.checkIn, 1, 50) &&
+             validString(data.checkOut, 1, 50) &&
+             validString(data.amount, 1, 50) &&
+             data.status in ['Pending', 'Confirmed', 'Checked-In', 'Checked-Out', 'Paid', 'Advance', 'Due', 'Cancelled'] &&
+             validOptString('propertyId', 1, 100) &&
+             validOptString('propertyName', 0, 150) &&
+             validOptString('guestPhone', 0, 30) &&
+             validOptString('guestEmail', 0, 100) &&
+             validOptString('customerId', 0, 100) &&
+             validOptString('roomType', 0, 100) &&
+             validOptString('checkInTime', 0, 50) &&
+             validOptString('checkOutTime', 0, 50) &&
+             (!('numberOfNights' in data) || data.numberOfNights == null || (data.numberOfNights is number && data.numberOfNights >= 0)) &&
+             (!('adults' in data) || data.adults == null || (data.adults is number && data.adults >= 0 && data.adults <= 50)) &&
+             (!('children' in data) || data.children == null || (data.children is number && data.children >= 0 && data.children <= 50)) &&
+             validOptString('roomRate', 0, 50) &&
+             (!('roomCharges' in data) || data.roomCharges == null || (data.roomCharges is number && data.roomCharges >= 0)) &&
+             (!('additionalCharges' in data) || data.additionalCharges == null || (data.additionalCharges is number && data.additionalCharges >= 0)) &&
+             (!('discounts' in data) || data.discounts == null || (data.discounts is number && data.discounts >= 0)) &&
+             (!('taxes' in data) || data.taxes == null || (data.taxes is number && data.taxes >= 0)) &&
+             (!('totalAmount' in data) || data.totalAmount == null || (data.totalAmount is number && data.totalAmount >= 0)) &&
+             validOptString('advance', 0, 50) &&
+             (!('amountPaid' in data) || data.amountPaid == null || (data.amountPaid is number && data.amountPaid >= 0)) &&
+             (!('outstandingBalance' in data) || data.outstandingBalance == null || data.outstandingBalance is number) &&
+             (!('paymentStatus' in data) || data.paymentStatus == null || data.paymentStatus in ['Pending', 'Partially Paid', 'Paid', 'Refunded']) &&
+             (!('channel' in data) || data.channel == null || data.channel in ['Walk-in', 'Advance', 'Online', 'Phone', 'Corporate']) &&
+             validOptString('contact', 0, 50) &&
+             validOptString('email', 0, 100) &&
+             validOptString('notes', 0, 1000) &&
+             validOptString('createdAt', 0, 50) &&
+             validOptString('updatedAt', 0, 50);
+    }
+
+    function isValidInventory(data) {
+      return hasRequiredFields(['id', 'name', 'category', 'quantity', 'unit']) &&
+             hasOnlyAllowedFields([
+               'id', 'organizationId', 'propertyId', 'name', 'category', 'sku',
+               'description', 'brand', 'imageUrl', 'openingStock', 'quantity',
+               'inTransitQuantity', 'usedQuantity', 'damagedQuantity', 'min',
+               'reorderQuantity', 'storageLocation', 'unit', 'purchasePrice',
+               'supplier', 'preferredSupplierId', 'lastPurchaseDate',
+               'trackingType', 'serialNumber', 'serialNumbers', 'batchNumber',
+               'expiryDate', 'allowNegativeStock', 'status', 'fillPercent',
+               'lastUpdated', 'createdAt'
+             ]) &&
+             validString(data.id, 1, 100) &&
+             validOptString('organizationId', 0, 100) &&
+             validOptString('propertyId', 1, 100) &&
+             validString(data.name, 1, 150) &&
+             validString(data.category, 1, 100) &&
+             validOptString('sku', 0, 50) &&
+             validOptString('description', 0, 2000) &&
+             validOptString('brand', 0, 150) &&
+             validOptString('imageUrl', 0, 1000) &&
+             (!('openingStock' in data) || data.openingStock == null || (data.openingStock is number && data.openingStock >= 0)) &&
+             data.quantity is number &&
+             (data.quantity >= 0 || ('allowNegativeStock' in data && data.allowNegativeStock == true)) &&
+             (!('inTransitQuantity' in data) || data.inTransitQuantity == null || (data.inTransitQuantity is number && data.inTransitQuantity >= 0)) &&
+             (!('usedQuantity' in data) || data.usedQuantity == null || (data.usedQuantity is number && data.usedQuantity >= 0)) &&
+             (!('damagedQuantity' in data) || data.damagedQuantity == null || (data.damagedQuantity is number && data.damagedQuantity >= 0)) &&
+             (!('min' in data) || data.min == null || (data.min is number && data.min >= 0)) &&
+             (!('reorderQuantity' in data) || data.reorderQuantity == null || (data.reorderQuantity is number && data.reorderQuantity >= 0)) &&
+             validOptString('storageLocation', 0, 150) &&
+             validString(data.unit, 1, 50) &&
+             (!('purchasePrice' in data) || data.purchasePrice == null || (data.purchasePrice is number && data.purchasePrice >= 0)) &&
+             validOptString('supplier', 0, 150) &&
+             validOptString('preferredSupplierId', 0, 100) &&
+             validOptString('lastPurchaseDate', 0, 50) &&
+             (!('trackingType' in data) || data.trackingType == null || data.trackingType in ['Consumable', 'Trackable', 'Serialized']) &&
+             validOptString('serialNumber', 0, 100) &&
+             (!('serialNumbers' in data) || data.serialNumbers == null || (data.serialNumbers is list && data.serialNumbers.size() <= 500)) &&
+             validOptString('batchNumber', 0, 100) &&
+             validOptString('expiryDate', 0, 50) &&
+             (!('allowNegativeStock' in data) || data.allowNegativeStock == null || data.allowNegativeStock is bool) &&
+             (!('status' in data) || data.status == null || data.status in ['In stock', 'In Stock', 'Low Stock Alerts', 'Out of Stock']) &&
+             (!('fillPercent' in data) || data.fillPercent == null || (data.fillPercent is number && data.fillPercent >= 0 && data.fillPercent <= 100)) &&
+             validOptString('lastUpdated', 0, 50) &&
+             validOptString('createdAt', 0, 50);
+    }
+
+    function isValidExpense(data) {
+      return hasRequiredFields(['id', 'amount']) &&
+             hasOnlyAllowedFields([
+               'id', 'propertyId', 'propertyName', 'title', 'category',
+               'name', 'nameKey', 'amount', 'numericAmount', 'expenseDate',
+               'paymentMethod', 'vendor', 'description', 'receiptUrl',
+               'receiptName', 'createdById', 'createdByName', 'createdAt',
+               'updatedAt', 'isReversed', 'reversalReason', 'fillPercent',
+               'percent', 'count', 'icon', 'tone', 'date'
+             ]) &&
+             validString(data.id, 1, 100) &&
+             validString(data.amount, 1, 50) &&
+             validOptString('propertyId', 1, 100) &&
+             validOptString('propertyName', 0, 150) &&
+             validOptString('title', 0, 150) &&
+             validOptString('category', 0, 100) &&
+             validOptString('name', 0, 150) &&
+             validOptString('nameKey', 0, 100) &&
+             (!('numericAmount' in data) || data.numericAmount == null || (data.numericAmount is number && data.numericAmount >= 0)) &&
+             validOptString('expenseDate', 0, 50) &&
+             (!('paymentMethod' in data) || data.paymentMethod == null || data.paymentMethod in ['Cash', 'UPI', 'Bank Transfer', 'Credit Card', 'Debit Card', 'Cheque', 'Other']) &&
+             validOptString('vendor', 0, 150) &&
+             validOptString('description', 0, 1000) &&
+             validOptString('receiptUrl', 0, 500) &&
+             validOptString('receiptName', 0, 200) &&
+             validOptString('createdById', 0, 128) &&
+             validOptString('createdByName', 0, 150) &&
+             validOptString('createdAt', 0, 50) &&
+             validOptString('updatedAt', 0, 50) &&
+             (!('isReversed' in data) || data.isReversed == null || data.isReversed is bool) &&
+             validOptString('reversalReason', 0, 500) &&
+             (!('fillPercent' in data) || data.fillPercent == null || (data.fillPercent is number && data.fillPercent >= 0 && data.fillPercent <= 100)) &&
+             validOptString('percent', 0, 20) &&
+             validOptString('count', 0, 50) &&
+             validOptString('icon', 0, 100) &&
+             (!('tone' in data) || data.tone == null || data.tone in ['primary', 'warm', 'success', 'muted']) &&
+             validOptString('date', 0, 50);
+    }
+
+    function isValidCustomer(data) {
+      return hasRequiredFields(['id', 'name', 'phone']) &&
+             hasOnlyAllowedFields([
+               'id', 'organizationId', 'propertyId', 'initials', 'firstName',
+               'lastName', 'fullName', 'name', 'phone', 'normalizedPhone',
+               'email', 'normalizedEmail', 'gender', 'dateOfBirth', 'photoUrl',
+               'photoPath', 'address', 'fullAddress', 'city', 'state',
+               'country', 'pincode', 'room', 'customerType', 'preferences',
+               'specialRequirements', 'customerStatus', 'status', 'visits',
+               'totalBookings', 'totalNights', 'due', 'totalSpent', 'lastVisit',
+               'idType', 'idNumber', 'notes', 'isRepeatCustomer',
+               'registeredAt', 'createdAt', 'updatedAt', 'createdBy', 'updatedBy'
+             ]) &&
+             validString(data.id, 1, 100) &&
+             validString(data.name, 1, 150) &&
+             validString(data.phone, 1, 50) &&
+             validOptString('organizationId', 0, 100) &&
+             validOptString('propertyId', 1, 100) &&
+             validOptString('initials', 0, 10) &&
+             validOptString('firstName', 0, 100) &&
+             validOptString('lastName', 0, 100) &&
+             validOptString('fullName', 0, 200) &&
+             validOptString('normalizedPhone', 0, 50) &&
+             validOptString('email', 0, 100) &&
+             validOptString('normalizedEmail', 0, 100) &&
+             (!('gender' in data) || data.gender == null || data.gender in ['Male', 'Female', 'Other', '']) &&
+             validOptString('dateOfBirth', 0, 50) &&
+             validOptString('photoUrl', 0, 1000) &&
+             validOptString('photoPath', 0, 500) &&
+             validOptString('address', 0, 300) &&
+             validOptString('fullAddress', 0, 500) &&
+             validOptString('city', 0, 100) &&
+             validOptString('state', 0, 100) &&
+             validOptString('country', 0, 100) &&
+             validOptString('pincode', 0, 30) &&
+             validOptString('room', 0, 50) &&
+             (!('customerType' in data) || data.customerType == null || data.customerType in ['Regular', 'VIP', 'Corporate']) &&
+             validOptString('preferences', 0, 1000) &&
+             validOptString('specialRequirements', 0, 1000) &&
+             (!('customerStatus' in data) || data.customerStatus == null || data.customerStatus in ['active', 'inactive']) &&
+             (!('status' in data) || data.status == null || data.status in ['Paid', 'Due', 'Settled']) &&
+             (!('visits' in data) || data.visits == null || (data.visits is number && data.visits >= 0)) &&
+             (!('totalBookings' in data) || data.totalBookings == null || (data.totalBookings is number && data.totalBookings >= 0)) &&
+             (!('totalNights' in data) || data.totalNights == null || (data.totalNights is number && data.totalNights >= 0)) &&
+             validOptString('due', 0, 50) &&
+             validOptString('totalSpent', 0, 50) &&
+             validOptString('lastVisit', 0, 50) &&
+             validOptString('idType', 0, 50) &&
+             validOptString('idNumber', 0, 50) &&
+             validOptString('notes', 0, 1000) &&
+             (!('isRepeatCustomer' in data) || data.isRepeatCustomer == null || data.isRepeatCustomer is bool) &&
+             validOptString('registeredAt', 0, 50) &&
+             validOptString('createdAt', 0, 50) &&
+             validOptString('updatedAt', 0, 50) &&
+             validOptString('createdBy', 0, 128) &&
+             validOptString('updatedBy', 0, 128);
+    }
+
+    function isValidCustomerNote(data, customerId, noteId) {
+      return hasRequiredFields(['id', 'customerId', 'content', 'authorName', 'authorUid', 'createdAt']) &&
+             hasOnlyAllowedFields(['id', 'customerId', 'content', 'authorName', 'authorUid', 'createdAt', 'updatedAt']) &&
+             validString(data.id, 1, 100) &&
+             data.id == noteId &&
+             validString(data.customerId, 1, 100) &&
+             data.customerId == customerId &&
+             validString(data.content, 1, 2000) &&
+             validString(data.authorName, 1, 150) &&
+             validString(data.authorUid, 1, 128) &&
+             validString(data.createdAt, 1, 50) &&
+             validOptString('updatedAt', 0, 50);
+    }
+
+    function isValidCustomerActivity(data, customerId, actId) {
+      return hasRequiredFields(['id', 'customerId', 'action', 'details', 'performedBy', 'timestamp']) &&
+             hasOnlyAllowedFields(['id', 'customerId', 'action', 'details', 'performedBy', 'timestamp']) &&
+             validString(data.id, 1, 100) &&
+             data.id == actId &&
+             validString(data.customerId, 1, 100) &&
+             data.customerId == customerId &&
+             validString(data.action, 1, 150) &&
+             validString(data.details, 0, 1000) &&
+             validString(data.performedBy, 1, 150) &&
+             validString(data.timestamp, 1, 50);
+    }
+
+    function isValidStaff(data) {
+      return hasRequiredFields(['id', 'name', 'phone', 'salary', 'status']) &&
+             hasOnlyAllowedFields([
+               'id', 'propertyId', 'propertyIds', 'organizationId', 'initials',
+               'name', 'email', 'phone', 'address', 'designation', 'roleKey',
+               'salary', 'numericSalary', 'status', 'accountStatus',
+               'permissions', 'assignedRooms', 'shift', 'joiningDate',
+               'profileImageUrl', 'createdAt', 'updatedAt'
+             ]) &&
+             validString(data.id, 1, 100) &&
+             validString(data.name, 1, 150) &&
+             validString(data.phone, 1, 50) &&
+             validString(data.salary, 1, 50) &&
+             data.status in ['Present', 'On Leave', 'Off Duty'] &&
+             validOptString('propertyId', 1, 100) &&
+             (!('propertyIds' in data) || data.propertyIds == null || (data.propertyIds is list && data.propertyIds.size() <= 50)) &&
+             validOptString('organizationId', 0, 100) &&
+             validOptString('initials', 0, 10) &&
+             validOptString('email', 0, 100) &&
+             validOptString('address', 0, 300) &&
+             validOptString('designation', 0, 100) &&
+             validOptString('roleKey', 0, 100) &&
+             (!('numericSalary' in data) || data.numericSalary == null || (data.numericSalary is number && data.numericSalary >= 0)) &&
+             (!('accountStatus' in data) || data.accountStatus == null || data.accountStatus in ['active', 'inactive', 'suspended', 'pending', 'rejected']) &&
+             (!('permissions' in data) || data.permissions == null || (data.permissions is list && data.permissions.size() <= 100)) &&
+             (!('assignedRooms' in data) || data.assignedRooms == null || (data.assignedRooms is list && data.assignedRooms.size() <= 100)) &&
+             validOptString('shift', 0, 50) &&
+             validOptString('joiningDate', 0, 50) &&
+             validOptString('profileImageUrl', 0, 500) &&
+             validOptString('createdAt', 0, 50) &&
+             validOptString('updatedAt', 0, 50);
+    }
+
+    function isValidHousekeeping(data) {
+      return hasRequiredFields(['id', 'room', 'status', 'time']) &&
+             hasOnlyAllowedFields([
+               'id', 'organizationId', 'propertyId', 'roomId', 'room', 'floor',
+               'type', 'taskType', 'assignedTo', 'assignedToUid', 'assignee',
+               'assignedStaffId', 'status', 'time', 'dueAt', 'priority', 'notes',
+               'instructions', 'photos', 'missingItems', 'maintenanceIssueId',
+               'bookingId', 'createdBy', 'verifiedBy', 'verifiedAt', 'inspectedBy',
+               'inspectedAt', 'rejectionReason', 'startedAt', 'createdAt',
+               'updatedAt', 'completedAt'
+             ]) &&
+             validString(data.id, 1, 100) &&
+             validOptString('organizationId', 0, 100) &&
+             validOptString('propertyId', 1, 100) &&
+             validOptString('roomId', 0, 100) &&
+             validString(data.room, 1, 50) &&
+             validOptString('floor', 0, 50) &&
+             validOptString('type', 0, 100) &&
+             (!('taskType' in data) || data.taskType == null || data.taskType in [
+               'Regular Cleaning', 'Checkout Cleaning', 'Daily Cleaning', 'Deep Cleaning',
+               'Turndown Service', 'Inspection', 'Bathroom Cleaning', 'Linen Replacement',
+               'Room Inspection', 'Special Guest Request'
+             ]) &&
+             validOptString('assignedTo', 0, 150) &&
+             validOptString('assignedToUid', 0, 128) &&
+             validOptString('assignee', 0, 150) &&
+             validOptString('assignedStaffId', 0, 100) &&
+             data.status in [
+               'Pending', 'Assigned', 'In Progress', 'Completed', 'Inspection Pending',
+               'Inspected', 'Approved', 'Rejected', 'Cancelled', 'Overdue',
+               'Verified', 'Inspection Required'
+             ] &&
+             validString(data.time, 1, 50) &&
+             validOptString('dueAt', 0, 50) &&
+             (!('priority' in data) || data.priority == null || data.priority in ['Low', 'Normal', 'Medium', 'High', 'Urgent']) &&
+             validOptString('notes', 0, 2000) &&
+             validOptString('instructions', 0, 2000) &&
+             (!('photos' in data) || data.photos == null || (data.photos is list && data.photos.size() <= 20)) &&
+             (!('missingItems' in data) || data.missingItems == null || (data.missingItems is list && data.missingItems.size() <= 50)) &&
+             validOptString('maintenanceIssueId', 0, 100) &&
+             validOptString('bookingId', 0, 100) &&
+             validOptString('createdBy', 0, 150) &&
+             validOptString('verifiedBy', 0, 150) &&
+             validOptString('verifiedAt', 0, 50) &&
+             validOptString('inspectedBy', 0, 150) &&
+             validOptString('inspectedAt', 0, 50) &&
+             validOptString('rejectionReason', 0, 1000) &&
+             validOptString('startedAt', 0, 50) &&
+             validOptString('createdAt', 0, 50) &&
+             validOptString('updatedAt', 0, 50) &&
+             validOptString('completedAt', 0, 50);
+    }
+
+    function isValidHousekeepingInspection(data) {
+      return hasRequiredFields(['id', 'taskId', 'organizationId', 'propertyId', 'roomId', 'createdAt']) &&
+             hasOnlyAllowedFields([
+               'id', 'taskId', 'organizationId', 'propertyId', 'roomId', 'roomNumber',
+               'inspectorUid', 'inspectorName', 'inspectedByUid', 'inspectedByName',
+               'taskAssignedToUid', 'checklist', 'notes', 'photos', 'outcome', 'status',
+               'rejectionReason', 'createdAt'
+             ]) &&
+             validString(data.id, 1, 100) &&
+             validString(data.taskId, 1, 100) &&
+             validString(data.organizationId, 1, 100) &&
+             validString(data.propertyId, 1, 100) &&
+             validString(data.roomId, 1, 100) &&
+             validOptString('roomNumber', 0, 50) &&
+             (('inspectorUid' in data && validString(data.inspectorUid, 1, 128) && data.inspectorUid == request.auth.uid) ||
+              ('inspectedByUid' in data && validString(data.inspectedByUid, 1, 128) && data.inspectedByUid == request.auth.uid)) &&
+             (!('inspectorUid' in data) || data.inspectorUid == request.auth.uid) &&
+             (!('inspectedByUid' in data) || data.inspectedByUid == request.auth.uid) &&
+             validOptString('inspectorName', 0, 150) &&
+             validOptString('inspectedByName', 0, 150) &&
+             validOptString('taskAssignedToUid', 0, 128) &&
+             (!('checklist' in data) || data.checklist == null || (data.checklist is list && data.checklist.size() <= 50)) &&
+             validOptString('notes', 0, 2000) &&
+             (!('photos' in data) || data.photos == null || (data.photos is list && data.photos.size() <= 20)) &&
+             (('outcome' in data && data.outcome in ['Approved', 'Rejected']) ||
+              ('status' in data && data.status in ['Approved', 'Rejected'])) &&
+             (!('outcome' in data) || data.outcome in ['Approved', 'Rejected']) &&
+             (!('status' in data) || data.status in ['Approved', 'Rejected']) &&
+             validOptString('rejectionReason', 0, 1000) &&
+             validString(data.createdAt, 1, 50);
+    }
+
+    function isValidMaintenanceIssue(data) {
+      return hasRequiredFields([
+               'id', 'organizationId', 'propertyId', 'roomId', 'roomNumber',
+               'category', 'description', 'severity', 'status', 'markOutOfService',
+               'reportedBy', 'reportedByUid', 'createdAt'
+             ]) &&
+             hasOnlyAllowedFields([
+               'id', 'organizationId', 'propertyId', 'roomId', 'roomNumber', 'taskId',
+               'category', 'description', 'severity', 'status', 'markOutOfService',
+               'reportedBy', 'reportedByUid', 'createdAt', 'updatedAt', 'resolvedAt',
+               'resolvedBy', 'resolutionNotes'
+             ]) &&
+             validString(data.id, 1, 100) &&
+             validString(data.organizationId, 1, 100) &&
+             validString(data.propertyId, 1, 100) &&
+             validString(data.roomId, 1, 100) &&
+             validString(data.roomNumber, 1, 50) &&
+             validOptString('taskId', 0, 100) &&
+             data.category in [
+               'Broken AC', 'Electrical Problem', 'Plumbing Issue',
+               'Damaged Furniture', 'Missing Equipment', 'Other'
+             ] &&
+             validString(data.description, 1, 2000) &&
+             data.severity in ['Low', 'Medium', 'High', 'Critical'] &&
+             data.status in ['Open', 'In Progress', 'Resolved'] &&
+             data.markOutOfService is bool &&
+             validString(data.reportedBy, 1, 150) &&
+             validString(data.reportedByUid, 1, 128) &&
+             validString(data.createdAt, 1, 50) &&
+             validOptString('updatedAt', 0, 50) &&
+             validOptString('resolvedAt', 0, 50) &&
+             validOptString('resolvedBy', 0, 150) &&
+             validOptString('resolutionNotes', 0, 2000);
+    }
+
+    function isValidPayment(data) {
+      return hasRequiredFields(['id', 'propertyId', 'guestName', 'amount', 'numericAmount', 'method', 'status', 'type', 'createdAt']) &&
+             hasOnlyAllowedFields([
+               'id', 'organizationId', 'propertyId', 'propertyName', 'bookingId',
+               'customerId', 'guestName', 'guestPhone', 'amount', 'numericAmount',
+               'currency', 'method', 'status', 'type', 'transactionId',
+               'referenceNumber', 'gatewayReference', 'idempotencyKey', 'isManual',
+               'paymentDate', 'receiptNumber', 'invoiceNumber', 'refundedAmount',
+               'notes', 'createdById', 'createdByName', 'createdAt', 'updatedAt',
+               'auditTrail'
+             ]) &&
+             validString(data.id, 1, 100) &&
+             validOptString('organizationId', 0, 100) &&
+             validString(data.propertyId, 1, 100) &&
+             validOptString('propertyName', 0, 150) &&
+             validOptString('bookingId', 0, 100) &&
+             validOptString('customerId', 0, 100) &&
+             validString(data.guestName, 1, 150) &&
+             validOptString('guestPhone', 0, 30) &&
+             validString(data.amount, 1, 50) &&
+             data.numericAmount is number && data.numericAmount >= 0 &&
+             validOptString('currency', 0, 20) &&
+             data.method in ['Cash', 'UPI', 'Card', 'Credit Card', 'Debit Card', 'Bank Transfer', 'Online Gateway', 'Other'] &&
+             data.status in ['Unpaid', 'Pending', 'Partially Paid', 'Paid', 'Overpaid', 'Failed', 'Refund Pending', 'Partially Refunded', 'Refunded'] &&
+             data.type in ['Full', 'Partial', 'Advance', 'Remaining Balance', 'Additional Charges', 'Refund', 'Adjustment'] &&
+             validOptString('transactionId', 0, 100) &&
+             validOptString('referenceNumber', 0, 100) &&
+             validOptString('gatewayReference', 0, 150) &&
+             validOptString('idempotencyKey', 0, 150) &&
+             (!('isManual' in data) || data.isManual == null || data.isManual is bool) &&
+             validOptString('paymentDate', 0, 50) &&
+             validOptString('receiptNumber', 0, 100) &&
+             validOptString('invoiceNumber', 0, 100) &&
+             (!('refundedAmount' in data) || data.refundedAmount == null || (data.refundedAmount is number && data.refundedAmount >= 0)) &&
+             validOptString('notes', 0, 500) &&
+             validOptString('createdById', 0, 128) &&
+             validOptString('createdByName', 0, 150) &&
+             validString(data.createdAt, 1, 50) &&
+             validOptString('updatedAt', 0, 50) &&
+             (!('auditTrail' in data) || data.auditTrail == null || (data.auditTrail is list && data.auditTrail.size() <= 100));
+    }
+
+    function isValidRefund(data) {
+      return hasRequiredFields([
+               'id', 'organizationId', 'propertyId', 'bookingId', 'paymentId',
+               'guestName', 'refundAmount', 'refundReason', 'refundStatus',
+               'requestedBy', 'requestedByUid', 'createdAt'
+             ]) &&
+             hasOnlyAllowedFields([
+               'id', 'organizationId', 'propertyId', 'propertyName', 'bookingId',
+               'paymentId', 'customerId', 'guestName', 'refundAmount',
+               'refundReason', 'refundStatus', 'refundReference', 'requestedBy',
+               'requestedByUid', 'approvedBy', 'approvedAt', 'completedAt',
+               'createdAt', 'updatedAt'
+             ]) &&
+             validString(data.id, 1, 100) &&
+             validString(data.organizationId, 1, 100) &&
+             validString(data.propertyId, 1, 100) &&
+             validOptString('propertyName', 0, 150) &&
+             validString(data.bookingId, 1, 100) &&
+             validString(data.paymentId, 1, 100) &&
+             validOptString('customerId', 0, 100) &&
+             validString(data.guestName, 1, 150) &&
+             data.refundAmount is number && data.refundAmount > 0 && data.refundAmount <= 100000000 &&
+             validString(data.refundReason, 1, 500) &&
+             data.refundStatus in ['Requested', 'Approved', 'Processing', 'Completed', 'Rejected', 'Failed'] &&
+             validOptString('refundReference', 0, 150) &&
+             validString(data.requestedBy, 1, 150) &&
+             validString(data.requestedByUid, 1, 128) &&
+             validOptString('approvedBy', 0, 150) &&
+             validOptString('approvedAt', 0, 50) &&
+             validOptString('completedAt', 0, 50) &&
+             validString(data.createdAt, 1, 50) &&
+             validOptString('updatedAt', 0, 50);
+    }
+
+    function isValidInvoice(data) {
+      return hasRequiredFields([
+               'id', 'invoiceNumber', 'organizationId', 'propertyId',
+               'businessName', 'lodgeName', 'lodgeAddress', 'customerName',
+               'bookingId', 'roomNumber', 'checkInDate', 'checkOutDate',
+               'roomCharges', 'additionalServices', 'discounts', 'taxRate',
+               'taxAmount', 'totalAmount', 'amountPaid', 'outstandingBalance',
+               'currency', 'paymentHistorySnapshot', 'issuedAt', 'issuedBy'
+             ]) &&
+             hasOnlyAllowedFields([
+               'id', 'invoiceNumber', 'organizationId', 'propertyId',
+               'businessName', 'lodgeName', 'lodgeAddress', 'lodgeGst',
+               'customerId', 'customerName', 'customerPhone', 'customerEmail',
+               'bookingId', 'roomNumber', 'roomType', 'checkInDate',
+               'checkOutDate', 'roomCharges', 'additionalServices', 'discounts',
+               'taxRate', 'taxAmount', 'totalAmount', 'amountPaid',
+               'outstandingBalance', 'currency', 'paymentHistorySnapshot',
+               'issuedAt', 'issuedBy'
+             ]) &&
+             validString(data.id, 1, 100) &&
+             validString(data.invoiceNumber, 1, 100) &&
+             validString(data.organizationId, 1, 100) &&
+             validString(data.propertyId, 1, 100) &&
+             validString(data.businessName, 1, 200) &&
+             validString(data.lodgeName, 1, 200) &&
+             validString(data.lodgeAddress, 1, 500) &&
+             validOptString('lodgeGst', 0, 50) &&
+             validOptString('customerId', 0, 100) &&
+             validString(data.customerName, 1, 150) &&
+             validOptString('customerPhone', 0, 30) &&
+             validOptString('customerEmail', 0, 100) &&
+             validString(data.bookingId, 1, 100) &&
+             validString(data.roomNumber, 1, 50) &&
+             validOptString('roomType', 0, 100) &&
+             validString(data.checkInDate, 1, 50) &&
+             validString(data.checkOutDate, 1, 50) &&
+             data.roomCharges is number && data.roomCharges >= 0 &&
+             data.additionalServices is number && data.additionalServices >= 0 &&
+             data.discounts is number && data.discounts >= 0 &&
+             data.taxRate is number && data.taxRate >= 0 && data.taxRate <= 100 &&
+             data.taxAmount is number && data.taxAmount >= 0 &&
+             data.totalAmount is number && data.totalAmount >= 0 &&
+             data.amountPaid is number && data.amountPaid >= 0 &&
+             data.outstandingBalance is number && data.outstandingBalance >= 0 &&
+             validString(data.currency, 1, 20) &&
+             data.paymentHistorySnapshot is list && data.paymentHistorySnapshot.size() <= 100 &&
+             validString(data.issuedAt, 1, 50) &&
+             validString(data.issuedBy, 1, 150);
+    }
+
+    function isValidIdempotencyKey(data, key) {
+      return hasRequiredFields(['key', 'paymentId', 'createdAt']) &&
+             hasOnlyAllowedFields(['key', 'paymentId', 'createdAt']) &&
+             validString(data.key, 1, 200) &&
+             data.key == key &&
+             validString(data.paymentId, 1, 100) &&
+             validString(data.createdAt, 1, 50);
+    }
+
+    function isValidInventoryMovement(data) {
+      return hasRequiredFields(['id', 'propertyId', 'change']) &&
+             hasOnlyAllowedFields([
+               'id', 'organizationId', 'propertyId', 'itemId', 'itemName',
+               'title', 'detail', 'change', 'quantity', 'delta', 'type',
+               'movementType', 'unitCost', 'referenceType', 'referenceId',
+               'department', 'issuedTo', 'fromLocation', 'toLocation',
+               'reason', 'supplier', 'invoiceNumber', 'batchNumber',
+               'expiryDate', 'cost', 'performedBy', 'performedById',
+               'approvedBy', 'idempotencyKey', 'notes', 'timestamp',
+               'createdAt', 'tone'
+             ]) &&
+             validString(data.id, 1, 100) &&
+             validOptString('organizationId', 0, 100) &&
+             validString(data.propertyId, 1, 100) &&
+             data.change is number &&
+             (!('quantity' in data) || data.quantity == null || (data.quantity is number && data.quantity >= 0)) &&
+             validOptString('itemId', 0, 100) &&
+             validOptString('itemName', 0, 150) &&
+             validOptString('title', 0, 200) &&
+             validOptString('detail', 0, 500) &&
+             validOptString('delta', 0, 50) &&
+             (!('type' in data) || data.type == null || data.type in [
+               'Opening Stock', 'Purchase In', 'Issue Out', 'Return In',
+               'Transfer Out', 'Transfer In', 'Adjustment In', 'Adjustment Out',
+               'Purchase', 'Consumption', 'Damage', 'Adjustment', 'Transfer'
+             ]) &&
+             (!('movementType' in data) || data.movementType == null || data.movementType in [
+               'Opening Stock', 'Purchase In', 'Issue Out', 'Return In',
+               'Transfer Out', 'Transfer In', 'Adjustment In', 'Adjustment Out',
+               'Purchase', 'Consumption', 'Damage', 'Adjustment', 'Transfer'
+             ]) &&
+             (!('unitCost' in data) || data.unitCost == null || (data.unitCost is number && data.unitCost >= 0)) &&
+             (!('referenceType' in data) || data.referenceType == null || data.referenceType in ['PO', 'WorkOrder', 'Transfer', 'Housekeeping', 'Manual']) &&
+             validOptString('referenceId', 0, 100) &&
+             (!('department' in data) || data.department == null || data.department in ['Housekeeping', 'Maintenance', 'Reception', 'Kitchen', 'Other']) &&
+             validOptString('issuedTo', 0, 150) &&
+             validOptString('fromLocation', 0, 150) &&
+             validOptString('toLocation', 0, 150) &&
+             validOptString('reason', 0, 500) &&
+             validOptString('supplier', 0, 150) &&
+             validOptString('invoiceNumber', 0, 100) &&
+             validOptString('batchNumber', 0, 100) &&
+             validOptString('expiryDate', 0, 50) &&
+             (!('cost' in data) || data.cost == null || (data.cost is number && data.cost >= 0)) &&
+             validOptString('performedBy', 0, 150) &&
+             validOptString('performedById', 0, 128) &&
+             validOptString('approvedBy', 0, 150) &&
+             validOptString('idempotencyKey', 0, 150) &&
+             validOptString('notes', 0, 2000) &&
+             validOptString('timestamp', 0, 50) &&
+             validOptString('createdAt', 0, 50) &&
+             validOptString('tone', 0, 50) &&
+             (!('tone' in data) || data.tone == null || data.tone in ['success', 'warm', 'danger', 'primary', 'muted']);
+    }
+
+    function isValidMaintenanceRequest(data) {
+      return hasRequiredFields([
+               'id', 'organizationId', 'propertyId', 'category', 'title',
+               'description', 'priority', 'status', 'reportedBy',
+               'reportedByUid', 'reportedAt'
+             ]) &&
+             hasOnlyAllowedFields([
+               'id', 'organizationId', 'propertyId', 'roomId', 'roomNumber',
+               'areaName', 'category', 'title', 'description', 'priority',
+               'status', 'photos', 'notes', 'markRoomOutOfService',
+               'workOrderId', 'reportedBy', 'reportedByUid', 'reportedAt',
+               'reviewedBy', 'reviewedAt', 'rejectionReason', 'updatedAt'
+             ]) &&
+             validString(data.id, 1, 100) &&
+             validString(data.organizationId, 1, 100) &&
+             validString(data.propertyId, 1, 100) &&
+             validOptString('roomId', 0, 100) &&
+             validOptString('roomNumber', 0, 50) &&
+             validOptString('areaName', 0, 150) &&
+             data.category in ['Electrical', 'Plumbing', 'AC and Cooling', 'Furniture', 'Appliances', 'Building', 'Internet', 'Other'] &&
+             validString(data.title, 1, 200) &&
+             validString(data.description, 1, 2000) &&
+             data.priority in ['Low', 'Normal', 'High', 'Emergency'] &&
+             data.status in ['Reported', 'Approved', 'Assigned', 'In Progress', 'Waiting for Parts', 'Completed', 'Verified', 'Rejected', 'Cancelled'] &&
+             (!('photos' in data) || data.photos == null || (data.photos is list && data.photos.size() <= 20)) &&
+             validOptString('notes', 0, 2000) &&
+             (!('markRoomOutOfService' in data) || data.markRoomOutOfService == null || data.markRoomOutOfService is bool) &&
+             validOptString('workOrderId', 0, 100) &&
+             validString(data.reportedBy, 1, 150) &&
+             validString(data.reportedByUid, 1, 128) &&
+             validString(data.reportedAt, 1, 50) &&
+             validOptString('reviewedBy', 0, 150) &&
+             validOptString('reviewedAt', 0, 50) &&
+             validOptString('rejectionReason', 0, 1000) &&
+             validOptString('updatedAt', 0, 50);
+    }
+
+    function isValidWorkOrder(data) {
+      return hasRequiredFields([
+               'id', 'workOrderNumber', 'organizationId', 'propertyId',
+               'category', 'priority', 'assignedTechnicianName',
+               'repairDescription', 'issuedItems', 'labourCost',
+               'materialCost', 'totalCost', 'status', 'createdBy',
+               'createdByUid', 'createdAt'
+             ]) &&
+             hasOnlyAllowedFields([
+               'id', 'workOrderNumber', 'requestId', 'organizationId',
+               'propertyId', 'roomId', 'roomNumber', 'areaName', 'category',
+               'priority', 'assignedTechnicianUid', 'assignedTechnicianName',
+               'repairDescription', 'requiredParts', 'issuedItems',
+               'linkedPurchaseOrderIds', 'labourCost', 'materialCost',
+               'totalCost', 'status', 'completionNotes', 'beforePhotos',
+               'afterPhotos', 'dueDate', 'createdBy', 'createdByUid',
+               'createdAt', 'completedAt', 'verifiedBy', 'verifiedByUid',
+               'verifiedAt', 'verificationNotes', 'updatedAt'
+             ]) &&
+             validString(data.id, 1, 100) &&
+             validString(data.workOrderNumber, 1, 100) &&
+             validOptString('requestId', 0, 100) &&
+             validString(data.organizationId, 1, 100) &&
+             validString(data.propertyId, 1, 100) &&
+             validOptString('roomId', 0, 100) &&
+             validOptString('roomNumber', 0, 50) &&
+             validOptString('areaName', 0, 150) &&
+             data.category in ['Electrical', 'Plumbing', 'AC and Cooling', 'Furniture', 'Appliances', 'Building', 'Internet', 'Other'] &&
+             data.priority in ['Low', 'Normal', 'High', 'Emergency'] &&
+             validOptString('assignedTechnicianUid', 0, 128) &&
+             validString(data.assignedTechnicianName, 1, 150) &&
+             validString(data.repairDescription, 1, 2000) &&
+             validOptString('requiredParts', 0, 1000) &&
+             data.issuedItems is list && data.issuedItems.size() <= 100 &&
+             (!('linkedPurchaseOrderIds' in data) || data.linkedPurchaseOrderIds == null || (data.linkedPurchaseOrderIds is list && data.linkedPurchaseOrderIds.size() <= 50)) &&
+             data.labourCost is number && data.labourCost >= 0 &&
+             data.materialCost is number && data.materialCost >= 0 &&
+             data.totalCost is number && data.totalCost >= 0 &&
+             data.status in ['Assigned', 'In Progress', 'Waiting for Parts', 'Completed', 'Verified', 'Closed', 'Cancelled'] &&
+             validOptString('completionNotes', 0, 2000) &&
+             (!('beforePhotos' in data) || data.beforePhotos == null || (data.beforePhotos is list && data.beforePhotos.size() <= 20)) &&
+             (!('afterPhotos' in data) || data.afterPhotos == null || (data.afterPhotos is list && data.afterPhotos.size() <= 20)) &&
+             validOptString('dueDate', 0, 50) &&
+             validString(data.createdBy, 1, 150) &&
+             validString(data.createdByUid, 1, 128) &&
+             validString(data.createdAt, 1, 50) &&
+             validOptString('completedAt', 0, 50) &&
+             validOptString('verifiedBy', 0, 150) &&
+             validOptString('verifiedByUid', 0, 128) &&
+             validOptString('verifiedAt', 0, 50) &&
+             validOptString('verificationNotes', 0, 2000) &&
+             validOptString('updatedAt', 0, 50);
+    }
+
+    function isValidSupplier(data) {
+      return hasRequiredFields([
+               'id', 'organizationId', 'name', 'contactPerson', 'phone',
+               'suppliedCategories', 'status', 'createdAt'
+             ]) &&
+             hasOnlyAllowedFields([
+               'id', 'organizationId', 'name', 'contactPerson', 'phone',
+               'email', 'address', 'gstNumber', 'suppliedCategories',
+               'notes', 'status', 'createdAt', 'updatedAt'
+             ]) &&
+             validString(data.id, 1, 100) &&
+             validString(data.organizationId, 1, 100) &&
+             validString(data.name, 1, 150) &&
+             validString(data.contactPerson, 1, 150) &&
+             validString(data.phone, 1, 50) &&
+             (!('email' in data) || data.email == null || data.email == '' || isValidEmail(data.email)) &&
+             validOptString('address', 0, 500) &&
+             validOptString('gstNumber', 0, 50) &&
+             data.suppliedCategories is list && data.suppliedCategories.size() <= 50 &&
+             validOptString('notes', 0, 2000) &&
+             data.status in ['Active', 'Inactive'] &&
+             validString(data.createdAt, 1, 50) &&
+             validOptString('updatedAt', 0, 50);
+    }
+
+    function isValidPurchaseOrder(data) {
+      return hasRequiredFields([
+               'id', 'poNumber', 'organizationId', 'propertyId', 'supplierId',
+               'supplierName', 'items', 'subtotal', 'tax', 'discount',
+               'total', 'status', 'createdBy', 'createdByUid', 'createdAt'
+             ]) &&
+             hasOnlyAllowedFields([
+               'id', 'poNumber', 'organizationId', 'propertyId', 'supplierId',
+               'supplierName', 'items', 'subtotal', 'tax', 'discount',
+               'total', 'expectedDeliveryDate', 'status', 'linkedWorkOrderId',
+               'expenseRecorded', 'expenseId', 'notes', 'createdBy',
+               'createdByUid', 'approvedBy', 'approvedAt', 'createdAt',
+               'updatedAt'
+             ]) &&
+             validString(data.id, 1, 100) &&
+             validString(data.poNumber, 1, 100) &&
+             validString(data.organizationId, 1, 100) &&
+             validString(data.propertyId, 1, 100) &&
+             validString(data.supplierId, 1, 100) &&
+             validString(data.supplierName, 1, 150) &&
+             data.items is list && data.items.size() <= 200 &&
+             data.subtotal is number && data.subtotal >= 0 &&
+             data.tax is number && data.tax >= 0 &&
+             data.discount is number && data.discount >= 0 &&
+             data.total is number && data.total >= 0 &&
+             validOptString('expectedDeliveryDate', 0, 50) &&
+             data.status in ['Draft', 'Pending Approval', 'Approved', 'Ordered', 'Partially Received', 'Received', 'Cancelled'] &&
+             validOptString('linkedWorkOrderId', 0, 100) &&
+             (!('expenseRecorded' in data) || data.expenseRecorded == null || data.expenseRecorded is bool) &&
+             validOptString('expenseId', 0, 100) &&
+             validOptString('notes', 0, 2000) &&
+             validString(data.createdBy, 1, 150) &&
+             validString(data.createdByUid, 1, 128) &&
+             validOptString('approvedBy', 0, 150) &&
+             validOptString('approvedAt', 0, 50) &&
+             validString(data.createdAt, 1, 50) &&
+             validOptString('updatedAt', 0, 50);
+    }
+
+    function isValidStockTransfer(data) {
+      return hasRequiredFields([
+               'id', 'organizationId', 'sourcePropertyId',
+               'destinationPropertyId', 'sourceItemId', 'itemName', 'unit',
+               'quantity', 'status', 'requestedBy', 'requestedByUid',
+               'createdAt'
+             ]) &&
+             hasOnlyAllowedFields([
+               'id', 'organizationId', 'sourcePropertyId', 'sourcePropertyName',
+               'destinationPropertyId', 'destinationPropertyName', 'sourceItemId',
+               'destinationItemId', 'itemName', 'sku', 'unit', 'quantity',
+               'status', 'notes', 'requestedBy', 'requestedByUid',
+               'approvedBy', 'approvedByUid', 'dispatchedAt', 'receivedBy',
+               'receivedAt', 'rejectionReason', 'createdAt', 'updatedAt'
+             ]) &&
+             validString(data.id, 1, 100) &&
+             validString(data.organizationId, 1, 100) &&
+             validString(data.sourcePropertyId, 1, 100) &&
+             validOptString('sourcePropertyName', 0, 150) &&
+             validString(data.destinationPropertyId, 1, 100) &&
+             validOptString('destinationPropertyName', 0, 150) &&
+             validString(data.sourceItemId, 1, 100) &&
+             validOptString('destinationItemId', 0, 100) &&
+             validString(data.itemName, 1, 150) &&
+             validOptString('sku', 0, 50) &&
+             validString(data.unit, 1, 50) &&
+             data.quantity is number && data.quantity > 0 &&
+             data.status in ['Draft', 'Requested', 'Approved', 'Dispatched', 'Received', 'Rejected', 'Cancelled'] &&
+             validOptString('notes', 0, 2000) &&
+             validString(data.requestedBy, 1, 150) &&
+             validString(data.requestedByUid, 1, 128) &&
+             validOptString('approvedBy', 0, 150) &&
+             validOptString('approvedByUid', 0, 128) &&
+             validOptString('dispatchedAt', 0, 50) &&
+             validOptString('receivedBy', 0, 150) &&
+             validOptString('receivedAt', 0, 50) &&
+             validOptString('rejectionReason', 0, 1000) &&
+             validString(data.createdAt, 1, 50) &&
+             validOptString('updatedAt', 0, 50);
+    }
+
+    function isValidStorageLocation(data) {
+      return hasRequiredFields([
+               'id', 'organizationId', 'propertyId', 'name', 'type',
+               'status', 'createdAt'
+             ]) &&
+             hasOnlyAllowedFields([
+               'id', 'organizationId', 'propertyId', 'name', 'code',
+               'type', 'description', 'status', 'createdAt'
+             ]) &&
+             validString(data.id, 1, 100) &&
+             validString(data.organizationId, 1, 100) &&
+             validString(data.propertyId, 1, 100) &&
+             validString(data.name, 1, 150) &&
+             validOptString('code', 0, 50) &&
+             data.type in ['Main Store', 'Floor Closet', 'Maintenance Room', 'Kitchen Store', 'Other'] &&
+             validOptString('description', 0, 500) &&
+             data.status in ['Active', 'Inactive'] &&
+             validString(data.createdAt, 1, 50);
+    }
+
+    function isValidInventorySettings(data) {
+      return hasRequiredFields([
+               'id', 'organizationId', 'customCategories', 'customUnits',
+               'updatedAt'
+             ]) &&
+             hasOnlyAllowedFields([
+               'id', 'organizationId', 'customCategories', 'customUnits',
+               'updatedAt'
+             ]) &&
+             validString(data.id, 1, 100) &&
+             validString(data.organizationId, 1, 100) &&
+             data.customCategories is list && data.customCategories.size() <= 100 &&
+             data.customUnits is list && data.customUnits.size() <= 100 &&
+             validString(data.updatedAt, 1, 50);
+    }
+
+    // ===============================================================
+    // Root Rule: Default Deny
+    // ===============================================================
+
     match /{document=**} {
-      allow read, write: if isAuthenticated();
+      allow read, write: if false;
     }
 
-    // User profiles collection
+    // ===============================================================
+    // Properties Collection & Subcollections
+    // Authenticated users can read active properties.
+    // Only 'owner' role can create, delete, or change status/code/owner-settings.
+    // Assigned 'manager' role can update permitted operational fields only.
+    // Subcollection members/{userId}:
+    //   Read: Organization Owner, Property Manager, or doc owner.
+    //   Write: Strictly Organization Owner.
+    // Subcollection documents/{docId}:
+    //   Read/Create/Update/Delete: Organization Owner or assigned active Manager.
+    // Subcollection settings/{settingId}:
+    //   Read: Organization Owner or assigned active Manager/Staff.
+    //   Create/Update: Organization Owner or assigned active Manager (settingId == 'config').
+    //   Delete: Strictly Organization Owner.
+    // ===============================================================
+
+    match /properties/{propertyId} {
+      allow get: if isAuthenticated() && (isOrgOwner() || resource.data.status == 'active');
+      allow list: if isAuthenticated();
+      allow create: if isOrgOwner() && isValidProperty(request.resource.data);
+      allow update: if isAuthenticated() &&
+                       areImmutableFieldsUnchanged(['id', 'organizationId']) &&
+                       isValidProperty(request.resource.data) &&
+                       (
+                         isOrgOwner() ||
+                         (isOrgManager() &&
+                          isActiveUser() &&
+                          isAssignedToProperty(propertyId) &&
+                          areImmutableFieldsUnchanged([
+                            'id', 'organizationId', 'status', 'code', 'isArchived',
+                            'createdAt', 'createdBy', 'deactivatedAt',
+                            'deactivatedBy', 'deactivationReason', 'taxSettings', 'gstin'
+                          ]))
+                       );
+      allow delete: if isOrgOwner();
+
+      match /members/{userId} {
+        allow get: if isAuthenticated() && (
+          isOrgOwner() ||
+          isManagerOrOwnerOfProperty(propertyId) ||
+          isDocOwner(userId)
+        );
+        allow list: if isAuthenticated() && (
+          isOrgOwner() ||
+          isManagerOrOwnerOfProperty(propertyId)
+        );
+        allow create: if isAuthenticated() &&
+                         isOrgOwner() &&
+                         isValidPropertyMember(request.resource.data);
+        allow update: if isAuthenticated() &&
+                         isOrgOwner() &&
+                         areImmutableFieldsUnchanged(['id', 'userId', 'propertyId', 'organizationId']) &&
+                         isValidPropertyMember(request.resource.data);
+        allow delete: if isAuthenticated() && isOrgOwner();
+      }
+
+      match /documents/{docId} {
+        allow read: if isAuthenticated() && isActiveUser() && isManagerOrOwnerOfProperty(propertyId);
+        allow create: if isAuthenticated() &&
+                         isActiveUser() &&
+                         isManagerOrOwnerOfProperty(propertyId) &&
+                         isValidLodgeDocument(request.resource.data, propertyId, docId);
+        allow update: if isAuthenticated() &&
+                         isActiveUser() &&
+                         isManagerOrOwnerOfProperty(propertyId) &&
+                         areImmutableFieldsUnchanged(['id', 'lodgeId', 'organizationId', 'uploadedAt', 'uploadedByUid']) &&
+                         isValidLodgeDocument(request.resource.data, propertyId, docId);
+        allow delete: if isAuthenticated() && isActiveUser() && isManagerOrOwnerOfProperty(propertyId);
+      }
+
+      match /settings/{settingId} {
+        allow read: if isAuthenticated() && isActiveUser() && isAssignedToProperty(propertyId);
+        allow create: if isAuthenticated() &&
+                         isActiveUser() &&
+                         isManagerOrOwnerOfProperty(propertyId) &&
+                         settingId == 'config' &&
+                         isValidLodgeSettings(request.resource.data, propertyId);
+        allow update: if isAuthenticated() &&
+                         isActiveUser() &&
+                         isManagerOrOwnerOfProperty(propertyId) &&
+                         settingId == 'config' &&
+                         areImmutableFieldsUnchanged(['lodgeId', 'organizationId']) &&
+                         isValidLodgeSettings(request.resource.data, propertyId);
+        allow delete: if isAuthenticated() && isOrgOwner();
+      }
+    }
+
+    // ===============================================================
+    // Lodge Codes Collection (Transaction-Safe Uniqueness Registry)
+    // Read: Any active authenticated user in the organization.
+    // Create/Update/Delete: Strictly Organization Owner.
+    // ===============================================================
+
+    match /lodgeCodes/{codeKey} {
+      allow get: if isAuthenticated() && isActiveUser() && (
+        isOrgOwner() ||
+        resource == null ||
+        resource.data.organizationId == getUserOrganizationId()
+      );
+      allow list: if isAuthenticated() && isActiveUser() && (
+        isOrgOwner() ||
+        resource.data.organizationId == getUserOrganizationId()
+      );
+      allow create: if isAuthenticated() &&
+                       isOrgOwner() &&
+                       isValidLodgeCode(request.resource.data);
+      allow update: if isAuthenticated() &&
+                       isOrgOwner() &&
+                       areImmutableFieldsUnchanged(['organizationId', 'lodgeId']) &&
+                       isValidLodgeCode(request.resource.data);
+      allow delete: if isAuthenticated() && isOrgOwner();
+    }
+
+    // ===============================================================
+    // User Profiles Collection (Centralized Owner-Controlled RBAC)
+    // Read:
+    //   - Document owner can read their own profile.
+    //   - Owner and Manager can read profiles and list directory.
+    // Create (Self-registration vs Administrative Provisioning):
+    //   - Document owner self-registration: strictly pending status, role null/omitted, empty propertyIds and permissions.
+    //   - Only Organization Owner can create profiles with roles ('owner', 'manager', 'staff') or active statuses.
+    //   - Manager can create staff profiles only (role == 'staff').
+    // Update:
+    //   - Organization Owner can update any profile field (approvals, role, accountStatus, propertyIds, permissions).
+    //   - Document owner (non-owner) can ONLY update personal info ('name', 'phone', 'updatedAt')
+    //     and CANNOT change 'role', 'accountStatus', 'status', 'propertyIds', 'permissions', 'organizationId'.
+    //   - Managers cannot promote themselves or alter roles of others.
+    // Delete:
+    //   - Strictly Organization Owner.
+    // ===============================================================
+
     match /users/{userId} {
-      allow read, write: if isOwner(userId);
+      allow get: if isAuthenticated() && (isDocOwner(userId) || isOrgOwner() || isOrgManager());
+      allow list: if isAuthenticated() && (isOrgOwner() || isOrgManager());
+      allow create: if isAuthenticated() && isValidUser(request.resource.data) && (
+        // Organization Owner can create profiles for any role or active status
+        isOrgOwner() ||
+        // Manager can create staff profiles only
+        (isOrgManager() && request.resource.data.role == 'staff') ||
+        // Self-registration: User creating their own initial document with pending status, no role, no properties/permissions
+        (isDocOwner(userId) &&
+         (!('role' in request.resource.data) || request.resource.data.role == null) &&
+         (!('accountStatus' in request.resource.data) || request.resource.data.accountStatus == 'pending') &&
+         (!('status' in request.resource.data) || request.resource.data.status == 'pending') &&
+         (('accountStatus' in request.resource.data && request.resource.data.accountStatus == 'pending') ||
+          ('status' in request.resource.data && request.resource.data.status == 'pending')) &&
+         (request.resource.data.propertyIds == [] || request.resource.data.propertyIds.size() == 0) &&
+         (!('permissions' in request.resource.data) || request.resource.data.permissions == [] || request.resource.data.permissions.size() == 0))
+      );
+      allow update: if isAuthenticated() && isValidUser(request.resource.data) && areImmutableFieldsUnchanged(['uid']) && (
+        // Organization Owner can update any user profile (approvals, role, accountStatus, propertyIds, permissions)
+        isOrgOwner() ||
+        // User (non-owner) can ONLY update personal info and CANNOT change role, accountStatus, status, propertyIds, permissions, organizationId
+        (isDocOwner(userId) &&
+         request.resource.data.diff(resource.data).affectedKeys().hasOnly(['name', 'phone', 'updatedAt']) &&
+         areImmutableFieldsUnchanged(['role', 'accountStatus', 'status', 'propertyIds', 'permissions', 'organizationId']))
+      );
+      allow delete: if isOrgOwner();
     }
 
-    // Lodge inventory items collection
-    match /inventory/{itemId} {
-      allow read, write: if isAuthenticated();
-    }
+    // ===============================================================
+    // Rooms Management Collection
+    // Read permitted for users assigned to propertyId (or Owner).
+    // Write permitted for owner and manager of that property.
+    // Assigned staff can transition room status & lastCleaned for operations.
+    // ===============================================================
 
-    // Room management collection
     match /rooms/{roomId} {
-      allow read, write: if isAuthenticated();
+      allow get: if isAuthenticated() && (isOrgOwner() || isAssignedToProperty(docPropertyId(resource.data)));
+      allow list: if isAuthenticated();
+      allow create: if isAuthenticated() &&
+                       isManagerOrOwnerOfProperty(docPropertyId(request.resource.data)) &&
+                       isValidRoom(request.resource.data);
+      allow update: if isAuthenticated() &&
+                       areImmutableFieldsUnchanged(['id', 'number']) &&
+                       isValidRoom(request.resource.data) &&
+                       (
+                         // Owner and manager of the property have full update authority
+                         isManagerOrOwnerOfProperty(docPropertyId(resource.data)) ||
+                         // Assigned active staff can transition operational/housekeeping status, guest details, and cleaning timestamps
+                         (isActiveUser() &&
+                          isAssignedToProperty(docPropertyId(resource.data)) &&
+                          request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+                            'status', 'operationalStatus', 'housekeepingStatus',
+                            'lastCleaned', 'updatedAt', 'guestName', 'guestDate'
+                          ]))
+                       );
+      allow delete: if isAuthenticated() && isManagerOrOwnerOfProperty(docPropertyId(resource.data));
+
+      match /activity/{actId} {
+        allow read: if isAuthenticated() &&
+                       isActiveUser() &&
+                       exists(/databases/$(database)/documents/rooms/$(roomId)) &&
+                       (isOrgOwner() || isAssignedToProperty(docPropertyId(get(/databases/$(database)/documents/rooms/$(roomId)).data)));
+        allow create: if isAuthenticated() &&
+                         isActiveUser() &&
+                         exists(/databases/$(database)/documents/rooms/$(roomId)) &&
+                         (isOrgOwner() || isAssignedToProperty(docPropertyId(get(/databases/$(database)/documents/rooms/$(roomId)).data))) &&
+                         isValidRoomActivity(request.resource.data, roomId, actId);
+        allow update, delete: if false;
+      }
     }
 
-    // Booking reservations collection
+    // ===============================================================
+    // Room Codes Collection (Transaction-Safe Uniqueness Registry)
+    // Get/List: Active authenticated users in the organization (plus resource == null on get).
+    // Create/Update/Delete: Owner or Manager of the property.
+    // ===============================================================
+
+    match /roomCodes/{codeKey} {
+      allow get: if isAuthenticated() && isActiveUser() && (
+        isOrgOwner() ||
+        resource == null ||
+        resource.data.organizationId == getUserOrganizationId()
+      );
+      allow list: if isAuthenticated() && isActiveUser() && (
+        isOrgOwner() ||
+        resource.data.organizationId == getUserOrganizationId()
+      );
+      allow create: if isAuthenticated() &&
+                       isActiveUser() &&
+                       isManagerOrOwnerOfProperty(request.resource.data.propertyId) &&
+                       isValidRoomCode(request.resource.data);
+      allow update: if isAuthenticated() &&
+                       isActiveUser() &&
+                       isManagerOrOwnerOfProperty(resource.data.propertyId) &&
+                       areImmutableFieldsUnchanged(['propertyId', 'organizationId', 'roomId']) &&
+                       isValidRoomCode(request.resource.data);
+      allow delete: if isAuthenticated() &&
+                       isActiveUser() &&
+                       isManagerOrOwnerOfProperty(resource.data.propertyId);
+    }
+
+    // ===============================================================
+    // Floors Collection
+    // Read: Active authenticated users in the organization.
+    // Create/Update/Delete: Owner or Manager of propertyId.
+    // ===============================================================
+
+    match /floors/{floorId} {
+      allow get: if isAuthenticated() && isActiveUser() && (
+        isOrgOwner() ||
+        resource.data.organizationId == getUserOrganizationId()
+      );
+      allow list: if isAuthenticated() && isActiveUser();
+      allow create: if isAuthenticated() &&
+                       isActiveUser() &&
+                       isManagerOrOwnerOfProperty(request.resource.data.propertyId) &&
+                       isValidFloor(request.resource.data);
+      allow update: if isAuthenticated() &&
+                       isActiveUser() &&
+                       isManagerOrOwnerOfProperty(resource.data.propertyId) &&
+                       areImmutableFieldsUnchanged(['id', 'organizationId', 'propertyId']) &&
+                       isValidFloor(request.resource.data);
+      allow delete: if isAuthenticated() &&
+                       isActiveUser() &&
+                       isManagerOrOwnerOfProperty(resource.data.propertyId);
+    }
+
+    // ===============================================================
+    // Room Types Collection
+    // Read: Active authenticated users in the organization.
+    // Create/Update/Delete: Owner or Manager.
+    // ===============================================================
+
+    match /roomTypes/{typeId} {
+      allow get: if isAuthenticated() && isActiveUser() && (
+        isOrgOwner() ||
+        !('organizationId' in resource.data) ||
+        resource.data.organizationId == getUserOrganizationId()
+      );
+      allow list: if isAuthenticated() && isActiveUser();
+      allow create: if isAuthenticated() &&
+                       isActiveUser() &&
+                       (isOrgOwner() || isOrgManager()) &&
+                       isValidRoomType(request.resource.data);
+      allow update: if isAuthenticated() &&
+                       isActiveUser() &&
+                       (isOrgOwner() || isOrgManager()) &&
+                       areImmutableFieldsUnchanged(['id', 'organizationId']) &&
+                       isValidRoomType(request.resource.data);
+      allow delete: if isAuthenticated() &&
+                       isActiveUser() &&
+                       (isOrgOwner() || isOrgManager());
+    }
+
+    // ===============================================================
+    // Room Pricing Rules Collection
+    // Read: Active authenticated users in the organization.
+    // Create/Update/Delete: Owner or Manager of propertyId (Staff cannot write pricing).
+    // ===============================================================
+
+    match /roomPricing/{ruleId} {
+      allow get: if isAuthenticated() && isActiveUser() && (
+        isOrgOwner() ||
+        resource.data.organizationId == getUserOrganizationId()
+      );
+      allow list: if isAuthenticated() && isActiveUser();
+      allow create: if isAuthenticated() &&
+                       isActiveUser() &&
+                       isManagerOrOwnerOfProperty(request.resource.data.propertyId) &&
+                       isValidRoomPricingRule(request.resource.data);
+      allow update: if isAuthenticated() &&
+                       isActiveUser() &&
+                       isManagerOrOwnerOfProperty(resource.data.propertyId) &&
+                       areImmutableFieldsUnchanged(['id', 'organizationId', 'propertyId']) &&
+                       isValidRoomPricingRule(request.resource.data);
+      allow delete: if isAuthenticated() &&
+                       isActiveUser() &&
+                       isManagerOrOwnerOfProperty(resource.data.propertyId);
+    }
+
+    // ===============================================================
+    // Booking Reservations Collection
+    // Read and write for authorized property roles.
+    // ===============================================================
+
     match /bookings/{bookingId} {
-      allow read, write: if isAuthenticated();
+      allow get: if isAuthenticated() && (isOrgOwner() || isAssignedToProperty(docPropertyId(resource.data)));
+      allow list: if isAuthenticated();
+      allow create: if isAuthenticated() &&
+                       isAssignedToProperty(docPropertyId(request.resource.data)) &&
+                       isValidBooking(request.resource.data);
+      allow update: if isAuthenticated() &&
+                       isAssignedToProperty(docPropertyId(resource.data)) &&
+                       areImmutableFieldsUnchanged(['id']) &&
+                       isValidBooking(request.resource.data);
+      allow delete: if isAuthenticated() && isManagerOrOwnerOfProperty(docPropertyId(resource.data));
     }
 
-    // Customer records collection
-    match /customers/{customerId} {
-      allow read, write: if isAuthenticated();
+    // ===============================================================
+    // Lodge Inventory Items Collection
+    // Read and write for authorized property roles.
+    // ===============================================================
+
+    match /inventory/{itemId} {
+      allow get: if isAuthenticated() && (isOrgOwner() || isAssignedToProperty(docPropertyId(resource.data)));
+      allow list: if isAuthenticated();
+      allow create: if isAuthenticated() &&
+                       isAssignedToProperty(docPropertyId(request.resource.data)) &&
+                       isValidInventory(request.resource.data);
+      allow update: if isAuthenticated() &&
+                       isAssignedToProperty(docPropertyId(resource.data)) &&
+                       areImmutableFieldsUnchanged(['id']) &&
+                       isValidInventory(request.resource.data);
+      allow delete: if isAuthenticated() && isManagerOrOwnerOfProperty(docPropertyId(resource.data));
     }
 
-    // Financial expenses collection
+    // ===============================================================
+    // Financial Expenses Collections (expenses and expense_records)
+    // Read and write for authorized finance roles (Owner and Manager).
+    // ===============================================================
+
     match /expenses/{expenseId} {
-      allow read, write: if isAuthenticated();
+      allow get: if isAuthenticated() && (isOrgOwner() || (isOrgManager() && isAssignedToProperty(docPropertyId(resource.data))));
+      allow list: if isAuthenticated() && (isOrgOwner() || isOrgManager());
+      allow create: if isAuthenticated() &&
+                       isManagerOrOwnerOfProperty(docPropertyId(request.resource.data)) &&
+                       isValidExpense(request.resource.data);
+      allow update: if isAuthenticated() &&
+                       isManagerOrOwnerOfProperty(docPropertyId(resource.data)) &&
+                       areImmutableFieldsUnchanged(['id']) &&
+                       isValidExpense(request.resource.data);
+      allow delete: if isAuthenticated() && isOrgOwner();
     }
 
-    // Staff management collection
+    match /expense_records/{expenseId} {
+      allow get: if isAuthenticated() && (isOrgOwner() || (isOrgManager() && isAssignedToProperty(docPropertyId(resource.data))));
+      allow list: if isAuthenticated() && (isOrgOwner() || isOrgManager());
+      allow create: if isAuthenticated() &&
+                       isManagerOrOwnerOfProperty(docPropertyId(request.resource.data)) &&
+                       isValidExpense(request.resource.data);
+      allow update: if isAuthenticated() &&
+                       isManagerOrOwnerOfProperty(docPropertyId(resource.data)) &&
+                       areImmutableFieldsUnchanged(['id']) &&
+                       isValidExpense(request.resource.data);
+      allow delete: if isAuthenticated() && isOrgOwner();
+    }
+
+    // ===============================================================
+    // Customer Records Collection
+    // Read and write for authorized property roles.
+    // ===============================================================
+
+    match /customers/{customerId} {
+      allow get: if isAuthenticated() && (isOrgOwner() || isAssignedToProperty(docPropertyId(resource.data)));
+      allow list: if isAuthenticated();
+      allow create: if isAuthenticated() &&
+                       isAssignedToProperty(docPropertyId(request.resource.data)) &&
+                       isValidCustomer(request.resource.data);
+      allow update: if isAuthenticated() &&
+                       isAssignedToProperty(docPropertyId(resource.data)) &&
+                       areImmutableFieldsUnchanged(['id']) &&
+                       isValidCustomer(request.resource.data);
+      allow delete: if isAuthenticated() && isManagerOrOwnerOfProperty(docPropertyId(resource.data));
+
+      match /notes/{noteId} {
+        allow read: if isAuthenticated() &&
+                       isActiveUser() &&
+                       exists(/databases/$(database)/documents/customers/$(customerId)) &&
+                       (isOrgOwner() || isAssignedToProperty(docPropertyId(get(/databases/$(database)/documents/customers/$(customerId)).data)));
+        allow create: if isAuthenticated() &&
+                         isActiveUser() &&
+                         exists(/databases/$(database)/documents/customers/$(customerId)) &&
+                         (isOrgOwner() || isAssignedToProperty(docPropertyId(get(/databases/$(database)/documents/customers/$(customerId)).data))) &&
+                         request.resource.data.authorUid == request.auth.uid &&
+                         isValidCustomerNote(request.resource.data, customerId, noteId);
+        allow update: if isAuthenticated() &&
+                         isActiveUser() &&
+                         exists(/databases/$(database)/documents/customers/$(customerId)) &&
+                         (resource.data.authorUid == request.auth.uid ||
+                          isManagerOrOwnerOfProperty(docPropertyId(get(/databases/$(database)/documents/customers/$(customerId)).data))) &&
+                         areImmutableFieldsUnchanged(['id', 'customerId', 'authorUid', 'createdAt']) &&
+                         isValidCustomerNote(request.resource.data, customerId, noteId);
+        allow delete: if isAuthenticated() &&
+                         isActiveUser() &&
+                         exists(/databases/$(database)/documents/customers/$(customerId)) &&
+                         (resource.data.authorUid == request.auth.uid ||
+                          isManagerOrOwnerOfProperty(docPropertyId(get(/databases/$(database)/documents/customers/$(customerId)).data)));
+      }
+
+      match /activity/{actId} {
+        allow read: if isAuthenticated() &&
+                       isActiveUser() &&
+                       exists(/databases/$(database)/documents/customers/$(customerId)) &&
+                       (isOrgOwner() || isAssignedToProperty(docPropertyId(get(/databases/$(database)/documents/customers/$(customerId)).data)));
+        allow create: if isAuthenticated() &&
+                         isActiveUser() &&
+                         exists(/databases/$(database)/documents/customers/$(customerId)) &&
+                         (isOrgOwner() || isAssignedToProperty(docPropertyId(get(/databases/$(database)/documents/customers/$(customerId)).data))) &&
+                         isValidCustomerActivity(request.resource.data, customerId, actId);
+        allow update, delete: if false;
+      }
+    }
+
+    // ===============================================================
+    // Staff Management Collection
+    // Read and write for Owner and Manager.
+    // Staff members can read their own staff profile record.
+    // ===============================================================
+
     match /staff/{staffId} {
-      allow read, write: if isAuthenticated();
+      allow get: if isAuthenticated() && (
+        isOrgOwner() ||
+        isOrgManager() ||
+        request.auth.uid == staffId ||
+        ('email' in resource.data && resource.data.email == request.auth.token.email)
+      );
+      allow list: if isAuthenticated() && (isOrgOwner() || isOrgManager());
+      allow create: if isAuthenticated() &&
+                       isManagerOrOwnerOfProperty(docPropertyId(request.resource.data)) &&
+                       isValidStaff(request.resource.data);
+      allow update: if isAuthenticated() &&
+                       isManagerOrOwnerOfProperty(docPropertyId(resource.data)) &&
+                       areImmutableFieldsUnchanged(['id']) &&
+                       isValidStaff(request.resource.data);
+      allow delete: if isAuthenticated() && isOrgOwner();
     }
 
-    // Housekeeping tasks collection
+    // ===============================================================
+    // Housekeeping Tasks Collection
+    // Read: Active authenticated Owner or users assigned to propertyId
+    // Create / Delete: Active Owner or Manager of propertyId
+    // Update: Owner/Manager (full), or assigned/claiming active Staff (cleaning fields only)
+    // ===============================================================
+
     match /housekeeping/{taskId} {
-      allow read, write: if isAuthenticated();
+      allow get: if isAuthenticated() && isActiveUser() && (isOrgOwner() || isAssignedToProperty(docPropertyId(resource.data)));
+      allow list: if isAuthenticated() && isActiveUser();
+      allow create: if isAuthenticated() &&
+                       isActiveUser() &&
+                       isManagerOrOwnerOfProperty(docPropertyId(request.resource.data)) &&
+                       isValidHousekeeping(request.resource.data);
+      allow update: if isAuthenticated() &&
+                       isActiveUser() &&
+                       isAssignedToProperty(docPropertyId(resource.data)) &&
+                       areImmutableFieldsUnchanged(['id', 'organizationId', 'propertyId']) &&
+                       isValidHousekeeping(request.resource.data) &&
+                       (
+                         // Owner and manager of the property can update any task field
+                         isManagerOrOwnerOfProperty(docPropertyId(resource.data)) ||
+                         // Assigned staff (or staff claiming an unassigned task) can update cleaning progress fields
+                         (
+                           (
+                             ('assignedStaffId' in resource.data && resource.data.assignedStaffId == request.auth.uid) ||
+                             ('assignedToUid' in resource.data && resource.data.assignedToUid == request.auth.uid) ||
+                             ((!('assignedStaffId' in resource.data) || resource.data.assignedStaffId == null || resource.data.assignedStaffId == '') &&
+                              (!('assignedToUid' in resource.data) || resource.data.assignedToUid == null || resource.data.assignedToUid == ''))
+                           ) &&
+                           request.resource.data.status in ['Assigned', 'In Progress', 'Completed', 'Inspection Pending'] &&
+                           request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+                             'status', 'notes', 'photos', 'missingItems', 'maintenanceIssueId',
+                             'assignee', 'assignedTo', 'assignedToUid', 'assignedStaffId',
+                             'startedAt', 'completedAt', 'updatedAt'
+                           ])
+                         )
+                       );
+      allow delete: if isAuthenticated() && isActiveUser() && isManagerOrOwnerOfProperty(docPropertyId(resource.data));
+    }
+
+    // ===============================================================
+    // Housekeeping Inspections Collection (Immutable Audit Trail)
+    // Read: Active authenticated Owner or users assigned to propertyId
+    // Create: Owner or Manager of propertyId; non-Owners cannot approve their own cleaning task
+    // Update / Delete: Strictly immutable (false)
+    // ===============================================================
+
+    match /housekeepingInspections/{inspId} {
+      allow get: if isAuthenticated() &&
+                    isActiveUser() &&
+                    (isOrgOwner() || isAssignedToProperty(resource.data.propertyId));
+      allow list: if isAuthenticated() && isActiveUser();
+      allow create: if isAuthenticated() &&
+                       isActiveUser() &&
+                       isManagerOrOwnerOfProperty(request.resource.data.propertyId) &&
+                       (!('taskAssignedToUid' in request.resource.data) ||
+                        request.resource.data.taskAssignedToUid == null ||
+                        request.resource.data.taskAssignedToUid != request.auth.uid ||
+                        isOrgOwner()) &&
+                       isValidHousekeepingInspection(request.resource.data);
+      allow update, delete: if false;
+    }
+
+    // ===============================================================
+    // Maintenance Issues Collection
+    // Read: Active authenticated Owner or users assigned to propertyId
+    // Create: Active authenticated users assigned to propertyId (reportedByUid == auth.uid)
+    // Update: Active Owner or Manager of propertyId
+    // Delete: Organization Owner only
+    // ===============================================================
+
+    match /maintenanceIssues/{issueId} {
+      allow get: if isAuthenticated() &&
+                    isActiveUser() &&
+                    (isOrgOwner() || isAssignedToProperty(resource.data.propertyId));
+      allow list: if isAuthenticated() && isActiveUser();
+      allow create: if isAuthenticated() &&
+                       isActiveUser() &&
+                       isAssignedToProperty(request.resource.data.propertyId) &&
+                       request.resource.data.reportedByUid == request.auth.uid &&
+                       isValidMaintenanceIssue(request.resource.data);
+      allow update: if isAuthenticated() &&
+                       isActiveUser() &&
+                       isManagerOrOwnerOfProperty(resource.data.propertyId) &&
+                       areImmutableFieldsUnchanged([
+                         'id', 'organizationId', 'propertyId', 'roomId',
+                         'reportedByUid', 'createdAt'
+                       ]) &&
+                       isValidMaintenanceIssue(request.resource.data);
+      allow delete: if isAuthenticated() && isOrgOwner();
+    }
+
+    // ===============================================================
+    // Guest Payments & Financial Transactions Collection
+    // Read: Authenticated Owner or users assigned to doc's propertyId
+    // List: Authenticated (Owner or users assigned to property)
+    // Create: Active authenticated users assigned to request propertyId
+    // Update: Active authenticated Owner or Manager of property, id & numericAmount immutable
+    // Delete: Only Organization Owner
+    // ===============================================================
+
+    match /payments/{paymentId} {
+      allow get: if isAuthenticated() && (isOrgOwner() || isAssignedToProperty(docPropertyId(resource.data)));
+      allow list: if isAuthenticated();
+      allow create: if isAuthenticated() &&
+                       isActiveUser() &&
+                       isAssignedToProperty(docPropertyId(request.resource.data)) &&
+                       isValidPayment(request.resource.data);
+      allow update: if isAuthenticated() &&
+                       isActiveUser() &&
+                       isManagerOrOwnerOfProperty(docPropertyId(resource.data)) &&
+                       areImmutableFieldsUnchanged(['id', 'numericAmount']) &&
+                       isValidPayment(request.resource.data);
+      allow delete: if isAuthenticated() && isOrgOwner();
+    }
+
+    // ===============================================================
+    // Refunds Collection
+    // Get: Active authenticated users with access to propertyId
+    // List: Active authenticated users (property-filtered in BillingService)
+    // Create: Active authenticated users assigned to propertyId
+    //         (requestedByUid == request.auth.uid, refundAmount > 0, refundStatus == 'Requested')
+    // Update: Only Owner or Manager of propertyId with immutable core fields
+    // Delete: Only Organization Owner
+    // ===============================================================
+
+    match /refunds/{refundId} {
+      allow get: if isAuthenticated() &&
+                    isActiveUser() &&
+                    (isOrgOwner() || isAssignedToProperty(resource.data.propertyId));
+      allow list: if isAuthenticated() && isActiveUser();
+      allow create: if isAuthenticated() &&
+                       isActiveUser() &&
+                       isAssignedToProperty(request.resource.data.propertyId) &&
+                       request.resource.data.requestedByUid == request.auth.uid &&
+                       request.resource.data.refundAmount is number &&
+                       request.resource.data.refundAmount > 0 &&
+                       request.resource.data.refundStatus == 'Requested' &&
+                       isValidRefund(request.resource.data);
+      allow update: if isAuthenticated() &&
+                       isActiveUser() &&
+                       isManagerOrOwnerOfProperty(resource.data.propertyId) &&
+                       areImmutableFieldsUnchanged([
+                         'id', 'organizationId', 'propertyId', 'bookingId',
+                         'paymentId', 'refundAmount', 'requestedByUid', 'createdAt'
+                       ]) &&
+                       isValidRefund(request.resource.data);
+      allow delete: if isAuthenticated() && isOrgOwner();
+    }
+
+    // ===============================================================
+    // Invoices Collection (Immutable Historical Snapshots)
+    // Get: Active authenticated users with access to propertyId
+    // List: Active authenticated users (property-filtered in BillingService)
+    // Create: Active authenticated users with isManagerOrOwnerOfProperty or property assignment
+    // Update / Delete: Owner only
+    // ===============================================================
+
+    match /invoices/{invoiceId} {
+      allow get: if isAuthenticated() &&
+                    isActiveUser() &&
+                    (isOrgOwner() || isAssignedToProperty(resource.data.propertyId));
+      allow list: if isAuthenticated() && isActiveUser();
+      allow create: if isAuthenticated() &&
+                       isActiveUser() &&
+                       (isManagerOrOwnerOfProperty(request.resource.data.propertyId) ||
+                        isAssignedToProperty(request.resource.data.propertyId)) &&
+                       isValidInvoice(request.resource.data);
+      allow update: if isAuthenticated() &&
+                       isOrgOwner() &&
+                       areImmutableFieldsUnchanged(['id', 'organizationId', 'propertyId', 'bookingId', 'issuedAt']) &&
+                       isValidInvoice(request.resource.data);
+      allow delete: if isAuthenticated() && isOrgOwner();
+    }
+
+    // ===============================================================
+    // Idempotency Keys Collection (Transaction-Safe Duplicate Prevention)
+    // Get / Create: Active authenticated users (for runTransaction checks)
+    // List / Update / Delete: false
+    // ===============================================================
+
+    match /idempotencyKeys/{key} {
+      allow get: if isAuthenticated() && isActiveUser();
+      allow list: if false;
+      allow create: if isAuthenticated() &&
+                       isActiveUser() &&
+                       isValidIdempotencyKey(request.resource.data, key);
+      allow update, delete: if false;
+    }
+
+    // ===============================================================
+    // Inventory Stock Movements Collection
+    // Read & List: Authenticated Owner or users assigned to propertyId
+    // Create: Authenticated users assigned to propertyId
+    // Update: Authenticated Owner or Manager of property, id immutable
+    // Delete: Only Organization Owner
+    // ===============================================================
+
+    match /inventory_movements/{movementId} {
+      allow get: if isAuthenticated() && (isOrgOwner() || isAssignedToProperty(docPropertyId(resource.data)));
+      allow list: if isAuthenticated();
+      allow create: if isAuthenticated() &&
+                       isAssignedToProperty(docPropertyId(request.resource.data)) &&
+                       isValidInventoryMovement(request.resource.data);
+      allow update: if isAuthenticated() &&
+                       isManagerOrOwnerOfProperty(docPropertyId(resource.data)) &&
+                       areImmutableFieldsUnchanged(['id']) &&
+                       isValidInventoryMovement(request.resource.data);
+      allow delete: if isAuthenticated() && isOrgOwner();
+    }
+
+    // ===============================================================
+    // Staff & Employee Audit Logs Collection
+    // Read & List: Authenticated Organization Owner or Manager
+    // Create: Authenticated Organization Owner or Manager with actorUid == request.auth.uid
+    // Update & Delete: Strictly immutable (false)
+    // ===============================================================
+
+    match /staffAuditLogs/{logId} {
+      allow get, list: if isAuthenticated() && (isOrgOwner() || isOrgManager());
+      allow create: if isAuthenticated() &&
+                       (isOrgOwner() || isOrgManager()) &&
+                       request.resource.data.actorUid == request.auth.uid &&
+                       isValidStaffAuditLog(request.resource.data);
+      allow update, delete: if false;
+    }
+
+    // ===============================================================
+    // Page 09: Maintenance & Inventory Management Collections
+    // ===============================================================
+
+    match /maintenanceRequests/{requestId} {
+      allow get: if isActiveUser() &&
+                    belongsToOrganization(resource.data.organizationId) &&
+                    (isOrgOwner() || isAssignedToProperty(resource.data.propertyId));
+      allow list: if isActiveUser() && belongsToOrganization(resource.data.organizationId);
+      allow create: if isActiveUser() &&
+                       belongsToOrganization(request.resource.data.organizationId) &&
+                       isAssignedToProperty(request.resource.data.propertyId) &&
+                       request.resource.data.reportedByUid == request.auth.uid &&
+                       request.resource.data.status == 'Reported' &&
+                       isValidMaintenanceRequest(request.resource.data);
+      allow update: if isActiveUser() &&
+                       belongsToOrganization(resource.data.organizationId) &&
+                       areImmutableFieldsUnchanged(['id', 'organizationId', 'propertyId', 'reportedByUid', 'reportedAt']) &&
+                       isValidMaintenanceRequest(request.resource.data) &&
+                       (
+                         isManagerOrOwnerOfProperty(resource.data.propertyId) ||
+                         (
+                           isAssignedToProperty(resource.data.propertyId) &&
+                           resource.data.reportedByUid == request.auth.uid &&
+                           resource.data.status == 'Reported' &&
+                           request.resource.data.status == 'Reported' &&
+                           request.resource.data.diff(resource.data).affectedKeys().hasOnly(['notes', 'photos', 'updatedAt'])
+                         )
+                       );
+      allow delete: if isActiveUser() &&
+                       isOrgOwner() &&
+                       belongsToOrganization(resource.data.organizationId);
+    }
+
+    match /workOrders/{workOrderId} {
+      allow get: if isActiveUser() &&
+                    belongsToOrganization(resource.data.organizationId) &&
+                    (isOrgOwner() || isAssignedToProperty(resource.data.propertyId));
+      allow list: if isActiveUser() && belongsToOrganization(resource.data.organizationId);
+      allow create: if isActiveUser() &&
+                       belongsToOrganization(request.resource.data.organizationId) &&
+                       isManagerOrOwnerOfProperty(request.resource.data.propertyId) &&
+                       request.resource.data.createdByUid == request.auth.uid &&
+                       isValidWorkOrder(request.resource.data);
+      allow update: if isActiveUser() &&
+                       belongsToOrganization(resource.data.organizationId) &&
+                       areImmutableFieldsUnchanged(['id', 'workOrderNumber', 'organizationId', 'propertyId', 'createdByUid', 'createdAt']) &&
+                       isValidWorkOrder(request.resource.data) &&
+                       (
+                         isManagerOrOwnerOfProperty(resource.data.propertyId) ||
+                         (
+                           'assignedTechnicianUid' in resource.data &&
+                           resource.data.assignedTechnicianUid == request.auth.uid &&
+                           isAssignedToProperty(resource.data.propertyId) &&
+                           request.resource.data.diff(resource.data).affectedKeys().hasOnly([
+                             'status', 'issuedItems', 'linkedPurchaseOrderIds',
+                             'completionNotes', 'afterPhotos', 'labourCost',
+                             'materialCost', 'totalCost', 'completedAt', 'updatedAt'
+                           ]) &&
+                           !(request.resource.data.status in ['Verified', 'Closed'])
+                         )
+                       );
+      allow delete: if isActiveUser() &&
+                       isOrgOwner() &&
+                       belongsToOrganization(resource.data.organizationId);
+    }
+
+    match /suppliers/{supplierId} {
+      allow get, list: if isActiveUser() && belongsToOrganization(resource.data.organizationId);
+      allow create: if isActiveUser() &&
+                       belongsToOrganization(request.resource.data.organizationId) &&
+                       (isOrgOwner() || isOrgManager()) &&
+                       isValidSupplier(request.resource.data);
+      allow update: if isActiveUser() &&
+                       belongsToOrganization(resource.data.organizationId) &&
+                       (isOrgOwner() || isOrgManager()) &&
+                       areImmutableFieldsUnchanged(['id', 'organizationId', 'createdAt']) &&
+                       isValidSupplier(request.resource.data);
+      allow delete: if isActiveUser() &&
+                       isOrgOwner() &&
+                       belongsToOrganization(resource.data.organizationId);
+    }
+
+    match /purchaseOrders/{poId} {
+      allow get: if isActiveUser() &&
+                    belongsToOrganization(resource.data.organizationId) &&
+                    (isOrgOwner() || isAssignedToProperty(resource.data.propertyId));
+      allow list: if isActiveUser() && belongsToOrganization(resource.data.organizationId);
+      allow create: if isActiveUser() &&
+                       belongsToOrganization(request.resource.data.organizationId) &&
+                       isManagerOrOwnerOfProperty(request.resource.data.propertyId) &&
+                       request.resource.data.createdByUid == request.auth.uid &&
+                       isValidPurchaseOrder(request.resource.data);
+      allow update: if isActiveUser() &&
+                       belongsToOrganization(resource.data.organizationId) &&
+                       isManagerOrOwnerOfProperty(resource.data.propertyId) &&
+                       areImmutableFieldsUnchanged(['id', 'poNumber', 'organizationId', 'propertyId', 'createdByUid', 'createdAt']) &&
+                       isValidPurchaseOrder(request.resource.data) &&
+                       (
+                         !(resource.data.status == 'Pending Approval' && request.resource.data.status == 'Approved') ||
+                         isOrgOwner()
+                       );
+      allow delete: if isActiveUser() &&
+                       isOrgOwner() &&
+                       belongsToOrganization(resource.data.organizationId);
+    }
+
+    match /stockTransfers/{transferId} {
+      allow get: if isActiveUser() &&
+                    belongsToOrganization(resource.data.organizationId) &&
+                    (
+                      isOrgOwner() ||
+                      isAssignedToProperty(resource.data.sourcePropertyId) ||
+                      isAssignedToProperty(resource.data.destinationPropertyId)
+                    );
+      allow list: if isActiveUser() && belongsToOrganization(resource.data.organizationId);
+      allow create: if isActiveUser() &&
+                       belongsToOrganization(request.resource.data.organizationId) &&
+                       isManagerOrOwnerOfProperty(request.resource.data.sourcePropertyId) &&
+                       request.resource.data.requestedByUid == request.auth.uid &&
+                       request.resource.data.sourcePropertyId != request.resource.data.destinationPropertyId &&
+                       isValidStockTransfer(request.resource.data);
+      allow update: if isActiveUser() &&
+                       belongsToOrganization(resource.data.organizationId) &&
+                       (
+                         isOrgOwner() ||
+                         (
+                           isOrgManager() &&
+                           (
+                             isAssignedToProperty(resource.data.sourcePropertyId) ||
+                             isAssignedToProperty(resource.data.destinationPropertyId)
+                           )
+                         )
+                       ) &&
+                       areImmutableFieldsUnchanged([
+                         'id', 'organizationId', 'sourcePropertyId',
+                         'destinationPropertyId', 'sourceItemId',
+                         'requestedByUid', 'createdAt'
+                       ]) &&
+                       isValidStockTransfer(request.resource.data);
+      allow delete: if isActiveUser() &&
+                       isOrgOwner() &&
+                       belongsToOrganization(resource.data.organizationId);
+    }
+
+    match /storageLocations/{locationId} {
+      allow get, list: if isActiveUser() && belongsToOrganization(resource.data.organizationId);
+      allow create: if isActiveUser() &&
+                       belongsToOrganization(request.resource.data.organizationId) &&
+                       isManagerOrOwnerOfProperty(request.resource.data.propertyId) &&
+                       isValidStorageLocation(request.resource.data);
+      allow update: if isActiveUser() &&
+                       belongsToOrganization(resource.data.organizationId) &&
+                       isManagerOrOwnerOfProperty(request.resource.data.propertyId) &&
+                       areImmutableFieldsUnchanged(['id', 'organizationId', 'propertyId', 'createdAt']) &&
+                       isValidStorageLocation(request.resource.data);
+      allow delete: if isActiveUser() &&
+                       isOrgOwner() &&
+                       belongsToOrganization(resource.data.organizationId);
+    }
+
+    match /inventorySettings/{orgId} {
+      allow get: if isActiveUser() && belongsToOrganization(orgId);
+      allow create, update: if isActiveUser() &&
+                               isOrgOwner() &&
+                               belongsToOrganization(orgId) &&
+                               request.resource.data.organizationId == orgId &&
+                               isValidInventorySettings(request.resource.data);
+      allow delete: if false;
     }
   }
 }

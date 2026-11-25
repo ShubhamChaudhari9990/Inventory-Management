@@ -1,16 +1,6 @@
-export interface ReportCard {
-  id: string;
-  titleKey: string;
-  metaKey: string;
-  icon: string;
-}
+import { ProfitLossRow, ReportCard } from '../../interface';
 
-export interface ProfitLossRow {
-  id: string;
-  labelKey: string;
-  amount: string;
-  tone?: 'success' | 'danger' | 'strong';
-}
+export type { ReportCard, ProfitLossRow };
 
 export const REPORTS_VIEW_SUBTITLE = 'REPORTS.SUBTITLE';
 

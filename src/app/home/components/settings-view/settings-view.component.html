@@ -4,57 +4,164 @@
       <h1 class="settings-page__title">{{ 'SETTINGS.TITLE' | translate }}</h1>
       <p class="settings-page__subtitle">{{ subtitle | translate }}</p>
     </div>
+
+    @if (activeTab() === 'general') {
+      <ion-button class="settings-save-hero" fill="solid" (click)="saveAllSettings()">
+        <ion-icon slot="start" name="save-outline"></ion-icon>
+        Save All Changes
+      </ion-button>
+    }
   </header>
 
+  @if (isOwner()) {
+    <nav class="settings-nav-tabs" aria-label="Settings Navigation">
+      <button
+        type="button"
+        class="settings-nav-tab"
+        [class.settings-nav-tab--active]="activeTab() === 'general'"
+        (click)="setTab('general')"
+      >
+        <ion-icon name="settings-outline"></ion-icon>
+        <span>Organization & Defaults</span>
+      </button>
+
+      <button
+        type="button"
+        class="settings-nav-tab"
+        [class.settings-nav-tab--active]="activeTab() === 'access'"
+        (click)="setTab('access')"
+      >
+        <ion-icon name="people-outline"></ion-icon>
+        <span>User Access & Role Management</span>
+        @if (pendingUsersCount() > 0) {
+          <span class="settings-nav-tab__badge">{{ pendingUsersCount() }} pending</span>
+        }
+      </button>
+    </nav>
+  }
+
+  @if (activeTab() === 'access') {
+    <div class="settings-access-wrapper">
+      <app-user-management></app-user-management>
+    </div>
+  } @else {
   <div class="settings-page__grid">
-    <app-dashboard-section-card title="SETTINGS.LODGE.TITLE">
+    <!-- 1. Business Profile -->
+    <app-dashboard-section-card title="Business & Brand Profile">
       <div class="settings-form">
         <label class="settings-field settings-field--full">
-          <span>{{ 'SETTINGS.LODGE.NAME' | translate }}</span>
+          <span>Brand / Entity Name</span>
           <input
             type="text"
             [value]="lodgeName()"
-            (input)="onLodgeNameInput($event)"
+            (input)="lodgeName.set($any($event.target).value)"
           />
         </label>
         <label class="settings-field">
-          <span>{{ 'SETTINGS.LODGE.PHONE' | translate }}</span>
-          <input type="text" [value]="phone()" (input)="onPhoneInput($event)" />
+          <span>Registered Phone</span>
+          <input
+            type="text"
+            [value]="phone()"
+            (input)="phone.set($any($event.target).value)"
+          />
         </label>
         <label class="settings-field">
-          <span>{{ 'SETTINGS.LODGE.GSTIN' | translate }}</span>
-          <input type="text" [value]="gstin()" (input)="onGstinInput($event)" />
+          <span>Official Email</span>
+          <input
+            type="email"
+            [value]="email()"
+            (input)="email.set($any($event.target).value)"
+          />
+        </label>
+        <label class="settings-field settings-field--full">
+          <span>GSTIN Number</span>
+          <input
+            type="text"
+            [value]="gstin()"
+            (input)="gstin.set($any($event.target).value)"
+          />
         </label>
       </div>
-      <ion-button class="settings-save" fill="solid" (click)="saveLodgeDetails()">
-        {{ 'COMMON.SAVE' | translate }}
-      </ion-button>
     </app-dashboard-section-card>
 
+    <!-- 2. Lodge Operation Defaults -->
+    <app-dashboard-section-card title="Lodge Operation Defaults">
+      <div class="settings-form">
+        <label class="settings-field">
+          <span>Standard Check-In Time</span>
+          <input
+            type="text"
+            [value]="checkInTime()"
+            (input)="checkInTime.set($any($event.target).value)"
+          />
+        </label>
+        <label class="settings-field">
+          <span>Standard Check-Out Time</span>
+          <input
+            type="text"
+            [value]="checkOutTime()"
+            (input)="checkOutTime.set($any($event.target).value)"
+          />
+        </label>
+        <label class="settings-field settings-field--full">
+          <span>Cancellation Policy Default</span>
+          <input
+            type="text"
+            [value]="cancellationPolicy()"
+            (input)="cancellationPolicy.set($any($event.target).value)"
+          />
+        </label>
+      </div>
+
+      <div class="settings-toggle-row">
+        <span class="settings-toggle-row__label">
+          <ion-icon name="sparkles-outline" aria-hidden="true"></ion-icon>
+          Auto mark room for cleaning on Checkout
+        </span>
+        <button
+          type="button"
+          class="settings-switch"
+          role="switch"
+          [attr.aria-checked]="autoTurnoverCleaning()"
+          [class.settings-switch--on]="autoTurnoverCleaning()"
+          (click)="toggleAutoTurnover()"
+        >
+          <span class="settings-switch__thumb"></span>
+        </button>
+      </div>
+    </app-dashboard-section-card>
+
+    <!-- 3. Financial & Tax Configuration -->
     <app-dashboard-section-card title="SETTINGS.TAX.TITLE">
       <div class="settings-form">
         <label class="settings-field">
-          <span>{{ 'SETTINGS.TAX.GST' | translate }}</span>
+          <span>{{ 'SETTINGS.TAX.GST' | translate }} (%)</span>
           <input
-            type="text"
-            inputmode="numeric"
+            type="number"
             [value]="gstPercent()"
-            (input)="onGstPercentInput($event)"
+            (input)="gstPercent.set($any($event.target).value)"
           />
         </label>
         <label class="settings-field">
-          <span>{{ 'SETTINGS.TAX.SERVICE' | translate }}</span>
+          <span>{{ 'SETTINGS.TAX.SERVICE' | translate }} (%)</span>
+          <input
+            type="number"
+            [value]="serviceCharge()"
+            (input)="serviceCharge.set($any($event.target).value)"
+          />
+        </label>
+        <label class="settings-field settings-field--full">
+          <span>Default Payment UPI VPA</span>
           <input
             type="text"
-            inputmode="numeric"
-            [value]="serviceCharge()"
-            (input)="onServiceChargeInput($event)"
+            [value]="upiId()"
+            (input)="upiId.set($any($event.target).value)"
           />
         </label>
       </div>
       <div class="settings-toggle-row">
         <span class="settings-toggle-row__label">
-          <ion-icon name="settings-outline" aria-hidden="true"></ion-icon>
+          <ion-icon name="cash-outline" aria-hidden="true"></ion-icon>
           {{ 'SETTINGS.TAX.INCLUSIVE' | translate }}
         </span>
         <button
@@ -70,6 +177,61 @@
       </div>
     </app-dashboard-section-card>
 
+    <!-- 4. Notification Preferences -->
+    <app-dashboard-section-card title="Automated Notifications">
+      <div class="settings-toggle-row">
+        <span class="settings-toggle-row__label">
+          <ion-icon name="chatbox-ellipses-outline" aria-hidden="true"></ion-icon>
+          SMS Booking Confirmation to Guests
+        </span>
+        <button
+          type="button"
+          class="settings-switch"
+          role="switch"
+          [attr.aria-checked]="notifySms()"
+          [class.settings-switch--on]="notifySms()"
+          (click)="toggleNotifySms()"
+        >
+          <span class="settings-switch__thumb"></span>
+        </button>
+      </div>
+
+      <div class="settings-toggle-row">
+        <span class="settings-toggle-row__label">
+          <ion-icon name="logo-whatsapp" aria-hidden="true"></ion-icon>
+          WhatsApp Arrival Alerts & Invoices
+        </span>
+        <button
+          type="button"
+          class="settings-switch"
+          role="switch"
+          [attr.aria-checked]="notifyWhatsapp()"
+          [class.settings-switch--on]="notifyWhatsapp()"
+          (click)="toggleNotifyWhatsapp()"
+        >
+          <span class="settings-switch__thumb"></span>
+        </button>
+      </div>
+
+      <div class="settings-toggle-row">
+        <span class="settings-toggle-row__label">
+          <ion-icon name="alert-circle-outline" aria-hidden="true"></ion-icon>
+          Low Stock Alerts to Staff
+        </span>
+        <button
+          type="button"
+          class="settings-switch"
+          role="switch"
+          [attr.aria-checked]="notifyLowStock()"
+          [class.settings-switch--on]="notifyLowStock()"
+          (click)="toggleNotifyLowStock()"
+        >
+          <span class="settings-switch__thumb"></span>
+        </button>
+      </div>
+    </app-dashboard-section-card>
+
+    <!-- 5. Language & Display -->
     <app-dashboard-section-card title="SETTINGS.LANGUAGE.TITLE">
       <div class="settings-langs">
         <button
@@ -109,7 +271,47 @@
       </div>
     </app-dashboard-section-card>
 
+    <!-- 6. Account & Security -->
+    <app-dashboard-section-card title="SETTINGS.SECURITY.TITLE">
+      <div class="settings-toggle-row">
+        <span class="settings-toggle-row__label">
+          <ion-icon name="finger-print-outline" aria-hidden="true"></ion-icon>
+          <div class="security-copy">
+            <strong>{{ 'SETTINGS.SECURITY.BIOMETRIC_LOCK' | translate }}</strong>
+            <p>{{ 'SETTINGS.SECURITY.BIOMETRIC_DESC' | translate }}</p>
+          </div>
+        </span>
+        <button
+          type="button"
+          class="settings-switch"
+          role="switch"
+          [attr.aria-checked]="isBiometricEnabled()"
+          [class.settings-switch--on]="isBiometricEnabled()"
+          (click)="toggleBiometricLock()"
+        >
+          <span class="settings-switch__thumb"></span>
+        </button>
+      </div>
+    </app-dashboard-section-card>
+
+    <!-- 7. Role Access Hierarchy -->
     <app-dashboard-section-card title="SETTINGS.USERS.TITLE" [noPadding]="true">
+      @if (isOwner()) {
+        <div class="settings-rbac-cta">
+          <div class="settings-rbac-cta__copy">
+            <strong>Live User Access Control (RBAC)</strong>
+            <p>Approve pending registrations, assign roles (Owner, Manager, Staff), and bind lodge access.</p>
+          </div>
+          <button type="button" class="btn-manage-access" (click)="setTab('access')">
+            <ion-icon name="shield-checkmark-outline"></ion-icon>
+            <span>Manage User Roles</span>
+            @if (pendingUsersCount() > 0) {
+              <span class="badge-pending">{{ pendingUsersCount() }}</span>
+            }
+          </button>
+        </div>
+      }
+
       <ul class="settings-roles">
         @for (role of roles; track trackRole($index, role)) {
           <li class="settings-roles__item">
@@ -129,6 +331,7 @@
       </ul>
     </app-dashboard-section-card>
 
+    <!-- 8. Backup & Maintenance -->
     <app-dashboard-section-card
       class="settings-page__backup"
       title="SETTINGS.BACKUP.TITLE"
@@ -151,5 +354,17 @@
         </p>
       </div>
     </app-dashboard-section-card>
+
+    <!-- 9. Session & Sign Out -->
+    <app-dashboard-section-card title="AUTH.ACCOUNT">
+      <div class="settings-logout-card">
+        <p class="settings-logout-desc">{{ 'AUTH.LOGOUT_DESC' | translate }}</p>
+        <button type="button" class="settings-logout-btn" (click)="onLogout()">
+          <ion-icon name="log-out-outline" aria-hidden="true"></ion-icon>
+          <span>{{ 'AUTH.LOGOUT' | translate }}</span>
+        </button>
+      </div>
+    </app-dashboard-section-card>
   </div>
+  }
 </div>

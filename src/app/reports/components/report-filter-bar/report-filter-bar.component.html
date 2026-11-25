@@ -1,0 +1,41 @@
+<div class="filter-shell">
+  <div class="filter-row">
+    <div class="field">
+      <label>Date Range</label>
+      <select [ngModel]="filter().preset" (ngModelChange)="onPresetChange($event)">
+        @for (p of presets; track p.key) {
+          <option [value]="p.key">{{ p.label }}</option>
+        }
+      </select>
+    </div>
+
+    @if (showCustomInputs()) {
+      <div class="field">
+        <label>Start Date</label>
+        <input type="date" [ngModel]="filter().startDate" (ngModelChange)="onStartChange($event)" />
+      </div>
+      <div class="field">
+        <label>End Date</label>
+        <input type="date" [ngModel]="filter().endDate" (ngModelChange)="onEndChange($event)" />
+      </div>
+    }
+
+    <div class="field">
+      <label>Lodge</label>
+      <select [ngModel]="filter().lodgeId" (ngModelChange)="onLodgeChange($event)">
+        <option value="all">All Accessible Lodges</option>
+        @for (prop of accessibleProperties(); track prop.id) {
+          <option [value]="prop.id">{{ prop.name }}</option>
+        }
+      </select>
+    </div>
+
+    <div class="context-pill">
+      {{ filter().startDate }} → {{ filter().endDate }} · {{ reportsService.lodgeLabel() }}
+    </div>
+  </div>
+
+  @if (dateError()) {
+    <div class="error-banner">{{ dateError() }}</div>
+  }
+</div>

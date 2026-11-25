@@ -1,0 +1,73 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar class="ops-toolbar">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/operations"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Inventory & Maintenance Reports</ion-title>
+    <div slot="end" class="toolbar-end">
+      <select class="lodge-select" [ngModel]="lodgeFilter()" (ngModelChange)="lodgeFilter.set($event)">
+        <option value="all">All Lodges</option>
+        @for (prop of accessibleProperties(); track prop.id) {
+          <option [value]="prop.id">{{ prop.name }}</option>
+        }
+      </select>
+      <button class="btn-export" (click)="exportInventoryCsv()">
+        <ion-icon name="download-outline"></ion-icon> Inv CSV
+      </button>
+      <button class="btn-export" (click)="exportMaintenanceCsv()">
+        <ion-icon name="download-outline"></ion-icon> Maint CSV
+      </button>
+    </div>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ops-content">
+  <div class="ops-container">
+    <h2 class="sec-title">Inventory Analytics</h2>
+    <div class="kpi-grid">
+      <div class="stat-card"><div class="lbl">Total SKUs</div><div class="val">{{ inventorySummary().totalSkus }}</div></div>
+      <div class="stat-card"><div class="lbl">Total Units</div><div class="val">{{ inventorySummary().totalQty }}</div></div>
+      <div class="stat-card"><div class="lbl">Low Stock</div><div class="val">{{ inventorySummary().lowStock }}</div></div>
+      <div class="stat-card"><div class="lbl">Out of Stock</div><div class="val">{{ inventorySummary().outOfStock }}</div></div>
+      <div class="stat-card"><div class="lbl">Stock Valuation</div><div class="val">₹{{ inventorySummary().valuation | number: '1.0-0' }}</div></div>
+      <div class="stat-card"><div class="lbl">Total Inward / Outward</div><div class="val">+{{ inventorySummary().inward }} / -{{ inventorySummary().outward }}</div></div>
+    </div>
+
+    <h2 class="sec-title">Maintenance Analytics</h2>
+    <div class="kpi-grid">
+      <div class="stat-card"><div class="lbl">Total Requests</div><div class="val">{{ maintenanceSummary().totalRequests }}</div></div>
+      <div class="stat-card"><div class="lbl">Pending Requests</div><div class="val">{{ maintenanceSummary().pendingRequests }}</div></div>
+      <div class="stat-card"><div class="lbl">Completed WOs</div><div class="val">{{ maintenanceSummary().completedWos }}</div></div>
+      <div class="stat-card"><div class="lbl">Overdue WOs</div><div class="val">{{ maintenanceSummary().overdueWos }}</div></div>
+      <div class="stat-card"><div class="lbl">Emergency</div><div class="val">{{ maintenanceSummary().emergency }}</div></div>
+      <div class="stat-card"><div class="lbl">Total Maint. Cost</div><div class="val">₹{{ maintenanceSummary().totalCost | number: '1.0-0' }}</div></div>
+    </div>
+
+    <div class="panels-grid">
+      <section class="panel">
+        <h3>Department-wise Consumption</h3>
+        @if (departmentConsumption().length === 0) {
+          <div class="empty-box">No stock issues recorded yet.</div>
+        } @else {
+          @for (d of departmentConsumption(); track d.department) {
+            <div class="row"><span>{{ d.department }}</span><strong>{{ d.qty }} units</strong></div>
+          }
+        }
+      </section>
+
+      <section class="panel">
+        <h3>Technician-wise Work Orders</h3>
+        @if (technicianStats().length === 0) {
+          <div class="empty-box">No work orders assigned yet.</div>
+        } @else {
+          @for (t of technicianStats(); track t.name) {
+            <div class="row">
+              <span>{{ t.name }}</span>
+              <strong>{{ t.count }} WOs · ₹{{ t.cost | number: '1.0-0' }}</strong>
+            </div>
+          }
+        }
+      </section>
+    </div>
+  </div>
+</ion-content>

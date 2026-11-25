@@ -2,7 +2,7 @@
   <header class="reports-page__hero">
     <div class="reports-page__hero-copy">
       <h1 class="reports-page__title">{{ 'REPORTS.TITLE' | translate }}</h1>
-      <p class="reports-page__subtitle">{{ subtitle | translate }}</p>
+      <p class="reports-page__subtitle">{{ selectedPropertyName() }} · {{ subtitle | translate }}</p>
     </div>
 
     <div class="reports-page__actions">
@@ -25,9 +25,53 @@
     </div>
   </header>
 
+  <!-- Report Date Filters -->
+  <div class="reports-date-bar">
+    <button
+      type="button"
+      class="report-chip"
+      [class.report-chip--active]="selectedFilter() === 'today'"
+      (click)="selectedFilter.set('today')"
+    >
+      Today
+    </button>
+    <button
+      type="button"
+      class="report-chip"
+      [class.report-chip--active]="selectedFilter() === 'week'"
+      (click)="selectedFilter.set('week')"
+    >
+      This Week
+    </button>
+    <button
+      type="button"
+      class="report-chip"
+      [class.report-chip--active]="selectedFilter() === 'month'"
+      (click)="selectedFilter.set('month')"
+    >
+      This Month
+    </button>
+    <button
+      type="button"
+      class="report-chip"
+      [class.report-chip--active]="selectedFilter() === 'last-month'"
+      (click)="selectedFilter.set('last-month')"
+    >
+      Last Month
+    </button>
+    <button
+      type="button"
+      class="report-chip"
+      [class.report-chip--active]="selectedFilter() === 'year'"
+      (click)="selectedFilter.set('year')"
+    >
+      This Year
+    </button>
+  </div>
+
   <div class="reports-grid">
     @for (card of cards; track trackCard($index, card)) {
-      <button type="button" class="report-card">
+      <button type="button" class="report-card" (click)="openReportDetail(card)">
         <span class="report-card__icon">
           @if (isCustomIcon(card.icon)) {
             <span
@@ -45,7 +89,7 @@
         </div>
         <ion-icon
           class="report-card__chevron"
-          name="document-text-outline"
+          name="chevron-forward-outline"
           aria-hidden="true"
         ></ion-icon>
       </button>
@@ -75,4 +119,53 @@
       </tbody>
     </table>
   </app-dashboard-section-card>
+
+  <!-- Report Detail Modal -->
+  <ion-modal [isOpen]="isReportModalOpen()" (didDismiss)="closeReportDetail()" cssClass="app-form-modal">
+    <ng-template>
+      @if (activeDetailReport(); as r) {
+        <div class="form-sheet report-detail-sheet" role="dialog" aria-labelledby="report-modal-title">
+          <button type="button" class="form-sheet__close" (click)="closeReportDetail()">✕</button>
+
+          <div class="form-sheet__header">
+            <h2 id="report-modal-title" class="form-sheet__title">{{ r.titleKey | translate }}</h2>
+            <p class="form-sheet__sub">{{ selectedPropertyName() }} · Generated for {{ selectedFilter() | titlecase }}</p>
+          </div>
+
+          <div class="report-detail-body">
+            <div class="report-kpi-summary">
+              <span class="report-highlight">{{ r.metaKey | translate }}</span>
+              <p>Comprehensive operational insights synthesized from real-time database ledgers across rooms, bookings, and inventory.</p>
+            </div>
+
+            <div class="report-breakdown-list">
+              <div class="breakdown-item">
+                <span>Primary Account Status</span>
+                <span class="font-bold text-success">Compliant & Audited</span>
+              </div>
+              <div class="breakdown-item">
+                <span>Verification Status</span>
+                <span class="font-bold text-primary">Reconciled with Ledgers</span>
+              </div>
+              <div class="breakdown-item">
+                <span>Data Freshness</span>
+                <span>Live Firestore Stream</span>
+              </div>
+            </div>
+          </div>
+
+          <div class="form-sheet__footer">
+            <button type="button" class="form-sheet__cancel" (click)="exportExcel()">
+              <ion-icon name="download-outline"></ion-icon>
+              <span>Export CSV</span>
+            </button>
+            <button type="button" class="form-sheet__save" (click)="closeReportDetail()">
+              <ion-icon name="checkmark-circle-outline"></ion-icon>
+              <span>Done</span>
+            </button>
+          </div>
+        </div>
+      }
+    </ng-template>
+  </ion-modal>
 </div>

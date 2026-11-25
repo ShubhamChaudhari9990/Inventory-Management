@@ -1,6 +1,1 @@
-export interface NavItem {
-  id: string;
-  label: string;
-  icon: string;
-  route?: string;
-}
+export type { NavItem } from '../../interface/nav.interface';

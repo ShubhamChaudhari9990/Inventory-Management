@@ -1,0 +1,72 @@
+<app-shell
+  [activeNavId]="'lodges'"
+  [breadcrumb]="(lodge()?.name || 'Lodge') + ' · Facilities'"
+  (activeNavIdChange)="onNavChange($event)"
+>
+  <div class="fac-page">
+    <div class="fac-page__inner">
+      <header class="fac-header">
+        <button type="button" class="back-btn" (click)="goBack()">
+          <ion-icon name="arrow-back-outline"></ion-icon>
+          Back to Details
+        </button>
+        <div class="fac-header__copy">
+          <h1>Lodge Facilities</h1>
+          <p>Toggle active amenities, edit descriptions, or add custom facilities for {{ lodge()?.name }}</p>
+        </div>
+        <ion-button fill="solid" (click)="saveAll()" [disabled]="isSaving()">
+          @if (isSaving()) {
+            <ion-spinner slot="start" name="crescent"></ion-spinner>
+            Saving...
+          } @else {
+            <ion-icon slot="start" name="save-outline"></ion-icon>
+            Save Facilities
+          }
+        </ion-button>
+      </header>
+
+      <!-- Add Custom Facility -->
+      <section class="fac-add-card">
+        <h3>Add Custom Facility</h3>
+        <div class="fac-add-row">
+          <input type="text" [(ngModel)]="newFacilityName" placeholder="Facility name (e.g. Rooftop Cafe)" />
+          <input type="text" [(ngModel)]="newFacilityDesc" placeholder="Short description (optional)" />
+          <button type="button" class="add-btn" (click)="addCustom()">
+            <ion-icon name="add-outline"></ion-icon>
+            Add
+          </button>
+        </div>
+      </section>
+
+      <!-- Facilities List -->
+      <section class="fac-list">
+        @for (fac of facilities(); track fac.id) {
+          <div class="fac-item" [class.fac-item--inactive]="!fac.active">
+            <div class="fac-item__top">
+              <label class="toggle-wrap">
+                <input type="checkbox" [(ngModel)]="fac.active" />
+                <span class="fac-name">{{ fac.name }}</span>
+              </label>
+              <div class="fac-item__right">
+                <span class="status-pill" [class.active]="fac.active">
+                  {{ fac.active ? 'Active' : 'Inactive' }}
+                </span>
+                @if (fac.isCustom) {
+                  <button type="button" class="del-btn" (click)="removeFacility(fac.id)" aria-label="Remove facility">
+                    <ion-icon name="trash-outline"></ion-icon>
+                  </button>
+                }
+              </div>
+            </div>
+            <input
+              type="text"
+              class="fac-desc-input"
+              [(ngModel)]="fac.description"
+              placeholder="Facility description..."
+            />
+          </div>
+        }
+      </section>
+    </div>
+  </div>
+</app-shell>

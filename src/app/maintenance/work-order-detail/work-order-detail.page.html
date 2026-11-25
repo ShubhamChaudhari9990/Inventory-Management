@@ -1,0 +1,143 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar class="ops-toolbar">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/maintenance/work-orders"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Work Order Details</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ops-content">
+  <div class="ops-container">
+    @if (!workOrder()) {
+      <div class="card">Work order not found.</div>
+    } @else {
+      @let wo = workOrder()!;
+      <section class="card">
+        <div class="top-row">
+          <div>
+            <h2>{{ wo.workOrderNumber }} — {{ wo.category }}</h2>
+            <p class="sub">
+              {{ wo.roomNumber ? 'Room ' + wo.roomNumber : wo.areaName || 'Common Area' }} ·
+              {{ getLodgeName(wo.propertyId) }} · Tech: {{ wo.assignedTechnicianName }}
+            </p>
+          </div>
+          <span class="badge">{{ wo.status }}</span>
+        </div>
+
+        <p>{{ wo.repairDescription }}</p>
+        @if (wo.requiredParts) {
+          <p class="parts-note"><strong>Required Parts:</strong> {{ wo.requiredParts }}</p>
+        }
+
+        <div class="cost-summary">
+          <div>Material Cost: <strong>₹{{ wo.materialCost | number: '1.0-0' }}</strong></div>
+          <div>Labour Cost: <strong>₹{{ wo.labourCost | number: '1.0-0' }}</strong></div>
+          <div>Total Cost: <strong>₹{{ wo.totalCost | number: '1.0-0' }}</strong></div>
+        </div>
+
+        <div class="actions">
+          @if (wo.status === 'Assigned') {
+            <button class="btn-amber" (click)="startWork()">Start Repair</button>
+          }
+          @if (wo.status === 'Assigned' || wo.status === 'In Progress') {
+            <button class="btn-outline" (click)="markWaitingForParts()">Waiting for Parts</button>
+            <button class="btn-outline" (click)="createPOForParts()">Create PO for Parts</button>
+          }
+        </div>
+      </section>
+
+      <!-- Inventory Parts Issue & Return -->
+      <section class="card">
+        <h3>Parts & Inventory Materials</h3>
+        @if (wo.status !== 'Closed' && wo.status !== 'Cancelled') {
+          <div class="issue-grid">
+            <select [ngModel]="selectedItemId()" (ngModelChange)="selectedItemId.set($event)">
+              <option value="">Select lodge inventory item...</option>
+              @for (item of lodgeItems(); track item.id) {
+                <option [value]="item.id">
+                  {{ item.name }} (Avail: {{ item.quantity }} {{ item.unit }})
+                </option>
+              }
+            </select>
+            <input type="number" min="1" [ngModel]="issueQty()" (ngModelChange)="issueQty.set($event)" />
+            <input type="text" placeholder="Notes..." [ngModel]="issueNotes()" (ngModelChange)="issueNotes.set($event)" />
+            <button class="btn-primary" [disabled]="saving()" (click)="issuePart()">Issue Part</button>
+          </div>
+        }
+
+        @if (wo.issuedItems.length === 0) {
+          <div class="empty-box">No inventory parts issued yet.</div>
+        } @else {
+          <div class="issued-list">
+            @for (line of wo.issuedItems; track line.movementId; let idx = $index) {
+              <div class="issued-row">
+                <div>
+                  <strong>{{ line.itemName }}</strong>
+                  <div class="sub">
+                    Issued: {{ line.quantity }} {{ line.unit }} · Returned: {{ line.returnedQuantity || 0 }} ·
+                    Cost: ₹{{ line.totalCost | number: '1.0-0' }}
+                  </div>
+                </div>
+                @if (line.quantity - (line.returnedQuantity || 0) > 0 && wo.status !== 'Closed') {
+                  <button class="btn-outline" [disabled]="saving()" (click)="returnUnusedPart(idx)">
+                    Return 1 {{ line.unit }}
+                  </button>
+                }
+              </div>
+            }
+          </div>
+        }
+      </section>
+
+      <!-- Completion Form -->
+      @if (wo.status === 'In Progress' || wo.status === 'Waiting for Parts' || wo.status === 'Assigned') {
+        <section class="card">
+          <h3>Complete Repair</h3>
+          <div class="field">
+            <label>Labour Cost (₹)</label>
+            <input type="number" min="0" [ngModel]="labourCost()" (ngModelChange)="labourCost.set($event)" />
+          </div>
+          <div class="field">
+            <label>Completion Notes</label>
+            <textarea rows="2" [ngModel]="completionNotes()" (ngModelChange)="completionNotes.set($event)"></textarea>
+          </div>
+          <label class="upload-btn">
+            <ion-icon name="camera-outline"></ion-icon>
+            {{ uploading() ? 'Uploading...' : 'Upload After Photo' }}
+            <input type="file" accept="image/jpeg,image/png,image/webp" hidden [disabled]="uploading()" (change)="onAfterPhotoSelected($event)" />
+          </label>
+          <div class="actions">
+            <button class="btn-green" [disabled]="saving()" (click)="completeWork()">Mark Repair Completed</button>
+          </div>
+        </section>
+      }
+
+      <!-- Manager/Owner Verification -->
+      @if (wo.status === 'Completed' && canManage()) {
+        <section class="card">
+          <h3>Manager Verification & Closure</h3>
+          <div class="field">
+            <label>Verification Notes</label>
+            <textarea rows="2" [ngModel]="verificationNotes()" (ngModelChange)="verificationNotes.set($event)"></textarea>
+          </div>
+          @if (wo.roomId) {
+            <label class="checkbox-row">
+              <input type="checkbox" [ngModel]="restoreRoom()" (ngModelChange)="restoreRoom.set($event)" />
+              Restore room availability (only if Housekeeping is Clean / Inspected)
+            </label>
+          }
+          <label class="checkbox-row">
+            <input type="checkbox" [ngModel]="recordLabourExpense()" (ngModelChange)="recordLabourExpense.set($event)" />
+            Record labour cost in Lodge Expenses
+          </label>
+          <div class="actions">
+            <button class="btn-primary" [disabled]="saving()" (click)="verifyAndClose()">
+              Verify & Close Work Order
+            </button>
+          </div>
+        </section>
+      }
+    }
+  </div>
+</ion-content>

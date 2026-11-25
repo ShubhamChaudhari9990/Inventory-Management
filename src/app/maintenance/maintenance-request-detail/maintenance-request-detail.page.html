@@ -1,0 +1,109 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar class="ops-toolbar">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/maintenance/requests"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Maintenance Request</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ops-content">
+  <div class="ops-container">
+    @if (!request()) {
+      <div class="card">Maintenance request not found.</div>
+    } @else {
+      @let r = request()!;
+      <section class="card">
+        <div class="top-row">
+          <div>
+            <h2>{{ r.title }}</h2>
+            <p class="sub">
+              {{ r.category }} · {{ r.roomNumber ? 'Room ' + r.roomNumber : r.areaName || 'Common Area' }} ·
+              {{ getLodgeName(r.propertyId) }}
+            </p>
+          </div>
+          <span class="badge">{{ r.status }}</span>
+        </div>
+
+        <p class="desc">{{ r.description }}</p>
+
+        <div class="meta">
+          <span>Priority: <strong>{{ r.priority }}</strong></span>
+          <span>Reported by: <strong>{{ r.reportedBy }}</strong></span>
+          <span>Date: <strong>{{ r.reportedAt | date: 'short' }}</strong></span>
+        </div>
+
+        @if (r.photos?.length) {
+          <div class="photos">
+            @for (p of r.photos; track p) {
+              <img [src]="p" alt="Issue photo" />
+            }
+          </div>
+        }
+
+        @if (r.workOrderId) {
+          <div class="wo-link">
+            <button class="btn-primary" (click)="openWorkOrder(r.workOrderId!)">
+              Open Linked Work Order
+            </button>
+          </div>
+        }
+
+        @if (canManage() && !r.workOrderId) {
+          <div class="actions">
+            @if (r.status === 'Reported') {
+              <button class="btn-green" [disabled]="saving()" (click)="approve()">Approve</button>
+            }
+            @if (r.status === 'Reported' || r.status === 'Approved') {
+              <button class="btn-primary" (click)="showWoForm.set(!showWoForm())">
+                Convert to Work Order
+              </button>
+            }
+            @if (r.roomId) {
+              <button class="btn-amber" (click)="toggleRoomOutOfService(true)">
+                Mark Room Out of Service
+              </button>
+            }
+          </div>
+
+          @if (r.status === 'Reported') {
+            <div class="reject-row">
+              <input type="text" placeholder="Rejection reason..." [ngModel]="rejectionReason()" (ngModelChange)="rejectionReason.set($event)" />
+              <button class="btn-red" [disabled]="saving()" (click)="reject()">Reject</button>
+            </div>
+          }
+        }
+      </section>
+
+      @if (showWoForm() && canManage()) {
+        <section class="card">
+          <h3>Convert to Work Order</h3>
+          <div class="field">
+            <label>Assign Technician *</label>
+            <select [ngModel]="techUid()" (ngModelChange)="techUid.set($event)">
+              <option value="">Select technician...</option>
+              @for (u of lodgeStaff(); track u.uid) {
+                <option [value]="u.uid">{{ u.name }} ({{ u.role }})</option>
+              }
+            </select>
+          </div>
+          <div class="field">
+            <label>Repair Description</label>
+            <textarea rows="2" [ngModel]="repairDesc()" (ngModelChange)="repairDesc.set($event)" placeholder="Instructions for technician..."></textarea>
+          </div>
+          <div class="field">
+            <label>Required Parts</label>
+            <input type="text" [ngModel]="requiredParts()" (ngModelChange)="requiredParts.set($event)" placeholder="e.g., AC Capacitor 45uF, Copper Tape" />
+          </div>
+          <div class="field">
+            <label>Due Date</label>
+            <input type="date" [ngModel]="dueDate()" (ngModelChange)="dueDate.set($event)" />
+          </div>
+          <button class="btn-primary" [disabled]="saving()" (click)="convertToWorkOrder()">
+            Create Work Order
+          </button>
+        </section>
+      }
+    }
+  </div>
+</ion-content>

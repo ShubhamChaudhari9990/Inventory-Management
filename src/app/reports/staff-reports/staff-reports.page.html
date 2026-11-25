@@ -1,0 +1,56 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar class="rep-toolbar">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/reports"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Staff Performance Reports</ion-title>
+    @if (reportsService.canExportReports()) {
+      <ion-buttons slot="end" class="exp-btns">
+        <button class="btn-exp" (click)="export('csv')">CSV</button>
+        <button class="btn-exp" (click)="export('pdf')">PDF</button>
+      </ion-buttons>
+    }
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="rep-content">
+  <div class="rep-container">
+    <app-report-filter-bar></app-report-filter-bar>
+
+    <section class="panel">
+      <h3>Task Completion (Housekeeping & Maintenance)</h3>
+      @if (staffRows().length === 0) {
+        <div class="empty-box">No assigned housekeeping or maintenance tasks in selected period.</div>
+      } @else {
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Staff / Technician</th>
+                <th>Assigned</th>
+                <th>Completed</th>
+                <th>Pending</th>
+                <th>Overdue</th>
+                <th>HK Done</th>
+                <th>Maint Done</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (r of staffRows(); track r.name) {
+                <tr>
+                  <td><strong>{{ r.name }}</strong></td>
+                  <td>{{ r.assigned }}</td>
+                  <td>{{ r.completed }}</td>
+                  <td>{{ r.pending }}</td>
+                  <td>{{ r.overdue }}</td>
+                  <td>{{ r.hkCompleted }}</td>
+                  <td>{{ r.woCompleted }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </section>
+  </div>
+</ion-content>

@@ -4,6 +4,11 @@
       <h1 class="hk-page__title">{{ 'HOUSEKEEPING.TITLE' | translate }}</h1>
       <p class="hk-page__subtitle">{{ subtitle | translate }}</p>
     </div>
+
+    <ion-button class="hk-page__cta" fill="solid" (click)="openNewTask()">
+      <ion-icon slot="start" name="sparkles-outline"></ion-icon>
+      Assign Task
+    </ion-button>
   </header>
 
   <section class="hk-page__kpis">
@@ -26,15 +31,52 @@
               <p class="hk-list__name">{{ item.assignee }}</p>
               <p class="hk-list__meta">{{ item.time }}</p>
             </div>
-            <span
-              class="hk-status"
-              [class.hk-status--completed]="item.status === 'Completed'"
-              [class.hk-status--pending]="item.status === 'Pending'"
-            >
-              <span class="hk-status__dot"></span>
-              {{ statusLabelKey(item.status) | translate }}
-            </span>
+
+            <div class="hk-list__actions">
+              <span
+                class="hk-status"
+                [class.hk-status--completed]="item.status === 'Completed'"
+                [class.hk-status--pending]="item.status === 'Pending'"
+                [class.hk-status--verified]="item.status === 'Verified'"
+              >
+                <span class="hk-status__dot"></span>
+                {{ item.status }}
+              </span>
+
+              <div class="hk-action-buttons">
+                @if (item.status === 'Pending') {
+                  <button
+                    type="button"
+                    class="btn-hk-act"
+                    (click)="updateStatus(item, 'In Progress', $event)"
+                  >
+                    Start
+                  </button>
+                }
+                @if (item.status === 'Pending' || item.status === 'In Progress') {
+                  <button
+                    type="button"
+                    class="btn-hk-act btn-done"
+                    (click)="updateStatus(item, 'Completed', $event)"
+                  >
+                    Done
+                  </button>
+                }
+                @if (item.status === 'Completed') {
+                  <button
+                    type="button"
+                    class="btn-hk-act btn-verify"
+                    title="Verify & mark Room Available"
+                    (click)="updateStatus(item, 'Verified', $event)"
+                  >
+                    Verify
+                  </button>
+                }
+              </div>
+            </div>
           </li>
+        } @empty {
+          <li class="empty-hk">No pending housekeeping assignments.</li>
         }
       </ul>
     </app-dashboard-section-card>
@@ -77,4 +119,65 @@
       </ul>
     </app-dashboard-section-card>
   </div>
+
+  <!-- New Task Modal -->
+  <ion-modal [isOpen]="isNewTaskOpen()" (didDismiss)="closeNewTask()" cssClass="app-form-modal">
+    <ng-template>
+      <div class="form-sheet" role="dialog" aria-labelledby="new-task-title">
+        <button type="button" class="form-sheet__close" (click)="closeNewTask()">✕</button>
+
+        <div class="form-sheet__header">
+          <h2 id="new-task-title" class="form-sheet__title">Dispatch Cleaning Task</h2>
+        </div>
+
+        <div class="form-sheet__grid">
+          <label class="form-sheet__field">
+            <span>Select Room *</span>
+            <select [(ngModel)]="formRoom">
+              @for (r of rooms(); track r.id) {
+                <option [value]="r.number">
+                  Room {{ r.number }} ({{ r.status }})
+                </option>
+              }
+            </select>
+          </label>
+
+          <label class="form-sheet__field">
+            <span>Assignee Staff *</span>
+            <select [(ngModel)]="formAssignee">
+              @for (s of staffMembers(); track s.id) {
+                <option [value]="s.name">{{ s.name }} ({{ s.designation || 'Staff' }})</option>
+              }
+            </select>
+          </label>
+
+          <label class="form-sheet__field">
+            <span>Priority</span>
+            <select [(ngModel)]="formPriority">
+              <option value="Urgent">Urgent (Express Turnover)</option>
+              <option value="High">High</option>
+              <option value="Medium">Medium (Routine Daily)</option>
+              <option value="Low">Low</option>
+            </select>
+          </label>
+
+          <label class="form-sheet__field form-sheet__field--full">
+            <span>Special Instructions</span>
+            <input type="text" [(ngModel)]="formNotes" placeholder="e.g. Extra towels, sanitize balcony" />
+          </label>
+        </div>
+
+        <div class="form-sheet__footer">
+          <button type="button" class="form-sheet__cancel" (click)="closeNewTask()">
+            <ion-icon name="close-outline"></ion-icon>
+            <span>Cancel</span>
+          </button>
+          <button type="button" class="form-sheet__save" (click)="saveNewTask()">
+            <ion-icon name="paper-plane-outline"></ion-icon>
+            <span>Dispatch Task</span>
+          </button>
+        </div>
+      </div>
+    </ng-template>
+  </ion-modal>
 </div>

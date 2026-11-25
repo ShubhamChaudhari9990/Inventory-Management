@@ -1,0 +1,204 @@
+<div class="staff-dashboard">
+  <!-- Welcome & Profile Card -->
+  <header class="staff-hero">
+    <div class="staff-hero__avatar">
+      <span>{{ staffName().slice(0, 2).toUpperCase() }}</span>
+    </div>
+    <div class="staff-hero__copy">
+      <span class="staff-hero__badge">{{ designation() | uppercase }}</span>
+      <h1 class="staff-hero__name">{{ staffName() }}</h1>
+      <p class="staff-hero__lodge">
+        <ion-icon name="business-outline"></ion-icon>
+        {{ propertyName() | translate }}
+      </p>
+    </div>
+
+    <ion-button class="maintenance-btn" fill="outline" (click)="openMaintenanceModal()">
+      <ion-icon slot="start" name="hammer-outline"></ion-icon>
+      {{ 'STAFF_DASH.REPORT_MAINTENANCE' | translate }}
+    </ion-button>
+  </header>
+
+  <!-- Quick Counters -->
+  <section class="staff-counters">
+    <div
+      class="counter-card"
+      [class.counter-card--active]="activeFilter() === 'pending'"
+      (click)="activeFilter.set('pending')"
+    >
+      <div class="counter-card__icon counter-card__icon--warm">
+        <ion-icon name="time-outline"></ion-icon>
+      </div>
+      <div class="counter-card__copy">
+        <span class="counter-card__value">{{ pendingCount() }}</span>
+        <span class="counter-card__label">{{ 'STAFF_DASH.PENDING_TASKS' | translate }}</span>
+      </div>
+    </div>
+
+    <div
+      class="counter-card"
+      [class.counter-card--active]="activeFilter() === 'completed'"
+      (click)="activeFilter.set('completed')"
+    >
+      <div class="counter-card__icon counter-card__icon--success">
+        <ion-icon name="checkmark-done-outline"></ion-icon>
+      </div>
+      <div class="counter-card__copy">
+        <span class="counter-card__value">{{ completedCount() }}</span>
+        <span class="counter-card__label">{{ 'STAFF_DASH.COMPLETED_TASKS' | translate }}</span>
+      </div>
+    </div>
+
+    <div
+      class="counter-card"
+      [class.counter-card--active]="activeFilter() === 'all'"
+      (click)="activeFilter.set('all')"
+    >
+      <div class="counter-card__icon counter-card__icon--primary">
+        <ion-icon name="bed-outline"></ion-icon>
+      </div>
+      <div class="counter-card__copy">
+        <span class="counter-card__value">{{ assignedRooms().length }}</span>
+        <span class="counter-card__label">{{ 'STAFF_DASH.ASSIGNED_ROOMS' | translate }}</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- Tasks Section -->
+  <app-dashboard-section-card [title]="'STAFF_DASH.MY_DUTIES' | translate" [noPadding]="true">
+    <div class="filter-tabs">
+      <button
+        type="button"
+        class="filter-tab"
+        [class.filter-tab--active]="activeFilter() === 'all'"
+        (click)="activeFilter.set('all')"
+      >
+        {{ 'COMMON.ALL' | translate }}
+      </button>
+      <button
+        type="button"
+        class="filter-tab"
+        [class.filter-tab--active]="activeFilter() === 'pending'"
+        (click)="activeFilter.set('pending')"
+      >
+        {{ 'STAFF_DASH.PENDING' | translate }} ({{ pendingCount() }})
+      </button>
+      <button
+        type="button"
+        class="filter-tab"
+        [class.filter-tab--active]="activeFilter() === 'completed'"
+        (click)="activeFilter.set('completed')"
+      >
+        {{ 'STAFF_DASH.COMPLETED' | translate }} ({{ completedCount() }})
+      </button>
+    </div>
+
+    @if (tasks().length === 0) {
+      <div class="empty-state">
+        <ion-icon name="checkmark-circle-outline"></ion-icon>
+        <p>{{ 'STAFF_DASH.NO_TASKS' | translate }}</p>
+      </div>
+    } @else {
+      <ul class="task-list">
+        @for (task of tasks(); track task.id) {
+          <li class="task-item" [class.task-item--done]="task.status === 'Completed'">
+            <div class="task-item__left">
+              <span class="room-badge">Room {{ task.room }}</span>
+              <div class="task-item__info">
+                <span class="task-item__title">{{ task.type || ('STAFF_DASH.ROOM_CLEANING' | translate) }}</span>
+                <span class="task-item__time">
+                  <ion-icon name="time-outline"></ion-icon>
+                  {{ task.time }} · Assigned to {{ task.assignee || task.assignedTo || 'You' }}
+                </span>
+              </div>
+            </div>
+
+            <div class="task-item__actions">
+              @if (task.status === 'Pending') {
+                <button
+                  type="button"
+                  class="action-btn action-btn--start"
+                  (click)="updateTaskStatus(task, 'In Progress')"
+                >
+                  <ion-icon name="play-outline"></ion-icon>
+                  {{ 'STAFF_DASH.START' | translate }}
+                </button>
+              } @else if (task.status === 'In Progress') {
+                <button
+                  type="button"
+                  class="action-btn action-btn--done"
+                  (click)="updateTaskStatus(task, 'Completed')"
+                >
+                  <ion-icon name="checkmark-outline"></ion-icon>
+                  {{ 'STAFF_DASH.MARK_DONE' | translate }}
+                </button>
+              } @else {
+                <span class="status-done-pill">
+                  <ion-icon name="checkmark-done-outline"></ion-icon>
+                  {{ 'STAFF_DASH.COMPLETED' | translate }}
+                </span>
+              }
+
+              <button
+                type="button"
+                class="action-btn action-btn--subtle"
+                title="Report issue"
+                (click)="openMaintenanceModal(task.room)"
+              >
+                <ion-icon name="alert-circle-outline"></ion-icon>
+              </button>
+            </div>
+          </li>
+        }
+      </ul>
+    }
+  </app-dashboard-section-card>
+
+  <!-- Assigned Rooms Grid -->
+  <app-dashboard-section-card [title]="'STAFF_DASH.ASSIGNED_ROOMS_TITLE' | translate">
+    <div class="rooms-mini-grid">
+      @for (room of assignedRooms(); track room.id) {
+        <div class="mini-room-card mini-room-card--{{ room.status.toLowerCase().replace(' ', '-') }}">
+          <div class="mini-room-card__header">
+            <span class="mini-room-card__num">{{ room.number }}</span>
+            <span class="mini-room-card__status">{{ room.status }}</span>
+          </div>
+          <span class="mini-room-card__type">{{ room.type }} · Floor {{ room.floor }}</span>
+        </div>
+      }
+    </div>
+  </app-dashboard-section-card>
+
+  <!-- Maintenance Modal -->
+  @if (isMaintenanceModalOpen()) {
+    <div class="modal-backdrop" (click)="closeMaintenanceModal()">
+      <div class="modal-card" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <h2>{{ 'STAFF_DASH.REPORT_MAINTENANCE' | translate }}</h2>
+          <button type="button" class="close-btn" (click)="closeMaintenanceModal()">✕</button>
+        </div>
+
+        <div class="modal-form">
+          <ion-item lines="none" class="form-item">
+            <ion-label position="stacked">{{ 'STAFF_DASH.ROOM_NUMBER' | translate }} *</ion-label>
+            <ion-input [(ngModel)]="maintenanceRoom" placeholder="e.g. 102"></ion-input>
+          </ion-item>
+
+          <ion-item lines="none" class="form-item">
+            <ion-label position="stacked">{{ 'STAFF_DASH.ISSUE_DESC' | translate }} *</ion-label>
+            <ion-textarea
+              rows="3"
+              [(ngModel)]="maintenanceDescription"
+              placeholder="e.g. AC leaking water, Geyser not heating..."
+            ></ion-textarea>
+          </ion-item>
+
+          <div class="modal-actions">
+            <ion-button fill="outline" (click)="closeMaintenanceModal()">{{ 'COMMON.CANCEL' | translate }}</ion-button>
+            <ion-button fill="solid" (click)="submitMaintenance()">{{ 'STAFF_DASH.SUBMIT_REPORT' | translate }}</ion-button>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+</div>

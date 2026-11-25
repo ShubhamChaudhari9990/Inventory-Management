@@ -8,10 +8,28 @@
 }
 
 .rooms-page__hero {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  display: flex;
   align-items: center;
+  justify-content: space-between;
   gap: 12px;
+  flex-wrap: wrap;
+}
+
+.rooms-page__hero-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.rooms-page__cta-secondary {
+  --border-radius: 12px;
+  --color: #1d3e9f;
+  --border-color: #cbd5e1;
+  height: 44px;
+  margin: 0;
+  font-size: 14px;
+  font-weight: 600;
+  text-transform: none;
 }
 
 .rooms-page__hero-copy {
@@ -34,17 +52,27 @@
 }
 
 .rooms-page__cta {
-  --background: var(--brand-primary, #1d3e9f);
-  --background-hover: var(--brand-primary-dark, #152f7a);
-  --background-activated: var(--brand-primary-dark, #152f7a);
-  --border-radius: 18px;
-  --box-shadow: 0 8px 20px rgba(29, 62, 159, 0.2);
+  --background: linear-gradient(135deg, #1d3e9f 0%, #2563eb 100%);
+  --background-hover: linear-gradient(135deg, #173282 0%, #1d4ed8 100%);
+  --background-activated: linear-gradient(135deg, #152f7a 0%, #1e40af 100%);
+  --border-radius: 12px;
+  --box-shadow: 0 4px 14px rgba(29, 62, 159, 0.25);
   --color: #ffffff;
   height: 44px;
   margin: 0;
   font-size: 14px;
   font-weight: 600;
   text-transform: none;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+
+  &:hover {
+    --box-shadow: 0 6px 18px rgba(29, 62, 159, 0.35);
+    transform: translateY(-1px);
+  }
+
+  &:active {
+    transform: scale(0.99);
+  }
 }
 
 .rooms-toolbar {
@@ -134,20 +162,46 @@
 
 .rooms-filters__chip {
   flex-shrink: 0;
-  padding: 9px 16px;
-  border: 1px solid var(--border-color, #e5e7eb);
+  padding: 8px 16px;
+  border: 1.5px solid var(--border-color, #e5e7eb);
   border-radius: 999px;
   background: var(--surface, #ffffff);
   color: var(--text-muted, #6b7280);
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;
+  transition: all 0.15s ease;
+
+  &:hover {
+    background: #f8fafc;
+    border-color: #cbd5e1;
+    color: var(--text-primary, #111827);
+  }
+
+  &:active {
+    transform: scale(0.98);
+  }
 }
 
 .rooms-filters__chip--active {
-  border-color: var(--brand-primary, #1d3e9f);
-  background: var(--brand-primary, #1d3e9f);
-  color: #ffffff;
+  border-color: transparent;
+  background: linear-gradient(135deg, #1d3e9f 0%, #2563eb 100%);
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+  box-shadow: 0 2px 8px rgba(29, 62, 159, 0.25);
+
+  span,
+  ion-icon {
+    color: #ffffff !important;
+    -webkit-text-fill-color: #ffffff !important;
+  }
+
+  &:hover {
+    background: linear-gradient(135deg, #173282 0%, #1d4ed8 100%);
+    border-color: transparent;
+    color: #ffffff !important;
+    -webkit-text-fill-color: #ffffff !important;
+  }
 }
 
 .rooms-grid {
@@ -193,6 +247,44 @@
     font-size: 20px;
     color: var(--text-muted, #6b7280);
   }
+}
+
+.room-card__actions, .table-actions {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.room-icon-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 6px;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  color: #475569;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.15s ease;
+
+  &:hover {
+    background: #e2e8f0;
+    color: #1e293b;
+  }
+
+  &.btn-delete:hover {
+    background: #fee2e2;
+    color: #dc2626;
+    border-color: #fca5a5;
+  }
+}
+
+.per-night {
+  font-size: 0.75rem;
+  font-weight: 400;
+  color: #64748b;
 }
 
 .room-card__number {
@@ -325,6 +417,37 @@
 
 .rooms-table__price {
   text-align: right !important;
+}
+
+@media (max-width: 640px) {
+  .rooms-page__hero {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .rooms-page__hero-actions {
+    width: 100%;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  .rooms-page__cta,
+  .rooms-page__cta-secondary {
+    width: 100%;
+  }
+
+  .rooms-page__title {
+    font-size: 19px;
+    white-space: normal;
+  }
+}
+
+@media (max-width: 360px) {
+  .rooms-page__hero-actions {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 359px) {

@@ -1,0 +1,72 @@
+<app-shell
+  [activeNavId]="'payments'"
+  [breadcrumb]="'Financial Reports'"
+  (activeNavIdChange)="onNavChange($event)"
+>
+  <div class="rep-page">
+    <div class="rep-page__inner">
+      <header class="rep-header">
+        <button type="button" class="back-btn" (click)="goBack()">
+          <ion-icon name="arrow-back-outline"></ion-icon>
+          Payments
+        </button>
+        <div class="rep-header__copy">
+          <h1>Financial Reports</h1>
+          <p>Consistent ledger-based collection, pending balance, refund & tax reports</p>
+        </div>
+        <ion-button fill="solid" (click)="exportCsv()">
+          <ion-icon slot="start" name="download-outline"></ion-icon>
+          Export CSV
+        </ion-button>
+      </header>
+
+      <nav class="rep-tabs">
+        <button type="button" [class.active]="reportType() === 'daily'" (click)="reportType.set('daily')">Daily Collection</button>
+        <button type="button" [class.active]="reportType() === 'monthly'" (click)="reportType.set('monthly')">Monthly Revenue</button>
+        <button type="button" [class.active]="reportType() === 'lodge'" (click)="reportType.set('lodge')">Lodge-wise</button>
+        <button type="button" [class.active]="reportType() === 'method'" (click)="reportType.set('method')">By Method</button>
+        <button type="button" [class.active]="reportType() === 'pending'" (click)="reportType.set('pending')">Pending Dues</button>
+        <button type="button" [class.active]="reportType() === 'refund'" (click)="reportType.set('refund')">Refunds</button>
+        <button type="button" [class.active]="reportType() === 'booking'" (click)="reportType.set('booking')">By Booking</button>
+        <button type="button" [class.active]="reportType() === 'tax'" (click)="reportType.set('tax')">Tax / GST</button>
+      </nav>
+
+      <section class="filters-bar">
+        <input type="date" [ngModel]="startDate()" (ngModelChange)="startDate.set($event)" />
+        <input type="date" [ngModel]="endDate()" (ngModelChange)="endDate.set($event)" />
+        <select [ngModel]="methodFilter()" (ngModelChange)="methodFilter.set($event)">
+          <option value="all">All Methods</option>
+          <option value="Cash">Cash</option>
+          <option value="UPI">UPI</option>
+          <option value="Card">Card</option>
+          <option value="Bank Transfer">Bank Transfer</option>
+        </select>
+      </section>
+
+      <section class="rep-card">
+        <table class="rep-table">
+          <thead>
+            <tr>
+              <th>Item / Period</th>
+              <th>Records</th>
+              <th class="num">Total (₹)</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (row of reportRows(); track row.label) {
+              <tr>
+                <td><strong>{{ row.label }}</strong></td>
+                <td>{{ row.count }}</td>
+                <td class="num">₹{{ row.total.toLocaleString('en-IN') }}</td>
+              </tr>
+            } @empty {
+              <tr>
+                <td colspan="3" class="muted">No data for the selected criteria.</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </section>
+    </div>
+  </div>
+</app-shell>

@@ -1,0 +1,109 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar class="hk-toolbar">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/housekeeping"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Room Status Board</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="hk-content">
+  <div class="hk-container">
+    <!-- Filters -->
+    <div class="filters-bar">
+      <div class="search-box">
+        <ion-icon name="search-outline"></ion-icon>
+        <input
+          type="text"
+          placeholder="Search room number or type..."
+          [ngModel]="searchQuery()"
+          (ngModelChange)="searchQuery.set($event)"
+        />
+      </div>
+
+      <select
+        class="filter-select"
+        [ngModel]="selectedLodge()"
+        (ngModelChange)="selectedLodge.set($event)"
+      >
+        <option value="all">All Lodges</option>
+        @for (prop of accessibleProperties(); track prop.id) {
+          <option [value]="prop.id">{{ prop.name }}</option>
+        }
+      </select>
+
+      <select
+        class="filter-select"
+        [ngModel]="selectedHkStatus()"
+        (ngModelChange)="selectedHkStatus.set($event)"
+      >
+        <option value="all">All Housekeeping Statuses</option>
+        @for (s of hkStatusOptions; track s) {
+          <option [value]="s">{{ s }}</option>
+        }
+      </select>
+    </div>
+
+    <p class="separation-note">
+      Occupancy, Housekeeping Status, Booking Availability, and Maintenance are tracked independently. Only
+      <strong>Clean</strong> or <strong>Inspected</strong> vacant rooms are eligible for guest check-in.
+    </p>
+
+    @if (filteredRooms().length === 0) {
+      <div class="empty-state">No rooms match the current filters.</div>
+    } @else {
+      <div class="rooms-grid">
+        @for (room of filteredRooms(); track room.id) {
+          <div class="room-card">
+            <div class="room-top">
+              <div>
+                <div class="room-number">Room {{ room.number }}</div>
+                <div class="room-sub">
+                  {{ room.type }} · Floor {{ room.floor || 'G' }} · {{ getLodgeName(room.propertyId) }}
+                </div>
+              </div>
+              <span class="hk-pill hk-{{ getHkStatus(room).toLowerCase().replace(' ', '-') }}">
+                {{ getHkStatus(room) }}
+              </span>
+            </div>
+
+            <div class="dimensions-list">
+              <div class="dim-row">
+                <span class="dim-label">Occupancy</span>
+                <span class="dim-val">{{ getOccupancyLabel(room) }}</span>
+              </div>
+              <div class="dim-row">
+                <span class="dim-label">Booking Availability</span>
+                <span class="dim-val">{{ getBookingAvailability(room) }}</span>
+              </div>
+              <div class="dim-row">
+                <span class="dim-label">Maintenance</span>
+                <span class="dim-val">{{ getMaintenanceStatus(room) }}</span>
+              </div>
+              <div class="dim-row">
+                <span class="dim-label">Check-In Ready</span>
+                <span class="dim-val" [class.ready]="isCheckInEligible(room)" [class.not-ready]="!isCheckInEligible(room)">
+                  {{ isCheckInEligible(room) ? 'Eligible' : 'Not Ready' }}
+                </span>
+              </div>
+            </div>
+
+            <div class="room-actions">
+              <label class="status-label">Update Housekeeping:</label>
+              <select
+                class="status-select"
+                [disabled]="updatingRoomId() === room.id"
+                [ngModel]="getHkStatus(room)"
+                (ngModelChange)="changeHkStatus(room, $event)"
+              >
+                @for (opt of hkStatusOptions; track opt) {
+                  <option [value]="opt">{{ opt }}</option>
+                }
+              </select>
+            </div>
+          </div>
+        }
+      </div>
+    }
+  </div>
+</ion-content>

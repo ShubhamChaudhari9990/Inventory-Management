@@ -1,0 +1,335 @@
+.app-lock-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 999999;
+  background: rgba(15, 23, 42, 0.95);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 24px;
+  animation: fadeInLock 0.3s ease-out;
+}
+
+.app-lock-card {
+  width: 100%;
+  max-width: 360px;
+  background: #ffffff;
+  border-radius: 28px;
+  padding: 36px 28px 24px;
+  text-align: center;
+  box-shadow: 0 20px 40px rgba(0, 0, 0, 0.3);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+
+  .app-lock-brand {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 24px;
+
+    .brand-logo {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      background: #ffffff;
+      border: 1px solid rgba(226, 232, 240, 0.9);
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.06);
+      display: grid;
+      place-items: center;
+      overflow: hidden;
+
+      .brand-logo-img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        padding: 2px;
+      }
+
+      ion-icon {
+        color: #1d3e9f;
+        font-size: 18px;
+      }
+    }
+
+    .brand-name {
+      font-size: 16px;
+      font-weight: 700;
+      color: #1d3e9f;
+    }
+  }
+
+  .lock-graphic {
+    position: relative;
+    width: 96px;
+    height: 96px;
+    display: grid;
+    place-items: center;
+    margin-bottom: 20px;
+
+    .pulse-ring {
+      position: absolute;
+      inset: -6px;
+      border-radius: 50%;
+      background: rgba(29, 62, 159, 0.15);
+      animation: pulseAnim 2s infinite ease-out;
+    }
+
+    .fingerprint-circle {
+      position: relative;
+      width: 80px;
+      height: 80px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #1d3e9f 0%, #152f7a 100%);
+      display: grid;
+      place-items: center;
+      color: #ffffff;
+      box-shadow: 0 8px 20px rgba(29, 62, 159, 0.35);
+
+      ion-icon {
+        font-size: 42px;
+      }
+    }
+  }
+
+  h2 {
+    font-size: 22px;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0 0 8px;
+  }
+
+  .lock-subtitle {
+    font-size: 14px;
+    color: #64748b;
+    line-height: 1.5;
+    margin: 0 0 28px;
+  }
+
+  .unlock-btn {
+    --background: #1d3e9f;
+    --border-radius: 14px;
+    height: 50px;
+    font-weight: 600;
+    width: 100%;
+    margin-bottom: 12px;
+    text-transform: none;
+  }
+
+  .use-password-btn {
+    background: transparent;
+    border: none;
+    color: #64748b;
+    font-size: 13px;
+    font-weight: 500;
+    padding: 8px 12px;
+    cursor: pointer;
+
+    &:hover,
+    &:active {
+      color: #1d3e9f;
+    }
+  }
+}
+
+@keyframes fadeInLock {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@keyframes pulseAnim {
+  0% {
+    transform: scale(0.95);
+    opacity: 0.8;
+  }
+  50% {
+    transform: scale(1.15);
+    opacity: 0.3;
+  }
+  100% {
+    transform: scale(0.95);
+    opacity: 0.8;
+  }
+}
+
+/* ========================================================
+   Brand Splash Screen Overlay
+   ======================================================== */
+.app-splash-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000000;
+  background: #ffffff;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: env(safe-area-inset-top, 24px) 24px env(safe-area-inset-bottom, 24px);
+  user-select: none;
+  transition: opacity 0.4s cubic-bezier(0.4, 0, 0.2, 1), transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: opacity, transform;
+
+  &.app-splash-overlay--fade {
+    opacity: 0;
+    transform: scale(1.03);
+    pointer-events: none;
+  }
+}
+
+.splash-center {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  flex: 1;
+}
+
+.splash-emblem-wrap {
+  position: relative;
+  width: 96px;
+  height: 96px;
+  margin-bottom: 24px;
+  display: grid;
+  place-items: center;
+
+  .splash-glow {
+    position: absolute;
+    inset: -12px;
+    border-radius: 50%;
+    background: radial-gradient(circle, rgba(37, 99, 235, 0.2) 0%, rgba(29, 62, 159, 0) 70%);
+    animation: splashGlowPulse 2.2s ease-in-out infinite;
+  }
+
+  .splash-emblem {
+    position: relative;
+    width: 76px;
+    height: 76px;
+    border-radius: 24px;
+    background: #ffffff;
+    border: 1px solid rgba(226, 232, 240, 0.9);
+    display: grid;
+    place-items: center;
+    box-shadow: 0 12px 28px rgba(0, 0, 0, 0.1), 0 4px 10px rgba(0, 0, 0, 0.05);
+    animation: splashEmblemPop 0.6s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+    overflow: hidden;
+
+    .splash-emblem-img {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      padding: 6px;
+    }
+
+    ion-icon {
+      color: #1d3e9f;
+      font-size: 40px;
+    }
+  }
+}
+
+.splash-brand-text {
+  margin-bottom: 32px;
+
+  .splash-brand-title {
+    font-size: 28px;
+    font-weight: 800;
+    color: #0f172a;
+    letter-spacing: -0.02em;
+    margin: 0 0 6px;
+    line-height: 1.2;
+  }
+
+  .splash-brand-tagline {
+    font-size: 13px;
+    font-weight: 500;
+    color: #64748b;
+    margin: 0;
+    letter-spacing: 0.2px;
+  }
+}
+
+.splash-loader-bar {
+  width: 140px;
+  height: 4px;
+  background: #e2e8f0;
+  border-radius: 9999px;
+  overflow: hidden;
+  position: relative;
+
+  .splash-loader-progress {
+    position: absolute;
+    top: 0;
+    left: 0;
+    height: 100%;
+    width: 45%;
+    border-radius: 9999px;
+    background: linear-gradient(90deg, #1d3e9f 0%, #2563eb 50%, #38bdf8 100%);
+    animation: splashProgressIndeterminate 1.2s infinite ease-in-out;
+  }
+}
+
+.splash-footer {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding-bottom: 12px;
+
+  .splash-footer-badge {
+    font-size: 12px;
+    font-weight: 600;
+    color: #94a3b8;
+    letter-spacing: 0.3px;
+  }
+
+  .splash-footer-version {
+    font-size: 11px;
+    color: #cbd5e1;
+    font-weight: 500;
+  }
+}
+
+@keyframes splashGlowPulse {
+  0%, 100% {
+    transform: scale(0.9);
+    opacity: 0.5;
+  }
+  50% {
+    transform: scale(1.2);
+    opacity: 0.9;
+  }
+}
+
+@keyframes splashEmblemPop {
+  0% {
+    transform: scale(0.7);
+    opacity: 0;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+@keyframes splashProgressIndeterminate {
+  0% {
+    left: -40%;
+    width: 30%;
+  }
+  50% {
+    left: 30%;
+    width: 50%;
+  }
+  100% {
+    left: 100%;
+    width: 30%;
+  }
+}

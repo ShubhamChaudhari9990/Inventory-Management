@@ -1,0 +1,172 @@
+<app-shell
+  [activeNavId]="'customers'"
+  [breadcrumb]="'Customers'"
+  (activeNavIdChange)="onNavChange($event)"
+>
+  <div class="cust-page">
+    <div class="cust-page__inner">
+      <!-- Header -->
+      <header class="cust-header">
+        <div>
+          <h1>Customers</h1>
+          <p>Manage guest profiles, stay history, preferences & duplicate prevention</p>
+        </div>
+
+        @if (canCreate()) {
+          <ion-button fill="solid" class="add-btn" (click)="goToAdd()">
+            <ion-icon slot="start" name="add-outline"></ion-icon>
+            Add Customer
+          </ion-button>
+        }
+      </header>
+
+      <!-- 5 Statistics Cards -->
+      <section class="stats-row">
+        <div class="stat-card">
+          <span>Total Customers</span>
+          <strong>{{ totalCustomers() }}</strong>
+        </div>
+        <div class="stat-card stat-card--blue">
+          <span>New This Month</span>
+          <strong>{{ newThisMonth() }}</strong>
+        </div>
+        <div class="stat-card stat-card--green">
+          <span>Returning Guests</span>
+          <strong>{{ returningCustomers() }}</strong>
+        </div>
+        <div class="stat-card stat-card--indigo">
+          <span>Currently Staying</span>
+          <strong>{{ currentlyStaying() }}</strong>
+        </div>
+        <div class="stat-card stat-card--amber">
+          <span>VIP Customers</span>
+          <strong>{{ vipCustomers() }}</strong>
+        </div>
+      </section>
+
+      <!-- Search & Filter Toolbar -->
+      <section class="toolbar">
+        <div class="search-wrap">
+          <ion-icon name="search-outline"></ion-icon>
+          <input
+            type="text"
+            placeholder="Search by name, phone, or email..."
+            [ngModel]="searchQuery()"
+            (ngModelChange)="searchQuery.set($event)"
+          />
+        </div>
+
+        @if (isOwner() || lodges().length > 1) {
+          <select
+            class="ctrl-select"
+            [ngModel]="selectedPropertyId()"
+            (ngModelChange)="switchLodge($event)"
+          >
+            @if (isOwner()) {
+              <option value="all">All Lodges</option>
+            }
+            @for (l of lodges(); track l.id) {
+              <option [value]="l.id">{{ l.name }}</option>
+            }
+          </select>
+        }
+
+        <select class="ctrl-select" [ngModel]="typeFilter()" (ngModelChange)="typeFilter.set($event)">
+          <option value="all">All Types</option>
+          <option value="Regular">Regular</option>
+          <option value="VIP">VIP</option>
+          <option value="Corporate">Corporate</option>
+        </select>
+
+        <select class="ctrl-select" [ngModel]="statusFilter()" (ngModelChange)="statusFilter.set($event)">
+          <option value="all">All Status</option>
+          <option value="active">Active</option>
+          <option value="inactive">Inactive</option>
+        </select>
+
+        <select class="ctrl-select" [ngModel]="sortBy()" (ngModelChange)="sortBy.set($event)">
+          <option value="recent">Recently Updated</option>
+          <option value="name">Name (A-Z)</option>
+          <option value="visits">Most Bookings</option>
+        </select>
+      </section>
+
+      <!-- Responsive Customer Cards Grid -->
+      @if (visibleCustomers().length > 0) {
+        <section class="cust-grid">
+          @for (c of visibleCustomers(); track c.id) {
+            <article class="cust-card" (click)="viewProfile(c)">
+              <div class="cust-card__top">
+                <div class="avatar">
+                  @if (c.photoUrl) {
+                    <img [src]="c.photoUrl" [alt]="c.name" />
+                  } @else {
+                    <span>{{ c.initials }}</span>
+                  }
+                </div>
+
+                <div class="cust-card__title">
+                  <div class="name-row">
+                    <h3>{{ c.name }}</h3>
+                    <span class="type-pill type-pill--{{ (c.customerType || 'Regular').toLowerCase() }}">
+                      {{ c.customerType || 'Regular' }}
+                    </span>
+                  </div>
+                  <span class="status-dot" [class.inactive]="c.customerStatus === 'inactive'">
+                    {{ c.customerStatus === 'inactive' ? 'Inactive' : 'Active' }}
+                  </span>
+                </div>
+              </div>
+
+              <div class="cust-card__meta">
+                <div><ion-icon name="call-outline"></ion-icon> {{ c.phone }}</div>
+                @if (c.email) {
+                  <div><ion-icon name="mail-outline"></ion-icon> {{ c.email }}</div>
+                }
+              </div>
+
+              <div class="cust-card__stats">
+                <div>
+                  <span>Bookings</span>
+                  <strong>{{ c.totalBookings || c.visits || 0 }}</strong>
+                </div>
+                <div>
+                  <span>Last Visit</span>
+                  <strong>{{ c.lastVisit || '—' }}</strong>
+                </div>
+              </div>
+
+              <div class="cust-card__actions" (click)="$event.stopPropagation()">
+                <button type="button" class="act-btn act-btn--primary" (click)="viewProfile(c)">
+                  <ion-icon name="eye-outline"></ion-icon>
+                  Profile
+                </button>
+                @if (canEdit()) {
+                  <button type="button" class="act-btn" (click)="editCustomer(c)">
+                    <ion-icon name="create-outline"></ion-icon>
+                    Edit
+                  </button>
+                }
+              </div>
+            </article>
+          }
+        </section>
+
+        @if (hasMore()) {
+          <div class="load-more">
+            <ion-button fill="outline" (click)="loadMore()">Load More Customers</ion-button>
+          </div>
+        }
+      } @else {
+        <div class="empty-box">
+          <ion-icon name="people-outline"></ion-icon>
+          <h3>No Customers Found</h3>
+          <p>Try adjusting your search or add a new guest profile.</p>
+          @if (canCreate()) {
+            <ion-button fill="solid" (click)="goToAdd()">Add Customer</ion-button>
+          }
+        </div>
+      }
+    </div>
+  </div>
+</app-shell>

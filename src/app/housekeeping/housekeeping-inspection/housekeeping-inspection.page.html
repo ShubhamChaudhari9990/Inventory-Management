@@ -1,0 +1,162 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar class="hk-toolbar">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/housekeeping"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Room Inspection</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="hk-content">
+  <div class="hk-container">
+    <div class="inspection-layout">
+      <!-- Pending Queue -->
+      <section class="panel">
+        <div class="panel-header">
+          <h3>Pending Inspection ({{ pendingQueue().length }})</h3>
+        </div>
+        @if (pendingQueue().length === 0) {
+          <div class="empty-state">No rooms currently awaiting inspection.</div>
+        } @else {
+          <div class="queue-list">
+            @for (task of pendingQueue(); track task.id) {
+              <div
+                class="queue-item"
+                [class.selected]="selectedTask()?.id === task.id"
+                (click)="selectTask(task)"
+              >
+                <div class="q-title">Room {{ task.room }}</div>
+                <div class="q-sub">
+                  {{ getLodgeName(task.propertyId) }} · Cleaned by {{ task.assignedTo || 'Staff' }}
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </section>
+
+      <!-- 8-Point Inspection Checklist -->
+      <section class="panel">
+        @if (!selectedTask()) {
+          <div class="empty-state">
+            Select a room from the pending queue to begin the 8-point inspection.
+          </div>
+        } @else {
+          @let t = selectedTask()!;
+          <div class="panel-header">
+            <h3>Inspecting Room {{ t.room }}</h3>
+            <span class="badge-lodge">{{ getLodgeName(t.propertyId) }}</span>
+          </div>
+
+          @if (!canInspectSelected()) {
+            <div class="warn-banner">
+              You cannot approve your own cleaning task unless you are the Owner.
+            </div>
+          }
+
+          <div class="checklist-grid">
+            @for (label of checklistLabels; track label) {
+              <label class="check-row">
+                <input
+                  type="checkbox"
+                  [ngModel]="checklist()[label]"
+                  (ngModelChange)="toggleCheck(label, $event)"
+                />
+                <span>{{ label }}</span>
+              </label>
+            }
+          </div>
+
+          <div class="field">
+            <label>Inspection Notes</label>
+            <textarea
+              rows="2"
+              placeholder="Optional inspector observations..."
+              [ngModel]="notes()"
+              (ngModelChange)="notes.set($event)"
+            ></textarea>
+          </div>
+
+          <div class="field">
+            <label>Rejection Reason (required if rejecting)</label>
+            <input
+              type="text"
+              placeholder="e.g., Bathroom mirror streak, towel missing..."
+              [ngModel]="rejectionReason()"
+              (ngModelChange)="rejectionReason.set($event)"
+            />
+          </div>
+
+          <div class="field">
+            <label class="upload-btn">
+              <ion-icon name="camera-outline"></ion-icon>
+              {{ uploading() ? 'Uploading...' : 'Attach Inspection Photo' }}
+              <input
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                hidden
+                [disabled]="uploading()"
+                (change)="onFileSelected($event)"
+              />
+            </label>
+            @if (photos().length > 0) {
+              <div class="photo-grid">
+                @for (url of photos(); track url) {
+                  <img [src]="url" alt="Inspection photo" />
+                }
+              </div>
+            }
+          </div>
+
+          <div class="actions-row">
+            <button
+              class="btn-approve"
+              [disabled]="submitting() || !canInspectSelected()"
+              (click)="submit('Approved')"
+            >
+              <ion-icon name="checkmark-circle-outline"></ion-icon>
+              Approve & Mark Inspected
+            </button>
+            <button
+              class="btn-reject"
+              [disabled]="submitting() || !canInspectSelected()"
+              (click)="submit('Rejected')"
+            >
+              <ion-icon name="close-circle-outline"></ion-icon>
+              Reject & Return Dirty
+            </button>
+          </div>
+        }
+      </section>
+    </div>
+
+    <!-- Past Inspection History -->
+    <section class="panel history-panel">
+      <div class="panel-header">
+        <h3>Recent Inspection History</h3>
+      </div>
+      @if (pastInspections().length === 0) {
+        <div class="empty-state">No inspection records logged yet.</div>
+      } @else {
+        <div class="history-list">
+          @for (insp of pastInspections(); track insp.id) {
+            <div class="history-row">
+              <div>
+                <strong>Room {{ insp.roomNumber }}</strong> · {{ getLodgeName(insp.propertyId) }}
+                <div class="q-sub">
+                  Inspector: {{ insp.inspectorName }} · {{ insp.createdAt | date: 'short' }}
+                  @if (insp.rejectionReason) {
+                    · Reason: {{ insp.rejectionReason }}
+                  }
+                </div>
+              </div>
+              <span class="outcome-pill" [class.rejected]="insp.outcome === 'Rejected'">
+                {{ insp.outcome }}
+              </span>
+            </div>
+          }
+        </div>
+      }
+    </section>
+  </div>
+</ion-content>

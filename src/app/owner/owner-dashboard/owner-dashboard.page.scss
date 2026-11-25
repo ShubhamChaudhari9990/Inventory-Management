@@ -1,0 +1,492 @@
+:host {
+  display: block;
+  background: var(--bg-dashboard, #f8fafc);
+  min-height: 100%;
+}
+
+.owner-dash {
+  min-height: 100%;
+  background: var(--bg-dashboard, #f8fafc);
+
+  &__inner {
+    width: 100%;
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 16px 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    box-sizing: border-box;
+
+    @media (min-width: 640px) {
+      padding: 16px;
+    }
+
+    @media (min-width: 1027px) {
+      padding: 20px 24px;
+    }
+  }
+
+  &__hero {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    background: #ffffff;
+    padding: 20px 24px;
+    border-radius: 16px;
+    border: 1px solid #e2e8f0;
+    box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  }
+
+
+  &__title {
+    font-size: 22px;
+    font-weight: 700;
+    color: #0f172a;
+    margin: 0 0 4px 0;
+  }
+
+  &__subtitle {
+    font-size: 13px;
+    color: #64748b;
+    margin: 0;
+  }
+
+  &__hero-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  &__cta {
+    --border-radius: 10px;
+    font-weight: 600;
+    font-size: 13px;
+    height: 38px;
+    margin: 0;
+
+    &--primary {
+      --background: var(--brand-primary, #1d3e9f);
+      --color: #ffffff;
+    }
+  }
+}
+
+.alerts-banner {
+  background: #fffbeb;
+  border: 1px solid #fde68a;
+  border-radius: 14px;
+  padding: 14px 18px;
+
+  &__header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: 13px;
+    font-weight: 700;
+    color: #92400e;
+    margin-bottom: 10px;
+
+    ion-icon {
+      font-size: 18px;
+    }
+  }
+
+  &__grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 10px;
+  }
+}
+
+.alert-item {
+  background: #ffffff;
+  border-radius: 10px;
+  padding: 10px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  border-left: 4px solid #cbd5e1;
+
+  &--warning {
+    border-left-color: #f59e0b;
+  }
+  &--danger {
+    border-left-color: #ef4444;
+  }
+  &--info {
+    border-left-color: #3b82f6;
+  }
+
+  &__title {
+    display: block;
+    font-size: 12px;
+    color: #0f172a;
+  }
+
+  &__desc {
+    font-size: 11px;
+    color: #64748b;
+    margin: 2px 0 0 0;
+  }
+
+  &__btn {
+    background: #f1f5f9;
+    border: 1px solid #e2e8f0;
+    color: #0f172a;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+
+    &:hover {
+      background: #e2e8f0;
+    }
+  }
+}
+
+.owner-dash__kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 12px;
+}
+
+.owner-dash__charts {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+
+  .dash-section--wide {
+    grid-column: span 2;
+  }
+}
+
+.lodge-perf-table-wrapper {
+  overflow-x: auto;
+}
+
+.lodge-perf-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 12px;
+
+  th {
+    text-align: left;
+    padding: 10px 12px;
+    color: #475569;
+    font-weight: 600;
+    border-bottom: 2px solid #e2e8f0;
+    white-space: nowrap;
+  }
+
+  td {
+    padding: 10px 12px;
+    border-bottom: 1px solid #f1f5f9;
+    color: #1e293b;
+    vertical-align: middle;
+  }
+
+  &__row--active {
+    background: #eff6ff;
+  }
+
+  .lodge-cell {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    ion-icon {
+      font-size: 20px;
+      color: #1d3e9f;
+    }
+
+    .lodge-code {
+      display: block;
+      font-size: 10px;
+      color: #64748b;
+    }
+  }
+
+  .occupancy-progress {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+
+    .progress-bar {
+      width: 60px;
+      height: 6px;
+      background: #e2e8f0;
+      border-radius: 3px;
+      overflow: hidden;
+
+      &__fill {
+        height: 100%;
+        background: #10b981;
+      }
+    }
+
+    .rate-val {
+      font-weight: 600;
+      font-size: 11px;
+    }
+  }
+
+  .num-cell {
+    font-variant-numeric: tabular-nums;
+  }
+
+  .focus-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: #f1f5f9;
+    border: 1px solid #cbd5e1;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    cursor: pointer;
+
+    &:hover {
+      background: #1d3e9f;
+      color: #ffffff;
+      border-color: #1d3e9f;
+    }
+  }
+}
+
+.owner-dash__bottom-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 16px;
+
+  .dash-section--full {
+    grid-column: span 2;
+  }
+}
+
+.dash-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.dash-list-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 10px;
+  background: #f8fafc;
+  border-radius: 10px;
+  border: 1px solid #f1f5f9;
+
+  &__icon {
+    width: 32px;
+    height: 32px;
+    border-radius: 8px;
+    background: #eff6ff;
+    color: #1d3e9f;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 16px;
+    flex-shrink: 0;
+
+    &--in {
+      background: #dbeafe;
+      color: #1d4ed8;
+    }
+    &--out {
+      background: #f1f5f9;
+      color: #64748b;
+    }
+    &--pay {
+      background: #dcfce7;
+      color: #15803d;
+    }
+  }
+
+  &__details {
+    flex: 1;
+    min-width: 0;
+
+    .name {
+      display: block;
+      font-size: 13px;
+      font-weight: 600;
+      color: #0f172a;
+    }
+
+    .sub {
+      display: block;
+      font-size: 11px;
+      color: #64748b;
+      margin-top: 2px;
+    }
+  }
+
+  &__meta {
+    text-align: right;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 2px;
+
+    .amount {
+      font-size: 12px;
+      font-weight: 600;
+    }
+  }
+}
+
+.status-pill {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: 9999px;
+  text-transform: uppercase;
+
+  &--paid {
+    background: #dcfce7;
+    color: #15803d;
+  }
+  &--due {
+    background: #fee2e2;
+    color: #b91c1c;
+  }
+  &--pending {
+    background: #fef3c7;
+    color: #b45309;
+  }
+}
+
+.activity-feed {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+
+  &__item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid #f1f5f9;
+
+    &:last-child {
+      border-bottom: none;
+      padding-bottom: 0;
+    }
+  }
+
+  &__icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: #eff6ff;
+    color: #1d3e9f;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 14px;
+    flex-shrink: 0;
+  }
+
+  &__body {
+    flex: 1;
+
+    strong {
+      display: block;
+      font-size: 12px;
+      color: #0f172a;
+    }
+
+    p {
+      font-size: 11px;
+      color: #64748b;
+      margin: 2px 0 0 0;
+    }
+  }
+
+  &__time {
+    font-size: 10px;
+    color: #94a3b8;
+    white-space: nowrap;
+  }
+}
+
+.status-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 10px;
+
+  &__item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    color: #475569;
+  }
+
+  &__dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+  }
+
+  &__value {
+    font-weight: 700;
+  }
+}
+
+.text-green {
+  color: #16a34a !important;
+}
+.text-red {
+  color: #dc2626 !important;
+}
+.text-warm {
+  color: #d97706 !important;
+}
+.font-semibold {
+  font-weight: 600 !important;
+}
+
+@media (max-width: 640px) {
+  .owner-dash__hero {
+    flex-direction: column;
+    align-items: stretch;
+    padding: 14px 16px;
+    gap: 12px;
+  }
+
+  .owner-dash__title {
+    font-size: 18px;
+  }
+
+  .owner-dash__hero-actions {
+    width: 100%;
+  }
+
+  .owner-dash__cta {
+    width: 100%;
+    margin: 0;
+  }
+}
+
+@media (max-width: 900px) {
+  .owner-dash__charts,
+  .owner-dash__bottom-grid {
+    grid-template-columns: 1fr;
+
+    .dash-section--wide,
+    .dash-section--full {
+      grid-column: span 1;
+    }
+  }
+}

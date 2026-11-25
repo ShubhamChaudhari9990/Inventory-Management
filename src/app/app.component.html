@@ -1,3 +1,68 @@
 <ion-app>
-  <ion-router-outlet></ion-router-outlet>
+  <ion-router-outlet [animated]="false"></ion-router-outlet>
+
+  <!-- Premium Brand Splash Screen Overlay -->
+  @if (showSplashScreen()) {
+    <div
+      class="app-splash-overlay"
+      [class.app-splash-overlay--fade]="isSplashFading()"
+      role="status"
+      aria-label="Loading LemonWood"
+    >
+      <div class="splash-center">
+        <div class="splash-emblem-wrap">
+          <div class="splash-glow"></div>
+          <div class="splash-emblem">
+            <img src="assets/branding/lemonwood-lodge-icon.png" alt="Lemonwood Lodge" class="splash-emblem-img" />
+          </div>
+        </div>
+
+        <div class="splash-brand-text">
+          <h1 class="splash-brand-title">{{ 'BRAND.NAME' | translate }}</h1>
+          <p class="splash-brand-tagline">{{ 'BRAND.SUBTITLE' | translate }}</p>
+        </div>
+
+        <div class="splash-loader-bar">
+          <div class="splash-loader-progress"></div>
+        </div>
+      </div>
+
+      <div class="splash-footer">
+        <span class="splash-footer-badge">Hospitality & Inventory Suite</span>
+        <span class="splash-footer-version">v2.4.0</span>
+      </div>
+    </div>
+  }
+
+  @if (appLockService.isAppLocked()) {
+    <div class="app-lock-overlay" role="dialog" aria-modal="true">
+      <div class="app-lock-card">
+        <div class="app-lock-brand">
+          <div class="brand-logo">
+            <img src="assets/branding/lemonwood-lodge-icon.png" alt="Lemonwood Lodge" class="brand-logo-img" />
+          </div>
+          <span class="brand-name">{{ 'BRAND.NAME' | translate }}</span>
+        </div>
+
+        <div class="lock-graphic">
+          <div class="pulse-ring"></div>
+          <div class="fingerprint-circle">
+            <ion-icon name="finger-print-outline"></ion-icon>
+          </div>
+        </div>
+
+        <h2>{{ 'APP_LOCK.TITLE' | translate }}</h2>
+        <p class="lock-subtitle">{{ 'APP_LOCK.SUBTITLE' | translate }}</p>
+
+        <ion-button expand="block" class="unlock-btn" (click)="appLockService.promptUnlock()">
+          <ion-icon slot="start" name="finger-print-outline"></ion-icon>
+          {{ 'APP_LOCK.UNLOCK_BUTTON' | translate }}
+        </ion-button>
+
+        <button type="button" class="use-password-btn" (click)="onLockScreenLogout()">
+          {{ 'APP_LOCK.USE_PASSWORD' | translate }}
+        </button>
+      </div>
+    </div>
+  }
 </ion-app>

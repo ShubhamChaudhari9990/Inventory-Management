@@ -1,0 +1,123 @@
+<app-shell
+  [activeNavId]="'rooms'"
+  [breadcrumb]="'Room Types'"
+  (activeNavIdChange)="onNavChange($event)"
+>
+  <div class="sub-page">
+    <div class="sub-page__inner">
+      <header class="sub-header">
+        <button type="button" class="back-btn" (click)="goBack()">
+          <ion-icon name="arrow-back-outline"></ion-icon>
+          Rooms
+        </button>
+        <div>
+          <h1>Room Types</h1>
+          <p>Define standard, deluxe, suite & family room templates with default rates & amenities</p>
+        </div>
+      </header>
+
+      @if (!isStaff()) {
+        <section class="sub-card">
+          <h2>{{ editingId() ? 'Edit Room Type' : 'Add Room Type' }}</h2>
+          <div class="form-grid">
+            <div class="field">
+              <label>Type Name *</label>
+              <input type="text" [(ngModel)]="name" placeholder="e.g. Super Deluxe" />
+            </div>
+            <div class="field">
+              <label>Scope (Lodge)</label>
+              <select [(ngModel)]="propertyId">
+                <option value="all">All Lodges (Business-wide)</option>
+                @for (l of lodges(); track l.id) {
+                  <option [value]="l.id">{{ l.name }}</option>
+                }
+              </select>
+            </div>
+            <div class="field">
+              <label>Default Adults</label>
+              <input type="number" [(ngModel)]="defaultAdultCapacity" min="1" />
+            </div>
+            <div class="field">
+              <label>Default Children</label>
+              <input type="number" [(ngModel)]="defaultChildCapacity" min="0" />
+            </div>
+            <div class="field">
+              <label>Bed Configuration</label>
+              <select [(ngModel)]="defaultBedConfiguration">
+                @for (b of bedTypes; track b) {
+                  <option [value]="b">{{ b }}</option>
+                }
+              </select>
+            </div>
+            <div class="field">
+              <label>Base Price (₹)</label>
+              <input type="number" [(ngModel)]="basePrice" min="0" />
+            </div>
+            <div class="field">
+              <label>Weekday Price (₹)</label>
+              <input type="number" [(ngModel)]="weekdayPrice" min="0" />
+            </div>
+            <div class="field">
+              <label>Weekend Price (₹)</label>
+              <input type="number" [(ngModel)]="weekendPrice" min="0" />
+            </div>
+            <div class="field field--full">
+              <label>Description</label>
+              <input type="text" [(ngModel)]="description" placeholder="Room type summary..." />
+            </div>
+            <div class="field field--full">
+              <label>Default Amenities</label>
+              <div class="chip-wrap">
+                @for (am of amenityOptions; track am) {
+                  <button
+                    type="button"
+                    class="am-chip"
+                    [class.active]="selectedAmenities().includes(am)"
+                    (click)="toggleAmenity(am)"
+                  >
+                    {{ am }}
+                  </button>
+                }
+              </div>
+            </div>
+          </div>
+
+          <div class="form-actions">
+            @if (editingId()) {
+              <ion-button fill="outline" color="medium" (click)="resetForm()">Cancel</ion-button>
+            }
+            <ion-button fill="solid" (click)="saveType()">
+              {{ editingId() ? 'Update Type' : 'Create Room Type' }}
+            </ion-button>
+          </div>
+        </section>
+      }
+
+      <section class="cards-grid">
+        @for (rt of roomTypes(); track rt.id) {
+          <article class="item-card">
+            <div class="item-card__head">
+              <strong>{{ rt.name }}</strong>
+              <span class="pill" [class.active]="rt.status !== 'inactive'">{{ rt.status || 'active' }}</span>
+            </div>
+            <p class="sub">₹{{ rt.basePrice }} / night · Capacity {{ rt.capacity }} · {{ getReferencedRoomCount(rt) }} Rooms</p>
+            @if (rt.description) {
+              <p class="desc">{{ rt.description }}</p>
+            }
+            @if (!isStaff()) {
+              <div class="item-card__actions">
+                <button type="button" class="mini-btn" (click)="startEdit(rt)">Edit</button>
+                <button type="button" class="mini-btn" (click)="toggleActive(rt)">
+                  {{ rt.status === 'inactive' ? 'Activate' : 'Deactivate' }}
+                </button>
+                <button type="button" class="mini-btn danger" (click)="deleteType(rt)">Delete</button>
+              </div>
+            }
+          </article>
+        } @empty {
+          <div class="empty">No room types defined yet. Create your first room type above.</div>
+        }
+      </section>
+    </div>
+  </div>
+</app-shell>

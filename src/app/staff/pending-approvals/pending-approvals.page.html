@@ -1,0 +1,115 @@
+<app-shell
+  [activeNavId]="'staff'"
+  [breadcrumb]="'Pending Approvals'"
+  (activeNavIdChange)="onNavChange($event)"
+>
+  <div class="app-page">
+    <div class="app-page__inner">
+      <header class="app-header">
+        <button type="button" class="back-btn" (click)="goBack()">
+          <ion-icon name="arrow-back-outline"></ion-icon>
+          Staff Hub
+        </button>
+        <div>
+          <h1>Pending User Approvals</h1>
+          <p>Owner-only verification & role assignment for newly registered accounts</p>
+        </div>
+      </header>
+
+      <div class="app-layout">
+        <!-- Pending List -->
+        <section class="pending-list">
+          @for (u of pendingUsers(); track u.uid) {
+            <article class="pend-card" [class.active]="activeUser()?.uid === u.uid">
+              <div>
+                <strong>{{ u.name || 'Registered User' }}</strong>
+                <span>{{ u.email }} {{ u.phone ? '· ' + u.phone : '' }}</span>
+                <span class="date">Registered: {{ u.createdAt ? (u.createdAt | date:'medium') : '—' }}</span>
+              </div>
+              <div class="pend-actions">
+                <button type="button" class="btn ok" (click)="openApproval(u)">Review & Assign</button>
+                <button type="button" class="btn bad" (click)="rejectUser(u)">Reject</button>
+              </div>
+            </article>
+          } @empty {
+            <div class="empty">All caught up! No pending user approvals.</div>
+          }
+        </section>
+
+        <!-- Approval Workflow Panel -->
+        @if (activeUser(); as u) {
+          <section class="assign-panel">
+            <h2>Approve {{ u.name || u.email }}</h2>
+
+            <div class="field">
+              <label>1. Assign Role *</label>
+              <select [(ngModel)]="role" (ngModelChange)="applyTemplate()">
+                <option value="manager">Manager</option>
+                <option value="staff">Staff</option>
+              </select>
+            </div>
+
+            @if (role === 'staff') {
+              <div class="field">
+                <label>2. Select Designation / Template</label>
+                <select [(ngModel)]="designation" (ngModelChange)="applyTemplate()">
+                  <option value="receptionist">Receptionist</option>
+                  <option value="housekeeping">Housekeeping</option>
+                  <option value="maintenance">Maintenance</option>
+                  <option value="accountant">Accountant</option>
+                  <option value="other">Custom Staff</option>
+                </select>
+              </div>
+            }
+
+            <div class="field">
+              <label>3. Assign Lodge(s) *</label>
+              <div class="chip-wrap">
+                @for (l of lodges(); track l.id) {
+                  <button
+                    type="button"
+                    class="chip"
+                    [class.active]="selectedLodgeIds().includes(l.id)"
+                    (click)="toggleLodge(l.id)"
+                  >
+                    {{ l.name }}
+                  </button>
+                }
+              </div>
+            </div>
+
+            <div class="field">
+              <label>4. Customize Permissions ({{ selectedPermissions().length }} selected)</label>
+              <div class="perm-groups">
+                @for (g of permissionGroups; track g.category) {
+                  <div class="perm-group">
+                    <strong>{{ g.category | uppercase }}</strong>
+                    <div class="chip-wrap">
+                      @for (p of g.permissions; track p.key) {
+                        <button
+                          type="button"
+                          class="chip sm"
+                          [class.active]="selectedPermissions().includes(p.key)"
+                          (click)="togglePerm(p.key)"
+                        >
+                          {{ p.key }}
+                        </button>
+                      }
+                    </div>
+                  </div>
+                }
+              </div>
+            </div>
+
+            <div class="confirm-row">
+              <ion-button fill="outline" color="medium" (click)="activeUser.set(null)">Cancel</ion-button>
+              <ion-button fill="solid" (click)="confirmApproval()" [disabled]="isSaving()">
+                Confirm & Activate Account
+              </ion-button>
+            </div>
+          </section>
+        }
+      </div>
+    </div>
+  </div>
+</app-shell>

@@ -5,7 +5,7 @@
       <p class="customers-page__subtitle">{{ subtitle | translate }}</p>
     </div>
 
-    <ion-button class="customers-page__cta" fill="solid">
+    <ion-button class="customers-page__cta" fill="solid" (click)="openAddModal()">
       <ion-icon slot="start" name="person-add-outline"></ion-icon>
       {{ 'CUSTOMERS.NEW' | translate }}
     </ion-button>
@@ -23,7 +23,7 @@
 
   <div class="customers-grid">
     @for (customer of filteredCustomers(); track trackCustomer($index, customer)) {
-      <article class="customer-card">
+      <article class="customer-card" (click)="openDetails(customer, $event)">
         <div class="customer-card__header">
           <span class="customer-card__avatar">{{ customer.initials }}</span>
 
@@ -34,14 +34,24 @@
             </p>
           </div>
 
-          <span
-            class="customer-status"
-            [class.customer-status--paid]="customer.status === 'Paid'"
-            [class.customer-status--due]="customer.status === 'Due'"
-          >
-            <span class="customer-status__dot"></span>
-            {{ statusLabelKey(customer.status) | translate }}
-          </span>
+          <div class="customer-card__top-right">
+            <span
+              class="customer-status"
+              [class.customer-status--paid]="customer.status === 'Paid'"
+              [class.customer-status--due]="customer.status === 'Due'"
+            >
+              <span class="customer-status__dot"></span>
+              {{ statusLabelKey(customer.status) | translate }}
+            </span>
+            <button
+              type="button"
+              class="customer-icon-btn"
+              title="Edit Customer"
+              (click)="openEditModal(customer, $event)"
+            >
+              <ion-icon name="create-outline"></ion-icon>
+            </button>
+          </div>
         </div>
 
         <dl class="customer-card__stats">
@@ -60,27 +70,209 @@
         </dl>
 
         <p class="customer-card__id">
-          <svg
-            xmlns="http://www.w3.org/2000/svg"
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            stroke-width="2"
-            stroke-linecap="round"
-            stroke-linejoin="round"
-            aria-hidden="true"
-          >
-            <path d="M16 10h2"></path>
-            <path d="M16 14h2"></path>
-            <path d="M6.17 15a3 3 0 0 1 5.66 0"></path>
-            <circle cx="9" cy="11" r="2"></circle>
-            <rect x="2" y="5" width="20" height="14" rx="2"></rect>
-          </svg>
+          <ion-icon name="card-outline" class="id-icon"></ion-icon>
           {{ customer.idNumber }}
         </p>
       </article>
+    } @empty {
+      <div class="empty-customers">
+        <ion-icon name="people-outline"></ion-icon>
+        <p>No customer records found matching your query.</p>
+      </div>
     }
   </div>
+
+  <!-- Add Customer Modal -->
+  <ion-modal [isOpen]="isAddModalOpen()" (didDismiss)="closeAddModal()" cssClass="app-form-modal">
+    <ng-template>
+      <div class="form-sheet" role="dialog" aria-labelledby="add-customer-title">
+        <button
+          type="button"
+          class="form-sheet__close"
+          [attr.aria-label]="'COMMON.CLOSE' | translate"
+          (click)="closeAddModal()"
+        >
+          ✕
+        </button>
+
+        <div class="form-sheet__header">
+          <h2 id="add-customer-title" class="form-sheet__title">Add New Customer</h2>
+        </div>
+
+        <div class="form-sheet__grid">
+          <label class="form-sheet__field">
+            <span>Full Name *</span>
+            <input type="text" [(ngModel)]="formName" placeholder="e.g. Vikram Patil" />
+          </label>
+
+          <label class="form-sheet__field">
+            <span>Phone Number *</span>
+            <input type="tel" [(ngModel)]="formPhone" placeholder="e.g. 9876543210" />
+          </label>
+
+          <label class="form-sheet__field">
+            <span>Email</span>
+            <input type="email" [(ngModel)]="formEmail" placeholder="e.g. vikram@gmail.com" />
+          </label>
+
+          <label class="form-sheet__field">
+            <span>City *</span>
+            <input type="text" [(ngModel)]="formCity" placeholder="Kolhapur" />
+          </label>
+
+          <label class="form-sheet__field">
+            <span>ID Proof Type</span>
+            <select [(ngModel)]="formIdType">
+              <option value="Aadhaar">Aadhaar Card</option>
+              <option value="Passport">Passport</option>
+              <option value="Driving License">Driving License</option>
+              <option value="Voter ID">Voter ID</option>
+            </select>
+          </label>
+
+          <label class="form-sheet__field">
+            <span>ID Proof Reference #</span>
+            <input type="text" [(ngModel)]="formIdNumber" placeholder="XXXX-XXXX-1234" />
+          </label>
+
+          <label class="form-sheet__field form-sheet__field--full">
+            <span>Address</span>
+            <input type="text" [(ngModel)]="formAddress" placeholder="Home or business address" />
+          </label>
+
+          <label class="form-sheet__field form-sheet__field--full">
+            <span>Customer Notes / Preferences</span>
+            <input type="text" [(ngModel)]="formNotes" placeholder="e.g. Prefers high floor, corporate booking" />
+          </label>
+        </div>
+
+        <div class="form-sheet__footer">
+          <button type="button" class="form-sheet__cancel" (click)="closeAddModal()">
+            <ion-icon name="close-outline"></ion-icon>
+            <span>Cancel</span>
+          </button>
+          <button type="button" class="form-sheet__save" (click)="saveCustomer()">
+            <ion-icon name="checkmark-circle-outline"></ion-icon>
+            <span>Save Customer</span>
+          </button>
+        </div>
+      </div>
+    </ng-template>
+  </ion-modal>
+
+  <!-- Edit Customer Modal -->
+  <ion-modal [isOpen]="isEditModalOpen()" (didDismiss)="closeEditModal()" cssClass="app-form-modal">
+    <ng-template>
+      <div class="form-sheet" role="dialog" aria-labelledby="edit-customer-title">
+        <button type="button" class="form-sheet__close" (click)="closeEditModal()">✕</button>
+
+        <div class="form-sheet__header">
+          <h2 id="edit-customer-title" class="form-sheet__title">Edit Customer Details</h2>
+        </div>
+
+        <div class="form-sheet__grid">
+          <label class="form-sheet__field">
+            <span>Full Name *</span>
+            <input type="text" [(ngModel)]="editName" />
+          </label>
+
+          <label class="form-sheet__field">
+            <span>Phone Number *</span>
+            <input type="tel" [(ngModel)]="editPhone" />
+          </label>
+
+          <label class="form-sheet__field">
+            <span>City *</span>
+            <input type="text" [(ngModel)]="editCity" />
+          </label>
+
+          <label class="form-sheet__field">
+            <span>Address</span>
+            <input type="text" [(ngModel)]="editAddress" />
+          </label>
+
+          <label class="form-sheet__field form-sheet__field--full">
+            <span>Notes</span>
+            <input type="text" [(ngModel)]="editNotes" />
+          </label>
+        </div>
+
+        <div class="form-sheet__footer">
+          <button type="button" class="form-sheet__cancel" (click)="closeEditModal()">
+            <ion-icon name="close-outline"></ion-icon>
+            <span>Cancel</span>
+          </button>
+          <button type="button" class="form-sheet__save" (click)="saveEditCustomer()">
+            <ion-icon name="checkmark-circle-outline"></ion-icon>
+            <span>Save Changes</span>
+          </button>
+        </div>
+      </div>
+    </ng-template>
+  </ion-modal>
+
+  <!-- Customer Profile & History Modal -->
+  <ion-modal [isOpen]="isDetailsModalOpen()" (didDismiss)="closeDetails()" cssClass="app-form-modal">
+    <ng-template>
+      @if (activeCustomer(); as c) {
+        <div class="form-sheet customer-detail-sheet" role="dialog" aria-labelledby="profile-title">
+          <button type="button" class="form-sheet__close" (click)="closeDetails()">✕</button>
+
+          <div class="profile-header">
+            <div class="profile-avatar">{{ c.initials }}</div>
+            <div class="profile-info">
+              <h2 id="profile-title">{{ c.name }}</h2>
+              <p>{{ c.phone }} · {{ c.city }}</p>
+            </div>
+            <span class="profile-status" [class.paid]="c.status === 'Paid'">{{ c.status }}</span>
+          </div>
+
+          <div class="profile-stats-grid">
+            <div class="stat-box">
+              <span class="lbl">Total Visits</span>
+              <span class="val">{{ c.visits }}</span>
+            </div>
+            <div class="stat-box">
+              <span class="lbl">Outstanding Due</span>
+              <span class="val text-danger">{{ c.due }}</span>
+            </div>
+            <div class="stat-box">
+              <span class="lbl">ID Proof</span>
+              <span class="val">{{ c.idType }}: {{ c.idNumber }}</span>
+            </div>
+          </div>
+
+          <div class="profile-history-section">
+            <h3>Booking History with Customer</h3>
+            <div class="history-list">
+              @for (b of customerBookings(); track b.id) {
+                <div class="history-item">
+                  <div class="history-left">
+                    <span class="booking-id">#{{ b.id }}</span>
+                    <span class="room-ref">Room {{ b.room }}</span>
+                  </div>
+                  <div class="history-mid">
+                    <span>{{ b.checkIn }} - {{ b.checkOut }}</span>
+                  </div>
+                  <div class="history-right">
+                    <span class="amt">{{ b.amount }}</span>
+                    <span class="badge" [class.badge-paid]="b.status === 'Paid'">{{ b.status }}</span>
+                  </div>
+                </div>
+              } @empty {
+                <p class="no-history">No past bookings found under this profile.</p>
+              }
+            </div>
+          </div>
+
+          <div class="form-sheet__footer">
+            <button type="button" class="form-sheet__save" (click)="closeDetails()">
+              <ion-icon name="close-outline"></ion-icon>
+              <span>Close Profile</span>
+            </button>
+          </div>
+        </div>
+      }
+    </ng-template>
+  </ion-modal>
 </div>

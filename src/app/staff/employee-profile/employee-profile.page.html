@@ -1,0 +1,115 @@
+<app-shell
+  [activeNavId]="'staff'"
+  [breadcrumb]="employee()?.name || 'Employee Profile'"
+  (activeNavIdChange)="onNavChange($event)"
+>
+  <div class="prof-page">
+    <div class="prof-page__inner">
+      @if (employee(); as emp) {
+        <header class="prof-topbar">
+          <button type="button" class="back-btn" (click)="goBack()">
+            <ion-icon name="arrow-back-outline"></ion-icon>
+            Directory
+          </button>
+
+          @if (isOwner() && emp.role !== 'owner') {
+            <div class="actions">
+              <button type="button" class="act-btn" (click)="toggleSuspend()">
+                <ion-icon name="power-outline"></ion-icon>
+                {{ emp.employmentStatus === 'suspended' ? 'Reactivate' : 'Suspend' }}
+              </button>
+              <ion-button fill="solid" class="edit-btn" (click)="goToEdit()">
+                <ion-icon slot="start" name="create-outline"></ion-icon>
+                Edit Employee
+              </ion-button>
+            </div>
+          }
+        </header>
+
+        <section class="hero-card">
+          <div class="avatar">
+            @if (emp.photoUrl) { <img [src]="emp.photoUrl" [alt]="emp.name" /> }
+            @else { <span>{{ emp.name.slice(0, 2).toUpperCase() }}</span> }
+          </div>
+          <div class="info">
+            <div class="badges">
+              <span class="badge">{{ emp.employeeId }}</span>
+              <span class="badge role">{{ emp.role || 'Pending' }}</span>
+              <span class="badge status">{{ emp.employmentStatus }}</span>
+            </div>
+            <h1>{{ emp.name }}</h1>
+            <p>{{ emp.designation }} · {{ emp.department }}</p>
+            <div class="contact">
+              <span><ion-icon name="mail-outline"></ion-icon> {{ emp.email }}</span>
+              @if (emp.phone) { <span><ion-icon name="call-outline"></ion-icon> {{ emp.phone }}</span> }
+            </div>
+          </div>
+        </section>
+
+        <nav class="tabs">
+          <button type="button" [class.active]="activeTab() === 'overview'" (click)="activeTab.set('overview')">Overview</button>
+          <button type="button" [class.active]="activeTab() === 'permissions'" (click)="activeTab.set('permissions')">Permissions ({{ emp.permissions.length }})</button>
+          <button type="button" [class.active]="activeTab() === 'lodges'" (click)="activeTab.set('lodges')">Assigned Lodges ({{ assignedLodges().length }})</button>
+          <button type="button" [class.active]="activeTab() === 'activity'" (click)="activeTab.set('activity')">Activity ({{ logs().length }})</button>
+        </nav>
+
+        @if (activeTab() === 'overview') {
+          <section class="card">
+            <h3>Employment Summary</h3>
+            <dl class="kv">
+              <div><dt>Employee ID</dt><dd>{{ emp.employeeId }}</dd></div>
+              <div><dt>Role</dt><dd>{{ emp.role || 'Unassigned' }}</dd></div>
+              <div><dt>Designation</dt><dd>{{ emp.designation }}</dd></div>
+              <div><dt>Employment Type</dt><dd>{{ emp.employmentType || 'Full-Time' }}</dd></div>
+              <div><dt>Joining Date</dt><dd>{{ emp.joiningDate || '—' }}</dd></div>
+              <div><dt>Address</dt><dd>{{ emp.address || '—' }}</dd></div>
+            </dl>
+          </section>
+        }
+
+        @if (activeTab() === 'permissions') {
+          <section class="card">
+            <h3>Assigned Module Permissions</h3>
+            <div class="chip-wrap">
+              @for (p of emp.permissions; track p) {
+                <span class="perm-chip">{{ p }}</span>
+              } @empty {
+                <p class="muted">No explicit permissions assigned.</p>
+              }
+            </div>
+          </section>
+        }
+
+        @if (activeTab() === 'lodges') {
+          <section class="card">
+            <h3>Assigned Lodges</h3>
+            @for (l of assignedLodges(); track l.id) {
+              <div class="list-row">
+                <strong>{{ l.name }} ({{ l.code }})</strong>
+                <span>{{ l.city }} · {{ l.status }}</span>
+              </div>
+            } @empty {
+              <p class="muted">No lodges assigned.</p>
+            }
+          </section>
+        }
+
+        @if (activeTab() === 'activity') {
+          <section class="card">
+            <h3>RBAC & Profile Audit History</h3>
+            @for (log of logs(); track log.id) {
+              <div class="list-row">
+                <strong>{{ log.action }}</strong>
+                <span>{{ log.summary }} · {{ log.actorName }} ({{ log.timestamp | date:'short' }})</span>
+              </div>
+            } @empty {
+              <p class="muted">No audit history logged for this employee.</p>
+            }
+          </section>
+        }
+      } @else {
+        <div class="card"><p class="muted">Loading employee profile...</p></div>
+      }
+    </div>
+  </div>
+</app-shell>

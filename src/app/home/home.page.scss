@@ -12,9 +12,16 @@
   width: 100%;
   max-width: 1400px;
   margin: 0 auto;
-  padding: 16px 12px 16px;
+  padding: 16px 12px;
   display: grid;
   gap: 16px;
+  box-sizing: border-box;
+}
+
+@media (min-width: 640px) {
+  .dashboard-page__inner {
+    padding: 16px;
+  }
 }
 
 .dashboard-page__hero {
@@ -23,6 +30,7 @@
   align-items: center;
   gap: 12px;
 }
+
 
 .dashboard-page__hero-copy {
   min-width: 0;
@@ -44,17 +52,27 @@
 }
 
 .dashboard-page__cta {
-  --background: var(--brand-primary, #1d3e9f);
-  --background-hover: var(--brand-primary-dark, #152f7a);
-  --background-activated: var(--brand-primary-dark, #152f7a);
-  --border-radius: 18px;
-  --box-shadow: 0 8px 20px rgba(29, 62, 159, 0.2);
+  --background: linear-gradient(135deg, #1d3e9f 0%, #2563eb 100%);
+  --background-hover: linear-gradient(135deg, #173282 0%, #1d4ed8 100%);
+  --background-activated: linear-gradient(135deg, #152f7a 0%, #1e40af 100%);
+  --border-radius: 12px;
+  --box-shadow: 0 4px 14px rgba(29, 62, 159, 0.25);
   --color: #ffffff;
   height: 44px;
   margin: 0;
   font-size: 14px;
   font-weight: 600;
   text-transform: none;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+
+  &:hover {
+    --box-shadow: 0 6px 18px rgba(29, 62, 159, 0.35);
+    transform: translateY(-1px);
+  }
+
+  &:active {
+    transform: scale(0.99);
+  }
 }
 
 .dashboard-page__kpis {
@@ -119,6 +137,11 @@
     background: #ffffff;
     box-shadow: 0 4px 12px rgba(15, 23, 42, 0.06);
     outline: none;
+    transform: translateY(-1px);
+  }
+
+  &:active {
+    transform: scale(0.98);
   }
 }
 
@@ -159,14 +182,6 @@
 
 .dashboard-table {
   overflow-x: auto;
-  scrollbar-width: none;
-  -ms-overflow-style: none;
-
-  &::-webkit-scrollbar {
-    display: none;
-    width: 0;
-    height: 0;
-  }
 }
 
 .dashboard-table table {
@@ -389,9 +404,27 @@
   }
 }
 
+@media (max-width: 640px) {
+  .dashboard-page__hero {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+
+  .dashboard-page__title {
+    font-size: 19px;
+  }
+
+  .dashboard-page__cta {
+    width: 100%;
+    margin: 0;
+  }
+}
+
 @media (min-width: 1027px) {
   .dashboard-page__inner {
-    padding: 20px 24px 13px;
+    padding: 20px 24px 20px;
   }
 
   .dashboard-page__kpis {

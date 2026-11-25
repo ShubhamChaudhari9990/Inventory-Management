@@ -1,0 +1,70 @@
+<app-shell
+  [activeNavId]="'staff'"
+  [breadcrumb]="'Permission Management'"
+  (activeNavIdChange)="onNavChange($event)"
+>
+  <div class="mat-page">
+    <div class="mat-page__inner">
+      <header class="mat-header">
+        <button type="button" class="back-btn" (click)="goBack()">
+          <ion-icon name="arrow-back-outline"></ion-icon>
+          Staff Hub
+        </button>
+        <div>
+          <h1>Permission Management</h1>
+          <p>Apply role templates or customize module-level permissions per employee</p>
+        </div>
+      </header>
+
+      <section class="mat-card">
+        <div class="top-row">
+          <select [ngModel]="selectedUid()" (ngModelChange)="onSelectEmployee($event)">
+            <option value="">Select Employee to Configure...</option>
+            @for (e of employees(); track e.uid) {
+              <option [value]="e.uid">{{ e.name }} ({{ e.role }} · {{ e.designation }})</option>
+            }
+          </select>
+
+          @if (selectedUid()) {
+            <div class="tpl-btns">
+              <button type="button" (click)="applyTemplate('manager', 'manager')">Manager Template</button>
+              <button type="button" (click)="applyTemplate('staff', 'receptionist')">Receptionist</button>
+              <button type="button" (click)="applyTemplate('staff', 'housekeeping')">Housekeeping</button>
+              <button type="button" (click)="applyTemplate('staff', 'maintenance')">Maintenance</button>
+              <button type="button" (click)="applyTemplate('staff', 'accountant')">Accountant</button>
+            </div>
+          }
+        </div>
+
+        @if (selectedUid()) {
+          <div class="groups-grid">
+            @for (g of permissionGroups; track g.category) {
+              <div class="g-box">
+                <h3>{{ g.category | uppercase }}</h3>
+                @for (p of g.permissions; track p.key) {
+                  <label class="perm-check">
+                    <input
+                      type="checkbox"
+                      [checked]="selectedPermissions().includes(p.key)"
+                      (change)="togglePerm(p.key)"
+                    />
+                    <span>{{ p.key }}</span>
+                  </label>
+                }
+              </div>
+            }
+          </div>
+
+          <div class="save-row">
+            <ion-button fill="solid" (click)="savePermissions()" [disabled]="isSaving()">
+              <ion-icon slot="start" name="save-outline"></ion-icon>
+              Save Permissions ({{ selectedPermissions().length }})
+            </ion-button>
+          </div>
+        } @else {
+          <p class="muted">Select an employee above to view and customize their permissions.</p>
+        }
+      </section>
+    </div>
+  </div>
+</app-shell>

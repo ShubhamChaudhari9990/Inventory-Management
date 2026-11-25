@@ -3,16 +3,9 @@ import {
   AxisChartOptions,
   DonutChartOptions,
 } from './dashboard-charts.data';
+import { RevenuePayment, RevenuePeriod } from '../../interface';
 
-export type RevenuePeriod = 'today' | 'week' | 'month' | 'year';
-
-export interface RevenuePayment {
-  id: string;
-  guest: string;
-  method: string;
-  time: string;
-  amount: string;
-}
+export type { RevenuePayment, RevenuePeriod };
 
 export const REVENUE_PERIODS: readonly RevenuePeriod[] = [
   'today',
@@ -39,28 +32,28 @@ export const REVENUE_KPIS: readonly DashboardKpi[] = [
   {
     id: 'cash',
     label: 'REVENUE.KPI.CASH',
-    value: '₹1,48,000',
+    value: '₹0',
     icon: 'wallet-outline',
     tone: 'primary',
   },
   {
     id: 'upi',
     label: 'REVENUE.KPI.UPI',
-    value: '₹1,32,000',
+    value: '₹0',
     icon: 'phone-portrait-outline',
     tone: 'primary',
   },
   {
     id: 'card',
     label: 'REVENUE.KPI.CARD',
-    value: '₹52,000',
+    value: '₹0',
     icon: 'card-outline',
     tone: 'primary',
   },
   {
     id: 'bank',
     label: 'REVENUE.KPI.BANK',
-    value: '₹26,000',
+    value: '₹0',
     icon: 'cash-outline',
     tone: 'primary',
   },
@@ -70,7 +63,7 @@ const AXIS_LABEL_STYLE = { colors: '#6b7280', fontSize: '12px' } as const;
 const LIGHT_TOOLTIP = { theme: 'light' as const };
 
 export const REVENUE_MONTHLY_CHART: AxisChartOptions = {
-  series: [{ name: 'Revenue', data: [220, 248, 291, 335, 303, 360] }],
+  series: [{ name: 'Revenue', data: [0, 0, 0, 0, 0, 0] }],
   chart: {
     type: 'area',
     height: 280,
@@ -100,7 +93,7 @@ export const REVENUE_MONTHLY_CHART: AxisChartOptions = {
   },
   yaxis: {
     min: 0,
-    max: 360,
+    max: 100,
     tickAmount: 4,
     labels: {
       style: { ...AXIS_LABEL_STYLE },
@@ -115,7 +108,7 @@ export const REVENUE_MONTHLY_CHART: AxisChartOptions = {
 };
 
 export const REVENUE_METHODS_CHART: DonutChartOptions = {
-  series: [148, 132, 52, 26],
+  series: [0, 0, 0, 0],
   chart: {
     type: 'donut',
     height: 240,
@@ -137,33 +130,4 @@ export const REVENUE_METHODS_CHART: DonutChartOptions = {
   responsive: [{ breakpoint: 768, options: { chart: { height: 220 } } }],
 };
 
-export const REVENUE_RECENT_PAYMENTS: readonly RevenuePayment[] = [
-  {
-    id: 'p1',
-    guest: 'Rahul Deshmukh',
-    method: 'UPI',
-    time: '10:24 AM',
-    amount: '₹1,800',
-  },
-  {
-    id: 'p2',
-    guest: 'Amit Joshi',
-    method: 'Cash',
-    time: '09:50 AM',
-    amount: '₹2,250',
-  },
-  {
-    id: 'p3',
-    guest: 'Sneha Patil',
-    method: 'Card',
-    time: '09:12 AM',
-    amount: '₹2,000',
-  },
-  {
-    id: 'p4',
-    guest: 'Nitin Shinde',
-    method: 'Bank Transfer',
-    time: '08:40 AM',
-    amount: '₹3,600',
-  },
-] as const;
+export const REVENUE_RECENT_PAYMENTS: readonly RevenuePayment[] = [];

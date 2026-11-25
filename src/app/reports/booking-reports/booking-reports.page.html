@@ -1,0 +1,96 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar class="rep-toolbar">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/reports"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Booking & Occupancy Reports</ion-title>
+    @if (reportsService.canExportReports()) {
+      <ion-buttons slot="end" class="exp-btns">
+        <button class="btn-exp" (click)="export('csv')">CSV</button>
+        <button class="btn-exp" (click)="export('pdf')">PDF</button>
+      </ion-buttons>
+    }
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="rep-content">
+  <div class="rep-container">
+    <app-report-filter-bar></app-report-filter-bar>
+
+    <section class="kpi-grid">
+      <div class="stat-card"><div class="lbl">Total Bookings</div><div class="val">{{ summary().total }}</div></div>
+      <div class="stat-card"><div class="lbl">Confirmed / Checked-In</div><div class="val">{{ summary().confirmed }} / {{ summary().checkedIn }}</div></div>
+      <div class="stat-card"><div class="lbl">Checked-Out / Cancelled</div><div class="val">{{ summary().checkedOut }} / {{ summary().cancelled }}</div></div>
+      <div class="stat-card"><div class="lbl">Occupancy Rate</div><div class="val">{{ occupancy().occupancyRate }}%</div><div class="sub">{{ occupancy().occupiedRoomNights }} / {{ occupancy().sellableRoomNights }} room-nights</div></div>
+      <div class="stat-card"><div class="lbl">ADR</div><div class="val">₹{{ occupancy().adr | number: '1.0-0' }}</div></div>
+      <div class="stat-card"><div class="lbl">RevPAR</div><div class="val">₹{{ occupancy().revpar | number: '1.0-0' }}</div></div>
+    </section>
+
+    <div class="panels-grid">
+      <section class="panel">
+        <h3>Booking Source Breakdown</h3>
+        @for (c of channelBreakdown(); track c.channel) {
+          <div class="row"><span>{{ c.channel }}</span><strong>{{ c.count }}</strong></div>
+        }
+      </section>
+      <section class="panel">
+        <h3>Room-Type Performance</h3>
+        @for (rt of roomTypeBreakdown(); track rt.roomType) {
+          <div class="row"><span>{{ rt.roomType }}</span><strong>{{ rt.count }} · ₹{{ rt.revenue | number: '1.0-0' }}</strong></div>
+        }
+      </section>
+    </div>
+
+    <section class="panel">
+      <div class="filters-bar">
+        <input class="search-inp" type="text" placeholder="Search guest, room, ID..." [ngModel]="searchQuery()" (ngModelChange)="searchQuery.set($event); page.set(1)" />
+        <select class="sel" [ngModel]="statusFilter()" (ngModelChange)="statusFilter.set($event); page.set(1)">
+          <option value="all">All Statuses</option>
+          <option value="Confirmed">Confirmed</option>
+          <option value="Checked-In">Checked-In</option>
+          <option value="Checked-Out">Checked-Out</option>
+          <option value="Cancelled">Cancelled</option>
+        </select>
+        <select class="sel" [ngModel]="channelFilter()" (ngModelChange)="channelFilter.set($event); page.set(1)">
+          <option value="all">All Sources</option>
+          <option value="Walk-in">Walk-in</option>
+          <option value="Online">Online</option>
+          <option value="Phone">Phone</option>
+          <option value="Corporate">Corporate</option>
+        </select>
+      </div>
+
+      @if (pagedBookings().length === 0) {
+        <div class="empty-box">No bookings match the current filters.</div>
+      } @else {
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr><th>Guest</th><th>Room</th><th>Check-In</th><th>Check-Out</th><th>Source</th><th>Status</th><th>Amount</th></tr>
+            </thead>
+            <tbody>
+              @for (b of pagedBookings(); track b.id) {
+                <tr>
+                  <td>{{ b.guestName }}</td>
+                  <td>{{ b.room }}</td>
+                  <td>{{ b.checkIn }}</td>
+                  <td>{{ b.checkOut }}</td>
+                  <td>{{ b.channel }}</td>
+                  <td>{{ b.status }}</td>
+                  <td>₹{{ reportsService.parseAmount(b.totalAmount ?? b.amount) | number: '1.0-0' }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+        @if (totalPages() > 1) {
+          <div class="pagination">
+            <button [disabled]="page() <= 1" (click)="page.set(page() - 1)">Prev</button>
+            <span>Page {{ page() }} of {{ totalPages() }}</span>
+            <button [disabled]="page() >= totalPages()" (click)="page.set(page() + 1)">Next</button>
+          </div>
+        }
+      }
+    </section>
+  </div>
+</ion-content>

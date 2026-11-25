@@ -5,14 +5,14 @@
       <p class="expenses-page__subtitle">{{ subtitle | translate }}</p>
     </div>
 
-    <ion-button class="expenses-page__cta" fill="solid">
+    <ion-button class="expenses-page__cta" fill="solid" (click)="openAddModal()">
       <ion-icon slot="start" name="add-outline"></ion-icon>
       {{ 'EXPENSES.ADD' | translate }}
     </ion-button>
   </header>
 
   <section class="expenses-page__kpis" aria-label="Expenses summary">
-    @for (kpi of kpis; track kpi.id) {
+    @for (kpi of dynamicKpis(); track kpi.id) {
       <app-dashboard-kpi-card [kpi]="kpi" />
     }
   </section>
@@ -46,4 +46,136 @@
       </ul>
     </app-dashboard-section-card>
   </div>
+
+  <!-- Recent Expense Transactions -->
+  <section class="expense-records-card">
+    <div class="expense-records-header">
+      <h2>Expense Transactions & Audit Trail</h2>
+      <label class="search-mini">
+        <ion-icon name="search-outline"></ion-icon>
+        <input
+          type="search"
+          placeholder="Search expenses..."
+          [value]="query()"
+          (input)="query.set($any($event.target).value)"
+        />
+      </label>
+    </div>
+
+    <div class="table-wrap">
+      <table class="records-table">
+        <thead>
+          <tr>
+            <th>Title / Payee</th>
+            <th>Category</th>
+            <th>Payment Mode</th>
+            <th class="text-right">Amount</th>
+            <th>Date</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (rec of filteredRecords(); track trackRecord($index, rec)) {
+            <tr [class.row-reversed]="rec.isReversed">
+              <td class="font-semibold">{{ rec.title }}</td>
+              <td>
+                <span class="category-pill">{{ rec.category }}</span>
+              </td>
+              <td>{{ rec.paymentMethod }}</td>
+              <td class="text-right font-mono" [class.line-through]="rec.isReversed">
+                ₹{{ rec.numericAmount.toLocaleString('en-IN') }}
+              </td>
+              <td>{{ rec.expenseDate }}</td>
+              <td>
+                <span class="status-chip" [class.chip-reversed]="rec.isReversed">
+                  {{ rec.isReversed ? 'Reversed' : 'Active' }}
+                </span>
+              </td>
+              <td>
+                @if (!rec.isReversed) {
+                  <button
+                    type="button"
+                    class="btn-reverse"
+                    title="Reverse Expense"
+                    (click)="reverseExpense(rec, $event)"
+                  >
+                    <ion-icon name="arrow-undo-outline"></ion-icon>
+                    Reverse
+                  </button>
+                } @else {
+                  <span class="text-muted text-xs">Reversed</span>
+                }
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="7" class="empty-state">No expense entries recorded yet.</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+  </section>
+
+  <!-- Add Expense Modal -->
+  <ion-modal [isOpen]="isAddModalOpen()" (didDismiss)="closeAddModal()" cssClass="app-form-modal">
+    <ng-template>
+      <div class="form-sheet" role="dialog" aria-labelledby="add-expense-title">
+        <button type="button" class="form-sheet__close" (click)="closeAddModal()">✕</button>
+
+        <div class="form-sheet__header">
+          <h2 id="add-expense-title" class="form-sheet__title">Record New Expense</h2>
+        </div>
+
+        <div class="form-sheet__grid">
+          <label class="form-sheet__field">
+            <span>Expense Title / Payee *</span>
+            <input type="text" [(ngModel)]="formTitle" placeholder="e.g. MSEB Electricity Bill" />
+          </label>
+
+          <label class="form-sheet__field">
+            <span>Amount (₹) *</span>
+            <input type="number" [(ngModel)]="formAmount" min="1" placeholder="3200" />
+          </label>
+
+          <label class="form-sheet__field">
+            <span>Category *</span>
+            <select [(ngModel)]="formCategory">
+              @for (cat of categoryOptions; track cat) {
+                <option [value]="cat">{{ cat }}</option>
+              }
+            </select>
+          </label>
+
+          <label class="form-sheet__field">
+            <span>Payment Method</span>
+            <select [(ngModel)]="formMethod">
+              <option value="UPI">UPI</option>
+              <option value="Cash">Cash</option>
+              <option value="Bank Transfer">Bank Transfer</option>
+              <option value="Credit Card">Credit Card</option>
+              <option value="Debit Card">Debit Card</option>
+            </select>
+          </label>
+
+          <label class="form-sheet__field form-sheet__field--full">
+            <span>Remarks / Invoice Reference</span>
+            <input type="text" [(ngModel)]="formNotes" placeholder="e.g. Bill #482910 for 3rd floor AC units" />
+          </label>
+        </div>
+
+        <div class="form-sheet__footer">
+          <button type="button" class="form-sheet__cancel" (click)="closeAddModal()">
+            <ion-icon name="close-outline"></ion-icon>
+            <span>Cancel</span>
+          </button>
+          <button type="button" class="form-sheet__save" (click)="saveExpense()">
+            <ion-icon name="checkmark-circle-outline"></ion-icon>
+            <span>Save Expense</span>
+          </button>
+        </div>
+      </div>
+    </ng-template>
+  </ion-modal>
 </div>

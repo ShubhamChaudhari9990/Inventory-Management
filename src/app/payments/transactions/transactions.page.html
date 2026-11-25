@@ -1,0 +1,113 @@
+<app-shell
+  [activeNavId]="'payments'"
+  [breadcrumb]="'Transactions'"
+  (activeNavIdChange)="onNavChange($event)"
+>
+  <div class="tx-page">
+    <div class="tx-page__inner">
+      <header class="tx-header">
+        <button type="button" class="back-btn" (click)="goBack()">
+          <ion-icon name="arrow-back-outline"></ion-icon>
+          Payments Dashboard
+        </button>
+        <div>
+          <h1>Transactions Ledger</h1>
+          <p>Search, filter & audit every payment recorded across lodges</p>
+        </div>
+      </header>
+
+      <section class="toolbar">
+        <div class="search-box">
+          <ion-icon name="search-outline"></ion-icon>
+          <input
+            type="text"
+            placeholder="Search TX ID, Booking ID, Guest, Reference..."
+            [ngModel]="searchQuery()"
+            (ngModelChange)="searchQuery.set($event)"
+          />
+        </div>
+
+        <input type="date" class="ctrl" [ngModel]="startDate()" (ngModelChange)="startDate.set($event)" />
+        <input type="date" class="ctrl" [ngModel]="endDate()" (ngModelChange)="endDate.set($event)" />
+
+        <select class="ctrl" [ngModel]="methodFilter()" (ngModelChange)="methodFilter.set($event)">
+          <option value="all">All Methods</option>
+          <option value="Cash">Cash</option>
+          <option value="UPI">UPI</option>
+          <option value="Card">Card</option>
+          <option value="Bank Transfer">Bank Transfer</option>
+          <option value="Online Gateway">Online Gateway</option>
+        </select>
+
+        <select class="ctrl" [ngModel]="statusFilter()" (ngModelChange)="statusFilter.set($event)">
+          <option value="all">All Statuses</option>
+          <option value="Paid">Paid</option>
+          <option value="Pending">Pending</option>
+          <option value="Failed">Failed</option>
+          <option value="Refunded">Refunded</option>
+        </select>
+
+        <select class="ctrl" [ngModel]="typeFilter()" (ngModelChange)="typeFilter.set($event)">
+          <option value="all">All Types</option>
+          <option value="Advance">Advance</option>
+          <option value="Partial">Partial</option>
+          <option value="Full">Full</option>
+          <option value="Remaining Balance">Remaining Balance</option>
+          <option value="Additional Charges">Additional Charges</option>
+        </select>
+
+        <select class="ctrl" [ngModel]="sortBy()" (ngModelChange)="sortBy.set($event)">
+          <option value="date">Newest First</option>
+          <option value="amount">Highest Amount</option>
+        </select>
+      </section>
+
+      @if (visible().length > 0) {
+        <section class="table-card">
+          <div class="table-wrap">
+            <table class="tx-table">
+              <thead>
+                <tr>
+                  <th>TX ID</th>
+                  <th>Booking</th>
+                  <th>Customer</th>
+                  <th>Lodge</th>
+                  <th>Amount</th>
+                  <th>Method</th>
+                  <th>Type</th>
+                  <th>Status</th>
+                  <th>Date</th>
+                  <th>Created By</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (p of visible(); track p.id) {
+                  <tr>
+                    <td><strong>{{ p.id }}</strong></td>
+                    <td>{{ p.bookingId || '—' }}</td>
+                    <td>{{ p.guestName }}</td>
+                    <td>{{ p.propertyName || p.propertyId }}</td>
+                    <td><strong>{{ p.amount }}</strong></td>
+                    <td>{{ p.method }}</td>
+                    <td>{{ p.type }}</td>
+                    <td><span class="pill pill--{{ p.status.toLowerCase() }}">{{ p.status }}</span></td>
+                    <td>{{ p.paymentDate || (p.createdAt | date:'shortDate') }}</td>
+                    <td>{{ p.createdByName || 'System' }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        @if (hasMore()) {
+          <div class="load-more">
+            <ion-button fill="outline" (click)="loadMore()">Load More</ion-button>
+          </div>
+        }
+      } @else {
+        <div class="empty">No transactions match the selected filters.</div>
+      }
+    </div>
+  </div>
+</app-shell>

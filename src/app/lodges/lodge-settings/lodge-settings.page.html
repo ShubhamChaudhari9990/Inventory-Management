@@ -1,0 +1,267 @@
+<app-shell
+  [activeNavId]="'lodges'"
+  [breadcrumb]="(lodge()?.name || 'Lodge') + ' · Settings'"
+  (activeNavIdChange)="onNavChange($event)"
+>
+  <div class="subpage">
+    <div class="subpage__inner">
+      <header class="subpage-header">
+        <button type="button" class="back-btn" (click)="goBack()">
+          <ion-icon name="arrow-back-outline"></ion-icon>
+          Back to Details
+        </button>
+        <div class="subpage-header__title">
+          <h1>Lodge Settings</h1>
+          <p>Isolated configuration for {{ lodge()?.name || 'Selected Lodge' }} (does not overwrite business-wide settings)</p>
+        </div>
+      </header>
+
+      @if (isLoading()) {
+        <div class="sub-card">Loading lodge settings...</div>
+      } @else if (settings(); as s) {
+        <div class="settings-sections">
+          <!-- 1. General Information -->
+          <section class="sub-card">
+            <h2>1. General Information</h2>
+            <div class="grid-2">
+              <div class="field">
+                <label>Display Name</label>
+                <input type="text" [(ngModel)]="s.general.displayName" />
+              </div>
+              <div class="field">
+                <label>Short Code</label>
+                <input type="text" [(ngModel)]="s.general.shortCode" readonly />
+              </div>
+              <div class="field">
+                <label>Lodge Type</label>
+                <select [(ngModel)]="s.general.lodgeType">
+                  @for (t of lodgeTypes; track t) {
+                    <option [value]="t">{{ t }}</option>
+                  }
+                </select>
+              </div>
+              <div class="field">
+                <label>Tagline</label>
+                <input type="text" [(ngModel)]="s.general.tagline" />
+              </div>
+            </div>
+          </section>
+
+          <!-- 2. Contact Information -->
+          <section class="sub-card">
+            <h2>2. Contact Information</h2>
+            <div class="grid-2">
+              <div class="field">
+                <label>Primary Phone</label>
+                <input type="tel" [(ngModel)]="s.contact.primaryPhone" />
+              </div>
+              <div class="field">
+                <label>Alternate Phone</label>
+                <input type="tel" [(ngModel)]="s.contact.alternatePhone" />
+              </div>
+              <div class="field">
+                <label>Email</label>
+                <input type="email" [(ngModel)]="s.contact.email" />
+              </div>
+              <div class="field">
+                <label>Contact Person</label>
+                <input type="text" [(ngModel)]="s.contact.contactPerson" />
+              </div>
+            </div>
+          </section>
+
+          <!-- 3. Booking Configuration -->
+          <section class="sub-card">
+            <h2>3. Booking Configuration</h2>
+            <div class="grid-2">
+              <label class="toggle-row">
+                <input type="checkbox" [(ngModel)]="s.booking.allowOnlineBooking" />
+                <span>Allow Online / Direct Bookings</span>
+              </label>
+              <label class="toggle-row">
+                <input type="checkbox" [(ngModel)]="s.booking.requireAdvancePayment" />
+                <span>Require Advance Payment on Booking</span>
+              </label>
+              <label class="toggle-row">
+                <input type="checkbox" [(ngModel)]="s.booking.allowSameDayCheckIn" />
+                <span>Allow Same-Day Check-In</span>
+              </label>
+              <div class="field">
+                <label>Minimum Advance (%)</label>
+                <input type="number" [(ngModel)]="s.booking.advancePercentage" min="0" max="100" />
+              </div>
+              <div class="field">
+                <label>Auto-Cancel Unpaid (Hours)</label>
+                <input type="number" [(ngModel)]="s.booking.autoCancelUnpaidHours" min="0" />
+              </div>
+            </div>
+          </section>
+
+          <!-- 4. Check-in / Check-out Configuration -->
+          <section class="sub-card">
+            <h2>4. Check-in / Check-out Configuration</h2>
+            <div class="grid-2">
+              <div class="field">
+                <label>Standard Check-in Time</label>
+                <input type="time" [(ngModel)]="s.checkInOut.standardCheckInTime" />
+              </div>
+              <div class="field">
+                <label>Standard Check-out Time</label>
+                <input type="time" [(ngModel)]="s.checkInOut.standardCheckOutTime" />
+              </div>
+              <div class="field">
+                <label>Grace Period (Minutes)</label>
+                <input type="number" [(ngModel)]="s.checkInOut.gracePeriodMinutes" min="0" />
+              </div>
+              <div class="field-col">
+                <label class="toggle-row">
+                  <input type="checkbox" [(ngModel)]="s.checkInOut.earlyCheckInAllowed" />
+                  <span>Allow Early Check-in</span>
+                </label>
+                <label class="toggle-row">
+                  <input type="checkbox" [(ngModel)]="s.checkInOut.lateCheckOutAllowed" />
+                  <span>Allow Late Check-out</span>
+                </label>
+              </div>
+            </div>
+          </section>
+
+          <!-- 5. Room Configuration -->
+          <section class="sub-card">
+            <h2>5. Room Configuration</h2>
+            <div class="grid-2">
+              <div class="field">
+                <label>Currency</label>
+                <select [(ngModel)]="s.roomConfig.defaultCurrency">
+                  @for (c of currencies; track c.code) {
+                    <option [value]="c.code">{{ c.label }}</option>
+                  }
+                </select>
+              </div>
+              <div class="field">
+                <label>Extra Bed Charge</label>
+                <input type="number" [(ngModel)]="s.roomConfig.extraBedCharge" min="0" />
+              </div>
+              <label class="toggle-row">
+                <input type="checkbox" [(ngModel)]="s.roomConfig.allowExtraBed" />
+                <span>Allow Extra Bed Requests</span>
+              </label>
+              <label class="toggle-row">
+                <input type="checkbox" [(ngModel)]="s.roomConfig.requireIdVerification" />
+                <span>Require Guest ID Verification at Check-in</span>
+              </label>
+              <label class="toggle-row">
+                <input type="checkbox" [(ngModel)]="s.roomConfig.autoAssignHousekeepingOnCheckout" />
+                <span>Auto-create Housekeeping Task on Check-out</span>
+              </label>
+            </div>
+          </section>
+
+          <!-- 6. Tax Configuration -->
+          <section class="sub-card">
+            <h2>6. Tax Configuration</h2>
+            <div class="grid-2">
+              <div class="field">
+                <label>GST Number</label>
+                <input type="text" [(ngModel)]="s.tax.gstNumber" />
+              </div>
+              <div class="field">
+                <label>Default Tax Rate (%)</label>
+                <input type="number" [(ngModel)]="s.tax.defaultTaxRate" min="0" max="100" />
+              </div>
+              <label class="toggle-row">
+                <input type="checkbox" [(ngModel)]="s.tax.taxInclusive" />
+                <span>Prices Include Tax</span>
+              </label>
+            </div>
+          </section>
+
+          <!-- 7. Invoice Configuration -->
+          <section class="sub-card">
+            <h2>7. Invoice Configuration</h2>
+            <div class="grid-2">
+              <div class="field">
+                <label>Invoice Prefix</label>
+                <input type="text" [(ngModel)]="s.invoice.invoicePrefix" />
+              </div>
+              <div class="field">
+                <label>Starting Invoice Number</label>
+                <input type="number" [(ngModel)]="s.invoice.startingNumber" min="1" />
+              </div>
+              <div class="field field--full">
+                <label>Invoice Footer Notes</label>
+                <input type="text" [(ngModel)]="s.invoice.footerNotes" />
+              </div>
+              <label class="toggle-row">
+                <input type="checkbox" [(ngModel)]="s.invoice.showGstBreakdown" />
+                <span>Show GST Breakdown on Receipts</span>
+              </label>
+            </div>
+          </section>
+
+          <!-- 8. Notification Preferences -->
+          <section class="sub-card">
+            <h2>8. Notification Preferences</h2>
+            <div class="grid-2">
+              <label class="toggle-row">
+                <input type="checkbox" [(ngModel)]="s.notifications.notifyNewBooking" />
+                <span>New Booking Alerts</span>
+              </label>
+              <label class="toggle-row">
+                <input type="checkbox" [(ngModel)]="s.notifications.notifyCheckInReminder" />
+                <span>Check-in Reminders</span>
+              </label>
+              <label class="toggle-row">
+                <input type="checkbox" [(ngModel)]="s.notifications.notifyLowInventory" />
+                <span>Low Inventory Alerts</span>
+              </label>
+              <label class="toggle-row">
+                <input type="checkbox" [(ngModel)]="s.notifications.notifyMaintenanceAlert" />
+                <span>Maintenance Issue Alerts</span>
+              </label>
+            </div>
+          </section>
+
+          <!-- 9. Operational Settings -->
+          <section class="sub-card">
+            <h2>9. Operational Settings</h2>
+            <div class="grid-2">
+              <div class="field">
+                <label>Timezone</label>
+                <select [(ngModel)]="s.operational.timezone">
+                  @for (tz of timezones; track tz.value) {
+                    <option [value]="tz.value">{{ tz.label }}</option>
+                  }
+                </select>
+              </div>
+              <div class="field">
+                <label>Housekeeping Cutoff Time</label>
+                <input type="time" [(ngModel)]="s.operational.housekeepingCutoffTime" />
+              </div>
+              <div class="field">
+                <label>Night Audit Time</label>
+                <input type="time" [(ngModel)]="s.operational.nightAuditTime" />
+              </div>
+              <label class="toggle-row">
+                <input type="checkbox" [(ngModel)]="s.operational.maintenanceMode" />
+                <span>Property Maintenance Mode</span>
+              </label>
+            </div>
+          </section>
+
+          <footer class="sticky-save">
+            <ion-button fill="solid" (click)="onSave()" [disabled]="isSaving()">
+              @if (isSaving()) {
+                <ion-spinner slot="start" name="crescent"></ion-spinner>
+                Saving Settings...
+              } @else {
+                <ion-icon slot="start" name="save-outline"></ion-icon>
+                Save Lodge Settings
+              }
+            </ion-button>
+          </footer>
+        </div>
+      }
+    </div>
+  </div>
+</app-shell>

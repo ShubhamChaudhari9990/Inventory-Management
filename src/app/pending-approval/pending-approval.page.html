@@ -1,0 +1,170 @@
+<ion-content [fullscreen]="true" class="pending-content">
+  <div class="page-shell">
+    <!-- Header -->
+    <header class="brand-header">
+      <div class="brand-main">
+        <div class="brand-logo">
+          <ion-icon name="leaf" aria-hidden="true"></ion-icon>
+        </div>
+        <div class="brand-info">
+          <span class="brand-name">{{ 'BRAND.NAME' | translate }}</span>
+          <span class="brand-subtitle">{{ 'BRAND.SUBTITLE' | translate }}</span>
+        </div>
+      </div>
+
+      <button type="button" class="logout-btn" (click)="onLogout()" aria-label="Log Out" title="Log Out">
+        <ion-icon name="log-out-outline"></ion-icon>
+      </button>
+    </header>
+
+    <!-- Main Container -->
+    <main class="status-container">
+      @if (isSuspended()) {
+        <!-- Suspended State -->
+        <section class="card status-card status-card--suspended">
+          <div class="status-icon-wrapper status-icon--danger">
+            <ion-icon name="alert-circle-outline"></ion-icon>
+          </div>
+          <span class="badge badge--danger">Account Suspended</span>
+          <h1 class="card-title">Access Temporarily Suspended</h1>
+          <p class="card-desc">
+            Your account has been temporarily suspended by the lodge administrator.
+            Please reach out to central management to resolve this issue.
+          </p>
+
+          <div class="user-meta-box">
+            <div class="meta-row">
+              <span class="meta-label">Account:</span>
+              <span class="meta-value">{{ userProfile()?.email || 'Authenticated User' }}</span>
+            </div>
+            @if (userProfile()?.rejectionReason) {
+              <div class="meta-row">
+                <span class="meta-label">Reason:</span>
+                <span class="meta-value meta-value--highlight">{{ userProfile()?.rejectionReason }}</span>
+              </div>
+            }
+          </div>
+        </section>
+      } @else if (isRejected()) {
+        <!-- Rejected State -->
+        <section class="card status-card status-card--rejected">
+          <div class="status-icon-wrapper status-icon--danger">
+            <ion-icon name="alert-circle-outline"></ion-icon>
+          </div>
+          <span class="badge badge--danger">Request Rejected</span>
+          <h1 class="card-title">Registration Not Approved</h1>
+          <p class="card-desc">
+            Your account registration request was not approved by the administrator.
+            If you believe this is in error, please contact management below.
+          </p>
+        </section>
+      } @else {
+        <!-- Pending Approval State (Default) -->
+        <section class="card status-card status-card--pending">
+          <div class="status-icon-wrapper status-icon--pending">
+            <ion-icon name="time-outline"></ion-icon>
+          </div>
+
+          <span class="badge badge--warning">Approval Pending</span>
+
+          <h1 class="card-title">Account Pending Approval</h1>
+          <p class="card-desc">
+            Your account is awaiting role assignment. Please contact your lodge owner.
+          </p>
+
+          <!-- Registered User Details -->
+          <div class="user-meta-box">
+            <div class="meta-row">
+              <span class="meta-label">Full Name:</span>
+              <span class="meta-value font-medium">{{ userProfile()?.name || 'Registered User' }}</span>
+            </div>
+            <div class="meta-row">
+              <span class="meta-label">Email:</span>
+              <span class="meta-value">{{ userProfile()?.email }}</span>
+            </div>
+            @if (userProfile()?.phone) {
+              <div class="meta-row">
+                <span class="meta-label">Mobile:</span>
+                <span class="meta-value">{{ userProfile()?.phone }}</span>
+              </div>
+            }
+            <div class="meta-row">
+              <span class="meta-label">Status:</span>
+              <span class="status-pill status-pill--pending">
+                <span class="status-dot"></span>
+                Pending Administrator Review
+              </span>
+            </div>
+            @if (userProfile()?.createdAt) {
+              <div class="meta-row">
+                <span class="meta-label">Registered On:</span>
+                <span class="meta-value">{{ userProfile()?.createdAt | date:'mediumDate' }}</span>
+              </div>
+            }
+          </div>
+        </section>
+      }
+
+      <!-- Admin Contact Card -->
+      <section class="card contact-card">
+        <div class="contact-header">
+          <ion-icon name="shield-checkmark-outline" class="contact-icon"></ion-icon>
+          <div class="contact-title-group">
+            <h2 class="contact-title">Lodge Administrator Contact</h2>
+            <span class="contact-subtitle">{{ adminContact.name }}</span>
+          </div>
+        </div>
+
+        <p class="contact-hint">
+          Contact the lodge owner to have your role (Manager or Staff) and property assigned. Once granted, tap the button below to continue.
+        </p>
+
+        <div class="contact-channels">
+          <a [href]="'mailto:' + adminContact.email" class="contact-item">
+            <ion-icon name="mail-outline"></ion-icon>
+            <div class="contact-item-info">
+              <span class="contact-label">Email Address</span>
+              <strong class="contact-value">{{ adminContact.email }}</strong>
+            </div>
+          </a>
+
+          <a [href]="'tel:' + adminContact.phone" class="contact-item">
+            <ion-icon name="call-outline"></ion-icon>
+            <div class="contact-item-info">
+              <span class="contact-label">Direct Phone</span>
+              <strong class="contact-value">{{ adminContact.phone }}</strong>
+            </div>
+          </a>
+        </div>
+      </section>
+
+      <!-- Action Buttons -->
+      <section class="action-section">
+        <ion-button
+          expand="block"
+          class="primary-btn refresh-btn"
+          [disabled]="isRefreshing()"
+          (click)="checkApprovalStatus()"
+        >
+          @if (isRefreshing()) {
+            <ion-spinner name="crescent" class="btn-spinner"></ion-spinner>
+            <span>Checking Approval Status...</span>
+          } @else {
+            <ion-icon slot="start" name="refresh-outline"></ion-icon>
+            <span>Check Approval Status</span>
+          }
+        </ion-button>
+
+        <ion-button
+          expand="block"
+          fill="outline"
+          class="secondary-btn logout-outline-btn"
+          (click)="onLogout()"
+        >
+          <ion-icon slot="start" name="log-out-outline"></ion-icon>
+          <span>Log Out</span>
+        </ion-button>
+      </section>
+    </main>
+  </div>
+</ion-content>

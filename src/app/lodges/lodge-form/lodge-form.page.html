@@ -1,0 +1,418 @@
+<app-shell
+  [activeNavId]="'lodges'"
+  [breadcrumb]="pageTitle()"
+  (activeNavIdChange)="onNavChange($event)"
+>
+  <div class="lodge-form-page">
+    <div class="lodge-form-page__inner">
+      <!-- Top Bar -->
+      <header class="form-topbar">
+        <button type="button" class="back-btn" (click)="onCancel()">
+          <ion-icon name="arrow-back-outline"></ion-icon>
+          Back
+        </button>
+        <div>
+          <h1>{{ pageTitle() }}</h1>
+          <p>Configure property profile, contact info, images, facilities & tax settings</p>
+        </div>
+      </header>
+
+      <form [formGroup]="form" (ngSubmit)="onSubmit()" class="lodge-form" novalidate>
+        <!-- SECTION A: BASIC INFORMATION -->
+        <section class="form-card">
+          <h2 class="form-card__title">A. Basic Information</h2>
+          <div class="form-grid">
+            <div class="field">
+              <label>Lodge Name <span class="req">*</span></label>
+              <input
+                type="text"
+                formControlName="name"
+                placeholder="e.g. LemonWood Heritage Resort"
+                (blur)="onNameBlur()"
+              />
+              @if (hasError('name', 'required')) {
+                <span class="err">Lodge name is required.</span>
+              }
+            </div>
+
+            <div class="field">
+              <label>Lodge Code <span class="req">*</span></label>
+              <div class="input-with-status">
+                <input
+                  type="text"
+                  formControlName="code"
+                  placeholder="e.g. LWH-101"
+                  (blur)="checkCodeUniqueness()"
+                />
+                @if (isCodeChecking()) {
+                  <ion-spinner name="dots"></ion-spinner>
+                }
+              </div>
+              @if (hasError('code', 'required')) {
+                <span class="err">Lodge code is required.</span>
+              } @else if (codeDuplicateError()) {
+                <span class="err">{{ codeDuplicateError() }}</span>
+              }
+            </div>
+
+            <div class="field">
+              <label>Business Name</label>
+              <input type="text" formControlName="businessName" placeholder="Parent hospitality brand" />
+            </div>
+
+            <div class="field">
+              <label>Lodge Type <span class="req">*</span></label>
+              <select formControlName="type">
+                @for (t of lodgeTypes; track t) {
+                  <option [value]="t">{{ t }}</option>
+                }
+              </select>
+            </div>
+
+            <div class="field">
+              <label>Status <span class="req">*</span></label>
+              <select formControlName="status">
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+                <option value="maintenance">Maintenance</option>
+              </select>
+            </div>
+
+            <div class="field field--full">
+              <label>Description</label>
+              <textarea
+                rows="3"
+                formControlName="description"
+                placeholder="Brief overview of the property, ambiance, and highlights..."
+              ></textarea>
+            </div>
+          </div>
+        </section>
+
+        <!-- SECTION B: CONTACT DETAILS -->
+        <section class="form-card" formGroupName="contact">
+          <h2 class="form-card__title">B. Contact Details</h2>
+          <div class="form-grid">
+            <div class="field">
+              <label>Primary Phone <span class="req">*</span></label>
+              <input type="tel" formControlName="primaryPhone" placeholder="+91 98765 43210" />
+              @if (hasError('contact.primaryPhone')) {
+                <span class="err">Enter a valid primary phone number.</span>
+              }
+            </div>
+
+            <div class="field">
+              <label>Alternate Phone</label>
+              <input type="tel" formControlName="alternatePhone" placeholder="Optional secondary contact" />
+              @if (hasError('contact.alternatePhone')) {
+                <span class="err">Enter a valid phone number.</span>
+              }
+            </div>
+
+            <div class="field">
+              <label>Email</label>
+              <input type="email" formControlName="email" placeholder="desk@lemonwood.com" />
+              @if (hasError('contact.email')) {
+                <span class="err">Enter a valid email address.</span>
+              }
+            </div>
+
+            <div class="field">
+              <label>Website</label>
+              <input type="url" formControlName="website" placeholder="https://lemonwoodlodge.com" />
+            </div>
+
+            <div class="field">
+              <label>Contact Person</label>
+              <input type="text" formControlName="contactPerson" placeholder="Property manager or desk lead" />
+            </div>
+          </div>
+        </section>
+
+        <!-- SECTION C: ADDRESS -->
+        <section class="form-card" formGroupName="lodgeAddress">
+          <h2 class="form-card__title">C. Address & Location</h2>
+          <div class="form-grid">
+            <div class="field field--full">
+              <label>Address Line 1 <span class="req">*</span></label>
+              <input type="text" formControlName="addressLine1" placeholder="Street, Plot or Survey No." />
+              @if (hasError('lodgeAddress.addressLine1', 'required')) {
+                <span class="err">Address Line 1 is required.</span>
+              }
+            </div>
+
+            <div class="field field--full">
+              <label>Address Line 2</label>
+              <input type="text" formControlName="addressLine2" placeholder="Landmark, Area or Locality" />
+            </div>
+
+            <div class="field">
+              <label>City <span class="req">*</span></label>
+              <input type="text" formControlName="city" placeholder="e.g. Pune" />
+              @if (hasError('lodgeAddress.city', 'required')) {
+                <span class="err">City is required.</span>
+              }
+            </div>
+
+            <div class="field">
+              <label>District</label>
+              <input type="text" formControlName="district" placeholder="District" />
+            </div>
+
+            <div class="field">
+              <label>State <span class="req">*</span></label>
+              <input type="text" formControlName="state" placeholder="e.g. Maharashtra" />
+              @if (hasError('lodgeAddress.state', 'required')) {
+                <span class="err">State is required.</span>
+              }
+            </div>
+
+            <div class="field">
+              <label>Country <span class="req">*</span></label>
+              <input type="text" formControlName="country" placeholder="India" />
+            </div>
+
+            <div class="field">
+              <label>Postal Code</label>
+              <input type="text" formControlName="postalCode" placeholder="411001" />
+              @if (hasError('lodgeAddress.postalCode')) {
+                <span class="err">Enter a valid postal code.</span>
+              }
+            </div>
+
+            <div class="field">
+              <label>Latitude</label>
+              <input type="number" step="any" formControlName="latitude" placeholder="e.g. 18.5204" />
+            </div>
+
+            <div class="field">
+              <label>Longitude</label>
+              <input type="number" step="any" formControlName="longitude" placeholder="e.g. 73.8567" />
+            </div>
+          </div>
+        </section>
+
+        <!-- SECTION D: PROPERTY INFORMATION -->
+        <section class="form-card" formGroupName="propertyDetails">
+          <h2 class="form-card__title">D. Property Information</h2>
+          <div class="form-grid">
+            <div class="field">
+              <label>Total Floors <span class="req">*</span></label>
+              <input type="number" formControlName="totalFloors" min="1" />
+            </div>
+
+            <div class="field">
+              <label>Estimated Room Count <span class="req">*</span></label>
+              <input type="number" formControlName="estimatedRoomCount" min="0" />
+            </div>
+
+            <div class="field">
+              <label>Maximum Guest Capacity</label>
+              <input type="number" formControlName="maximumGuestCapacity" min="0" />
+            </div>
+
+            <div class="field">
+              <label>Check-in Time <span class="req">*</span></label>
+              <input type="time" formControlName="checkInTime" />
+            </div>
+
+            <div class="field">
+              <label>Check-out Time <span class="req">*</span></label>
+              <input type="time" formControlName="checkOutTime" />
+            </div>
+
+            <div class="field">
+              <label>Currency <span class="req">*</span></label>
+              <select formControlName="currency">
+                @for (c of currencies; track c.code) {
+                  <option [value]="c.code">{{ c.label }}</option>
+                }
+              </select>
+            </div>
+
+            <div class="field">
+              <label>Timezone <span class="req">*</span></label>
+              <select formControlName="timezone">
+                @for (tz of timezones; track tz.value) {
+                  <option [value]="tz.value">{{ tz.label }}</option>
+                }
+              </select>
+            </div>
+          </div>
+        </section>
+
+        <!-- SECTION E: IMAGES (FIREBASE STORAGE) -->
+        <section class="form-card">
+          <h2 class="form-card__title">E. Images & Media</h2>
+          <p class="form-card__hint">Supported formats: JPG, PNG, WebP (Max 5 MB each). Stored securely in Firebase Storage.</p>
+
+          <div class="media-grid">
+            <!-- Logo Upload -->
+            <div class="media-box">
+              <label class="media-box__label">Lodge Logo</label>
+              @if (logoUrl()) {
+                <div class="media-preview media-preview--logo">
+                  <img [src]="logoUrl()" alt="Lodge logo preview" />
+                  <div class="media-preview__actions">
+                    <label class="mini-btn">
+                      Replace
+                      <input type="file" accept="image/jpeg,image/png,image/webp" hidden (change)="onLogoSelected($event)" />
+                    </label>
+                    <button type="button" class="mini-btn mini-btn--danger" (click)="removeLogo()">Remove</button>
+                  </div>
+                </div>
+              } @else {
+                <label class="upload-dropzone">
+                  <ion-icon name="cloud-upload-outline"></ion-icon>
+                  <span>Upload Logo</span>
+                  <input type="file" accept="image/jpeg,image/png,image/webp" hidden (change)="onLogoSelected($event)" />
+                </label>
+              }
+              @if (logoProgress() !== null) {
+                <ion-progress-bar [value]="(logoProgress() || 0) / 100"></ion-progress-bar>
+              }
+            </div>
+
+            <!-- Cover Image Upload -->
+            <div class="media-box">
+              <label class="media-box__label">Cover Image</label>
+              @if (coverUrl()) {
+                <div class="media-preview">
+                  <img [src]="coverUrl()" alt="Cover preview" />
+                  <div class="media-preview__actions">
+                    <label class="mini-btn">
+                      Replace
+                      <input type="file" accept="image/jpeg,image/png,image/webp" hidden (change)="onCoverSelected($event)" />
+                    </label>
+                    <button type="button" class="mini-btn mini-btn--danger" (click)="removeCover()">Remove</button>
+                  </div>
+                </div>
+              } @else {
+                <label class="upload-dropzone">
+                  <ion-icon name="image-outline"></ion-icon>
+                  <span>Upload Cover Image</span>
+                  <input type="file" accept="image/jpeg,image/png,image/webp" hidden (change)="onCoverSelected($event)" />
+                </label>
+              }
+              @if (coverProgress() !== null) {
+                <ion-progress-bar [value]="(coverProgress() || 0) / 100"></ion-progress-bar>
+              }
+            </div>
+          </div>
+
+          <!-- Gallery Images -->
+          <div class="gallery-upload-area">
+            <div class="gallery-upload-area__head">
+              <label class="media-box__label">Gallery Images ({{ galleryItems().length }})</label>
+              <label class="mini-btn mini-btn--primary">
+                <ion-icon name="add-outline"></ion-icon>
+                Add Gallery Photos
+                <input type="file" multiple accept="image/jpeg,image/png,image/webp" hidden (change)="onGallerySelected($event)" />
+              </label>
+            </div>
+            @if (galleryProgress() !== null) {
+              <ion-progress-bar [value]="(galleryProgress() || 0) / 100"></ion-progress-bar>
+            }
+            @if (galleryItems().length > 0) {
+              <div class="gallery-thumbs">
+                @for (item of galleryItems(); track item.id) {
+                  <div class="gallery-thumb">
+                    <img [src]="item.url" alt="Gallery photo" />
+                    <button type="button" class="thumb-remove" (click)="removeGalleryItem(item)" aria-label="Remove photo">
+                      <ion-icon name="close-outline"></ion-icon>
+                    </button>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+        </section>
+
+        <!-- SECTION F: FACILITIES -->
+        <section class="form-card">
+          <h2 class="form-card__title">F. Facilities & Amenities</h2>
+          <div class="facility-chips">
+            @for (fac of facilityItems(); track fac.id) {
+              <button
+                type="button"
+                class="fac-chip"
+                [class.fac-chip--active]="fac.active"
+                (click)="toggleFacility(fac.id)"
+              >
+                <ion-icon [name]="fac.active ? 'checkmark-circle-outline' : 'add-outline'"></ion-icon>
+                <span>{{ fac.name }}</span>
+              </button>
+            }
+          </div>
+
+          <div class="custom-facility-row">
+            <input
+              type="text"
+              [(ngModel)]="customFacilityName"
+              [ngModelOptions]="{ standalone: true }"
+              placeholder="Add custom facility (e.g. Bonfire Area, EV Charging)..."
+              (keyup.enter)="addCustomFacility()"
+            />
+            <button type="button" class="mini-btn mini-btn--primary" (click)="addCustomFacility()">
+              Add Custom
+            </button>
+          </div>
+        </section>
+
+        <!-- SECTION G: BUSINESS AND TAX -->
+        <section class="form-card" formGroupName="taxSettings">
+          <h2 class="form-card__title">G. Business & Tax (Optional)</h2>
+          <div class="form-grid">
+            <div class="field">
+              <label>GST Number</label>
+              <input type="text" formControlName="gstNumber" placeholder="27ABCDE1234F1Z5" />
+            </div>
+
+            <div class="field">
+              <label>PAN Number</label>
+              <input type="text" formControlName="panNumber" placeholder="ABCDE1234F" />
+            </div>
+
+            <div class="field">
+              <label>Business Registration Number</label>
+              <input type="text" formControlName="businessRegNumber" placeholder="CIN / UDYAM / License No." />
+            </div>
+
+            <div class="field">
+              <label>Invoice Prefix</label>
+              <input type="text" formControlName="invoicePrefix" placeholder="LW-INV" />
+            </div>
+
+            <div class="field">
+              <label>Default Tax Rate (%)</label>
+              <input type="number" formControlName="defaultTaxRate" min="0" max="100" />
+            </div>
+
+            <div class="field field--checkbox">
+              <label class="checkbox-label">
+                <input type="checkbox" formControlName="taxInclusive" />
+                <span>Room tariffs are tax-inclusive</span>
+              </label>
+            </div>
+          </div>
+        </section>
+
+        <!-- Sticky Form Actions -->
+        <footer class="form-actions">
+          <ion-button fill="outline" color="medium" type="button" (click)="onCancel()" [disabled]="isSaving()">
+            Cancel
+          </ion-button>
+          <ion-button fill="solid" type="submit" [disabled]="isSaving()">
+            @if (isSaving()) {
+              <ion-spinner slot="start" name="crescent"></ion-spinner>
+              Saving...
+            } @else {
+              <ion-icon slot="start" name="save-outline"></ion-icon>
+              {{ isEditMode() ? 'Save Changes' : 'Create Lodge' }}
+            }
+          </ion-button>
+        </footer>
+      </form>
+    </div>
+  </div>
+</app-shell>

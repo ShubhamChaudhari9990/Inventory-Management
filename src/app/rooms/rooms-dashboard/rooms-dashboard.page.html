@@ -1,0 +1,358 @@
+<app-shell
+  [activeNavId]="'rooms'"
+  [breadcrumb]="'Room Management'"
+  (activeNavIdChange)="onNavChange($event)"
+>
+  <div class="rooms-hub">
+    <div class="rooms-hub__inner">
+      <!-- Page Header -->
+      <header class="hub-header">
+        <div>
+          <h1>Rooms & Inventory</h1>
+          <p>Real-time operational overview, availability & room configuration</p>
+        </div>
+        <div class="hub-header__actions">
+          @if (!isStaff()) {
+            <button type="button" class="subnav-btn" (click)="goToPage('/floors')">
+              <ion-icon name="layers-outline"></ion-icon>
+              Floors
+            </button>
+            <button type="button" class="subnav-btn" (click)="goToPage('/room-types')">
+              <ion-icon name="apps-outline"></ion-icon>
+              Room Types
+            </button>
+            <button type="button" class="subnav-btn" (click)="goToPage('/room-amenities')">
+              <ion-icon name="sparkles-outline"></ion-icon>
+              Amenities
+            </button>
+            <button type="button" class="subnav-btn" (click)="goToPage('/room-pricing')">
+              <ion-icon name="pricetag-outline"></ion-icon>
+              Pricing
+            </button>
+            <ion-button fill="solid" class="add-cta" (click)="goToAdd()">
+              <ion-icon slot="start" name="add-outline"></ion-icon>
+              Add Room
+            </ion-button>
+          }
+        </div>
+      </header>
+
+      <!-- 7 Statistics Cards -->
+      <section class="stats-grid">
+        <div class="stat-box">
+          <span>Total Rooms</span>
+          <strong>{{ totalRooms() }}</strong>
+        </div>
+        <div class="stat-box stat-box--green">
+          <span>Available</span>
+          <strong>{{ availableRoomsCount() }}</strong>
+        </div>
+        <div class="stat-box stat-box--blue">
+          <span>Occupied</span>
+          <strong>{{ occupiedRoomsCount() }}</strong>
+        </div>
+        <div class="stat-box stat-box--indigo">
+          <span>Reserved (Dates)</span>
+          <strong>{{ reservedRoomsCount() }}</strong>
+        </div>
+        <div class="stat-box stat-box--amber">
+          <span>Cleaning</span>
+          <strong>{{ cleaningRoomsCount() }}</strong>
+        </div>
+        <div class="stat-box stat-box--red">
+          <span>Maintenance</span>
+          <strong>{{ maintenanceRoomsCount() }}</strong>
+        </div>
+        <div class="stat-box stat-box--slate">
+          <span>Blocked / Inactive</span>
+          <strong>{{ blockedRoomsCount() }}</strong>
+        </div>
+      </section>
+
+      <!-- Toggleable Analytics Charts + Operational Panels -->
+      <div class="analytics-toggle-row">
+        <button type="button" class="toggle-analytics-btn" (click)="showAnalytics.set(!showAnalytics())">
+          {{ showAnalytics() ? 'Hide Room Analytics & Ops' : 'Show Room Analytics & Ops' }}
+        </button>
+      </div>
+
+      @if (showAnalytics()) {
+        <section class="charts-grid">
+          <div class="chart-card">
+            <h3>Room Status Distribution</h3>
+            <app-dashboard-donut-chart [options]="statusDistributionChart()" />
+          </div>
+          <div class="chart-card">
+            <h3>7-Day Occupancy Trend (%)</h3>
+            <app-dashboard-axis-chart [options]="occupancyTrendChart()" />
+          </div>
+          <div class="chart-card">
+            <h3>Room Type Distribution</h3>
+            <app-dashboard-axis-chart [options]="typeDistributionChart()" />
+          </div>
+          <div class="chart-card">
+            <h3>Floor-Wise Distribution</h3>
+            <app-dashboard-axis-chart [options]="floorDistributionChart()" />
+          </div>
+        </section>
+
+        <!-- Additional Operational Sections -->
+        <section class="ops-grid">
+          <div class="ops-card">
+            <h3>Today's Check-ins ({{ todayCheckIns().length }})</h3>
+            @for (b of todayCheckIns().slice(0, 4); track b.id) {
+              <div class="ops-row">
+                <strong>Room {{ b.room }}</strong>
+                <span>{{ b.guestName }}</span>
+              </div>
+            } @empty {
+              <p class="muted">No arrivals scheduled today.</p>
+            }
+          </div>
+
+          <div class="ops-card">
+            <h3>Today's Check-outs ({{ todayCheckOuts().length }})</h3>
+            @for (b of todayCheckOuts().slice(0, 4); track b.id) {
+              <div class="ops-row">
+                <strong>Room {{ b.room }}</strong>
+                <span>{{ b.guestName }}</span>
+              </div>
+            } @empty {
+              <p class="muted">No departures scheduled today.</p>
+            }
+          </div>
+
+          <div class="ops-card">
+            <h3>Awaiting Cleaning ({{ cleaningRooms().length }})</h3>
+            @for (r of cleaningRooms().slice(0, 4); track r.id) {
+              <div class="ops-row">
+                <strong>Room {{ r.number }}</strong>
+                <span>{{ r.status }}</span>
+              </div>
+            } @empty {
+              <p class="muted">All rooms are clean.</p>
+            }
+          </div>
+
+          <div class="ops-card">
+            <h3>Maintenance ({{ maintenanceRooms().length }})</h3>
+            @for (r of maintenanceRooms().slice(0, 4); track r.id) {
+              <div class="ops-row">
+                <strong>Room {{ r.number }}</strong>
+                <span>{{ r.type }}</span>
+              </div>
+            } @empty {
+              <p class="muted">No rooms in maintenance.</p>
+            }
+          </div>
+        </section>
+      }
+
+      <!-- Search, Filters & View Mode Toolbar -->
+      <section class="toolbar-card">
+        <div class="toolbar-row">
+          <div class="search-box">
+            <ion-icon name="search-outline"></ion-icon>
+            <input
+              type="text"
+              placeholder="Search room number, name, or type..."
+              [ngModel]="searchQuery()"
+              (ngModelChange)="searchQuery.set($event)"
+            />
+          </div>
+
+          @if (isOwner() || properties().length > 1) {
+            <select
+              class="filter-select"
+              [ngModel]="selectedPropertyId()"
+              (ngModelChange)="switchLodgeScope($event)"
+              aria-label="Filter by lodge"
+            >
+              @if (isOwner()) {
+                <option value="all">All Lodges</option>
+              }
+              @for (p of properties(); track p.id) {
+                <option [value]="p.id">{{ p.name }}</option>
+              }
+            </select>
+          }
+
+          <select class="filter-select" [ngModel]="floorFilter()" (ngModelChange)="floorFilter.set($event)">
+            <option value="all">All Floors</option>
+            @for (f of uniqueFloors(); track f) {
+              <option [value]="f">Floor {{ f }}</option>
+            }
+          </select>
+
+          <select class="filter-select" [ngModel]="typeFilter()" (ngModelChange)="typeFilter.set($event)">
+            <option value="all">All Types</option>
+            @for (t of uniqueTypes(); track t) {
+              <option [value]="t">{{ t }}</option>
+            }
+          </select>
+
+          <select class="filter-select" [ngModel]="opStatusFilter()" (ngModelChange)="opStatusFilter.set($event)">
+            <option value="all">All Op Statuses</option>
+            <option value="active">Active</option>
+            <option value="cleaning">Cleaning</option>
+            <option value="maintenance">Maintenance</option>
+            <option value="blocked">Blocked</option>
+            <option value="inactive">Inactive</option>
+          </select>
+
+          <select class="filter-select" [ngModel]="sortBy()" (ngModelChange)="sortBy.set($event)">
+            <option value="number">Sort: Room #</option>
+            <option value="price">Sort: Price</option>
+          </select>
+
+          <div class="view-toggle">
+            <button type="button" [class.active]="viewMode() === 'grid'" (click)="viewMode.set('grid')" title="Grid View">
+              <ion-icon name="grid-outline"></ion-icon>
+            </button>
+            <button type="button" [class.active]="viewMode() === 'list'" (click)="viewMode.set('list')" title="Table View">
+              <ion-icon name="list-outline"></ion-icon>
+            </button>
+          </div>
+        </div>
+
+        <div class="avail-row">
+          <label class="avail-check">
+            <input type="checkbox" [ngModel]="filterByAvailability()" (ngModelChange)="filterByAvailability.set($event)" />
+            <span>Filter Available Only for Dates:</span>
+          </label>
+          <input type="date" [ngModel]="availStartDate()" (ngModelChange)="availStartDate.set($event)" />
+          <span>to</span>
+          <input type="date" [ngModel]="availEndDate()" (ngModelChange)="availEndDate.set($event)" />
+        </div>
+      </section>
+
+      <!-- ROOM LISTING: GRID VIEW -->
+      @if (visibleRooms().length > 0) {
+        @if (viewMode() === 'grid') {
+          <section class="rooms-grid">
+            @for (room of visibleRooms(); track room.id) {
+              @let op = getOpStatus(room);
+              @let avail = isAvailableForSelectedDates(room);
+              <article class="room-card">
+                <div class="room-card__img">
+                  @if (room.primaryImageUrl || (room.images && room.images[0])) {
+                    <img [src]="room.primaryImageUrl || room.images![0]" [alt]="'Room ' + room.number" />
+                  } @else {
+                    <div class="room-card__fallback">
+                      <ion-icon name="bed-outline"></ion-icon>
+                    </div>
+                  }
+                  <span class="op-pill op-pill--{{ op }}">{{ op }}</span>
+                  <span class="avail-pill" [class.avail-pill--yes]="avail" [class.avail-pill--no]="!avail">
+                    {{ avail ? 'Available' : 'Unavailable' }}
+                  </span>
+                </div>
+
+                <div class="room-card__body">
+                  <div class="room-card__head">
+                    <h3>Room {{ room.number }} {{ room.roomName ? '· ' + room.roomName : '' }}</h3>
+                    <span class="price-tag">{{ room.price }}</span>
+                  </div>
+                  <p class="room-card__sub">
+                    {{ room.type }} · Floor {{ room.floor }} · Max {{ room.maximumOccupancy || room.capacity || 2 }} Guests
+                  </p>
+                  @if (!isStaff() && room.guestName) {
+                    <p class="room-card__guest">Guest: {{ room.guestName }}</p>
+                  }
+                </div>
+
+                <div class="room-card__footer">
+                  <button type="button" class="act-btn act-btn--primary" (click)="viewDetails(room)">
+                    <ion-icon name="eye-outline"></ion-icon>
+                    Details
+                  </button>
+                  @if (!isStaff()) {
+                    <button type="button" class="act-btn" (click)="editRoom(room)">
+                      <ion-icon name="create-outline"></ion-icon>
+                      Edit
+                    </button>
+                  }
+                  <select
+                    class="status-select"
+                    [ngModel]="op"
+                    (ngModelChange)="onStatusChange(room, $event)"
+                    aria-label="Change operational status"
+                  >
+                    <option value="active">Active</option>
+                    <option value="cleaning">Cleaning</option>
+                    <option value="maintenance">Maintenance</option>
+                    @if (!isStaff()) {
+                      <option value="blocked">Blocked</option>
+                      <option value="inactive">Inactive</option>
+                    }
+                  </select>
+                </div>
+              </article>
+            }
+          </section>
+        } @else {
+          <!-- TABLE VIEW -->
+          <section class="table-card">
+            <div class="table-wrap">
+              <table class="rooms-table">
+                <thead>
+                  <tr>
+                    <th>Room #</th>
+                    <th>Type</th>
+                    <th>Floor</th>
+                    <th>Capacity</th>
+                    <th>Base Price</th>
+                    <th>Op Status</th>
+                    <th>Date Availability</th>
+                    <th>Updated</th>
+                    <th>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (room of visibleRooms(); track room.id) {
+                    @let op = getOpStatus(room);
+                    @let avail = isAvailableForSelectedDates(room);
+                    <tr>
+                      <td><strong>{{ room.number }}</strong></td>
+                      <td>{{ room.type }}</td>
+                      <td>{{ room.floor }}</td>
+                      <td>{{ room.maximumOccupancy || room.capacity || 2 }}</td>
+                      <td>{{ room.price }}</td>
+                      <td><span class="op-pill-sm op-pill--{{ op }}">{{ op }}</span></td>
+                      <td>
+                        <span class="avail-text" [class.yes]="avail">{{ avail ? 'Available' : 'Booked / Blocked' }}</span>
+                      </td>
+                      <td>{{ room.updatedAt ? (room.updatedAt | date:'shortDate') : '—' }}</td>
+                      <td class="td-actions">
+                        <button type="button" class="act-btn act-btn--primary" (click)="viewDetails(room)">Details</button>
+                        @if (!isStaff()) {
+                          <button type="button" class="act-btn" (click)="editRoom(room)">Edit</button>
+                        }
+                        <button type="button" class="act-btn" (click)="viewRoomBookings()">Bookings</button>
+                      </td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          </section>
+        }
+
+        @if (hasMore()) {
+          <div class="pagination-row">
+            <ion-button fill="outline" (click)="loadMore()">Load More Rooms</ion-button>
+          </div>
+        }
+      } @else {
+        <div class="empty-box">
+          <ion-icon name="bed-outline"></ion-icon>
+          <h3>No Rooms Found</h3>
+          <p>Adjust your search filters or add a new room to this lodge.</p>
+          @if (!isStaff()) {
+            <ion-button fill="solid" (click)="goToAdd()">Add Room</ion-button>
+          }
+        </div>
+      }
+    </div>
+  </div>
+</app-shell>

@@ -4,6 +4,7 @@ import { IonButton, IonContent, IonIcon } from '@ionic/angular/standalone';
 import { TranslatePipe } from '@ngx-translate/core';
 import { addIcons } from 'ionicons';
 import {
+  arrowForwardOutline,
   checkmarkCircle,
   globeOutline,
   languageOutline,
@@ -28,7 +29,13 @@ interface LanguageOption {
   selector: 'app-language-selection',
   templateUrl: './language-selection.page.html',
   styleUrls: ['./language-selection.page.scss'],
-  imports: [RouterLink, TranslatePipe, IonContent, IonButton, IonIcon],
+  imports: [
+    RouterLink,
+    TranslatePipe,
+    IonContent,
+    IonButton,
+    IonIcon,
+  ],
 })
 export class LanguageSelectionPage implements OnInit {
   private readonly router = inject(Router);
@@ -60,6 +67,7 @@ export class LanguageSelectionPage implements OnInit {
       globeOutline,
       textOutline,
       checkmarkCircle,
+      arrowForwardOutline,
     });
   }
 

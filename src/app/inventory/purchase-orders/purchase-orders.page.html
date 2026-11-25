@@ -1,0 +1,130 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar class="ops-toolbar">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/operations"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Purchase Orders</ion-title>
+    @if (canManage()) {
+      <ion-buttons slot="end">
+        <button class="btn-add" (click)="showForm.set(!showForm())">
+          {{ showForm() ? 'Close' : '+ New PO' }}
+        </button>
+      </ion-buttons>
+    }
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ops-content">
+  <div class="ops-container">
+    @if (showForm() && canManage()) {
+      <section class="card">
+        <h3>Create Purchase Order</h3>
+        <div class="form-grid">
+          <div class="field">
+            <label>Lodge *</label>
+            <select [ngModel]="lodgeId()" (ngModelChange)="lodgeId.set($event)">
+              @for (prop of accessibleProperties(); track prop.id) {
+                <option [value]="prop.id">{{ prop.name }}</option>
+              }
+            </select>
+          </div>
+          <div class="field">
+            <label>Supplier *</label>
+            <select [ngModel]="supplierId()" (ngModelChange)="supplierId.set($event)">
+              <option value="">Select supplier...</option>
+              @for (s of activeSuppliers(); track s.id) {
+                <option [value]="s.id">{{ s.name }}</option>
+              }
+            </select>
+          </div>
+          <div class="field"><label>Expected Delivery</label><input type="date" [ngModel]="expectedDate()" (ngModelChange)="expectedDate.set($event)" /></div>
+          <div class="field"><label>Tax (₹)</label><input type="number" min="0" [ngModel]="tax()" (ngModelChange)="tax.set($event)" /></div>
+          <div class="field"><label>Discount (₹)</label><input type="number" min="0" [ngModel]="discount()" (ngModelChange)="discount.set($event)" /></div>
+        </div>
+
+        <div class="line-builder">
+          <select [ngModel]="selectedItemId()" (ngModelChange)="selectedItemId.set($event)">
+            <option value="">Select item...</option>
+            @for (it of lodgeItems(); track it.id) {
+              <option [value]="it.id">{{ it.name }} ({{ it.unit }})</option>
+            }
+          </select>
+          <input type="number" min="1" placeholder="Qty" [ngModel]="lineQty()" (ngModelChange)="lineQty.set($event)" />
+          <input type="number" min="0" placeholder="Unit ₹" [ngModel]="linePrice()" (ngModelChange)="linePrice.set($event)" />
+          <button type="button" class="btn-outline" (click)="addLine()">Add Line</button>
+        </div>
+
+        @for (l of draftLines(); track l.itemId + $index; let idx = $index) {
+          <div class="draft-line">
+            <span>{{ l.itemName }} — {{ l.orderedQty }} {{ l.unit }} × ₹{{ l.unitPrice }}</span>
+            <button type="button" class="btn-link" (click)="removeLine(idx)">Remove</button>
+          </div>
+        }
+
+        <div class="actions">
+          <button class="btn-primary" [disabled]="saving()" (click)="createPO()">Submit Purchase Order</button>
+        </div>
+      </section>
+    }
+
+    @if (receivingPo()) {
+      @let rpo = receivingPo()!;
+      <section class="card receive-card">
+        <h3>Receive Stock for {{ rpo.poNumber }}</h3>
+        @for (line of rpo.items; track line.itemId) {
+          <div class="receive-row">
+            <div>
+              <strong>{{ line.itemName }}</strong>
+              <div class="sub">Ordered: {{ line.orderedQty }} · Already Received: {{ line.receivedQty || 0 }}</div>
+            </div>
+            <input
+              type="number"
+              min="0"
+              [max]="line.orderedQty - (line.receivedQty || 0)"
+              [ngModel]="receiveMap()[line.itemId]"
+              (ngModelChange)="setReceiveQty(line.itemId, $event)"
+            />
+          </div>
+        }
+        <div class="field"><label>Invoice Number</label><input type="text" [ngModel]="invoiceNo()" (ngModelChange)="invoiceNo.set($event)" /></div>
+        <label class="checkbox-row">
+          <input type="checkbox" [ngModel]="recordExpense()" (ngModelChange)="recordExpense.set($event)" />
+          Record received amount in Lodge Expenses (only once per PO)
+        </label>
+        <div class="actions">
+          <button class="btn-outline" (click)="receivingPo.set(null)">Cancel</button>
+          <button class="btn-green" [disabled]="saving()" (click)="confirmReceive()">Confirm Stock Receipt</button>
+        </div>
+      </section>
+    }
+
+    @if (purchaseOrders().length === 0) {
+      <div class="empty-state">No purchase orders created yet.</div>
+    } @else {
+      @for (po of purchaseOrders(); track po.id) {
+        <div class="po-card">
+          <div class="top">
+            <div>
+              <strong>{{ po.poNumber }} — {{ po.supplierName }}</strong>
+              <div class="sub">{{ po.items.length }} line(s) · Total: ₹{{ po.total | number: '1.0-0' }}</div>
+            </div>
+            <span class="badge">{{ po.status }}</span>
+          </div>
+          @if (canManage()) {
+            <div class="actions">
+              @if (po.status === 'Pending Approval' && roleService.isOwner()) {
+                <button class="btn-green" (click)="approvePO(po.id)">Approve PO</button>
+              }
+              @if (po.status === 'Approved') {
+                <button class="btn-primary" (click)="markOrdered(po.id)">Mark Ordered</button>
+              }
+              @if (po.status === 'Approved' || po.status === 'Ordered' || po.status === 'Partially Received') {
+                <button class="btn-amber" (click)="openReceive(po)">Receive Stock</button>
+              }
+            </div>
+          }
+        </div>
+      }
+    }
+  </div>
+</ion-content>

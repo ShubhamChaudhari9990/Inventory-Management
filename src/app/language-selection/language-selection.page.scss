@@ -10,40 +10,81 @@
 }
 
 .language-content {
-  --background: #ffffff;
+  --background: #f8fafc;
 }
 
 .page-shell {
-  max-width: 420px;
+  max-width: 430px;
   margin: 0 auto;
-  padding: 24px 20px 32px;
+  padding: 0 20px calc(28px + env(safe-area-inset-bottom, 0px));
 }
 
+/* Header with Brand on Left (Sticky, non-moving, identical to login page) */
 .brand-header {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  background: #f8fafc;
   display: flex;
   align-items: center;
-  gap: 10px;
-  margin-bottom: 28px;
+  gap: 12px;
+  padding-top: calc(16px + env(safe-area-inset-top, 0px));
+  padding-bottom: 12px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid rgba(226, 232, 240, 0.7);
+}
+
+.brand-main {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-width: 0;
 }
 
 .brand-logo {
-  width: 36px;
-  height: 36px;
-  border-radius: 10px;
-  background: var(--brand-primary);
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: #ffffff;
+  border: 1px solid rgba(226, 232, 240, 0.9);
   display: grid;
   place-items: center;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+
+  .brand-logo-img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    padding: 2px;
+  }
 
   ion-icon {
-    color: #ffffff;
-    font-size: 20px;
+    color: #1d3e9f;
+    font-size: 22px;
   }
 }
 
+.brand-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
 .brand-name {
-  font-size: 18px;
+  font-size: 19px;
   font-weight: 700;
-  color: var(--brand-primary);
+  color: #0f172a;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+}
+
+.brand-subtitle {
+  font-size: 11px;
+  font-weight: 500;
+  color: #64748b;
+  line-height: 1.2;
 }
 
 .hero-icon {
@@ -89,16 +130,27 @@ h1 {
   gap: 14px;
   width: 100%;
   padding: 16px;
-  border: 1px solid var(--border-color);
+  border: 1.5px solid var(--border-color);
   border-radius: 16px;
   background: #ffffff;
   text-align: left;
   cursor: pointer;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 2px 8px rgba(15, 23, 42, 0.04);
+
+  &:hover {
+    border-color: #cbd5e1;
+    box-shadow: 0 4px 12px rgba(15, 23, 42, 0.08);
+  }
+
+  &:active {
+    transform: scale(0.99);
+  }
 
   &.selected {
     border-color: var(--brand-primary);
-    box-shadow: 0 0 0 1px var(--brand-primary);
+    background: #fcfdff;
+    box-shadow: 0 0 0 1.5px var(--brand-primary), 0 4px 14px rgba(29, 62, 159, 0.12);
   }
 }
 
@@ -174,16 +226,49 @@ h1 {
 }
 
 .continue-btn {
-  --background: #c7d2fe;
-  --background-hover: #a5b4fc;
-  --background-activated: #a5b4fc;
-  --color: var(--brand-primary);
+  --background: linear-gradient(135deg, #1d3e9f 0%, #2563eb 100%);
+  --background-hover: linear-gradient(135deg, #173282 0%, #1d4ed8 100%);
+  --background-activated: linear-gradient(135deg, #152f7a 0%, #1e40af 100%);
+  --color: #ffffff;
   --border-radius: 14px;
-  --box-shadow: none;
+  --box-shadow: 0 6px 18px rgba(29, 62, 159, 0.28), 0 2px 4px rgba(29, 62, 159, 0.1);
   margin: 0 0 16px;
   height: 52px;
-  font-weight: 700;
+  min-height: 52px;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: 0.2px;
   text-transform: none;
+  transition: all 0.2s ease;
+
+  &::part(native) {
+    border-radius: 14px;
+  }
+
+  ion-icon[slot='end'] {
+    font-size: 18px;
+    margin-left: 6px;
+    transition: transform 0.2s ease;
+  }
+
+  &:hover:not([disabled]) {
+    --box-shadow: 0 8px 24px rgba(29, 62, 159, 0.35);
+
+    ion-icon[slot='end'] {
+      transform: translateX(3px);
+    }
+  }
+
+  &:active:not([disabled]) {
+    transform: scale(0.99);
+  }
+
+  &[disabled] {
+    --background: #cbd5e1;
+    --color: #94a3b8;
+    --box-shadow: none;
+    opacity: 0.8;
+  }
 }
 
 .terms-copy {

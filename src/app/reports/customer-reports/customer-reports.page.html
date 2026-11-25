@@ -1,0 +1,46 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar class="rep-toolbar">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/reports"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Customer Reports</ion-title>
+    @if (canView() && reportsService.canExportReports()) {
+      <ion-buttons slot="end" class="exp-btns">
+        <button class="btn-exp" (click)="export('csv')">CSV</button>
+        <button class="btn-exp" (click)="export('pdf')">PDF</button>
+      </ion-buttons>
+    }
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="rep-content">
+  <div class="rep-container">
+    @if (!canView()) {
+      <div class="empty-box">You are not authorized to view customer reports.</div>
+    } @else {
+      <app-report-filter-bar></app-report-filter-bar>
+
+      <section class="kpi-grid">
+        <div class="stat-card"><div class="lbl">Total Customers</div><div class="val">{{ customerMetrics().totalCustomers }}</div></div>
+        <div class="stat-card"><div class="lbl">New Customers</div><div class="val">{{ customerMetrics().newCustomers }}</div></div>
+        <div class="stat-card"><div class="lbl">Returning Guests</div><div class="val">{{ customerMetrics().returningCustomers }}</div></div>
+        <div class="stat-card"><div class="lbl">Repeat Guest Rate</div><div class="val">{{ customerMetrics().repeatRate }}%</div></div>
+        <div class="stat-card"><div class="lbl">Avg Booking Value</div><div class="val">₹{{ customerMetrics().avgBookingValue | number: '1.0-0' }}</div></div>
+      </section>
+
+      <section class="panel">
+        <h3>Top Customers by Booking Value</h3>
+        @if (customerMetrics().topCustomers.length === 0) {
+          <div class="empty-box">No customer bookings in selected period.</div>
+        } @else {
+          @for (c of customerMetrics().topCustomers; track c.name) {
+            <div class="row">
+              <span>{{ c.name }} ({{ c.bookings }} stays)</span>
+              <strong>₹{{ c.value | number: '1.0-0' }}</strong>
+            </div>
+          }
+        }
+      </section>
+    }
+  </div>
+</ion-content>

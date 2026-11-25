@@ -1,10 +1,15 @@
 <ion-content [fullscreen]="true" class="language-content">
   <div class="page-shell">
     <header class="brand-header">
-      <div class="brand-logo">
-        <ion-icon name="leaf" aria-hidden="true"></ion-icon>
+      <div class="brand-main">
+        <div class="brand-logo">
+          <img src="assets/branding/lemonwood-lodge-icon.png" alt="Lemonwood Lodge" class="brand-logo-img" />
+        </div>
+        <div class="brand-info">
+          <span class="brand-name">{{ 'BRAND.NAME' | translate }}</span>
+          <span class="brand-subtitle">{{ 'BRAND.SUBTITLE' | translate }}</span>
+        </div>
       </div>
-      <span class="brand-name">{{ 'BRAND.NAME' | translate }}</span>
     </header>
 
     <div class="hero-icon">
@@ -16,20 +21,16 @@
 
     <div class="language-list">
       @for (language of languages; track language.code) {
-        <button
-          type="button"
-          class="language-card"
-          [class.selected]="selectedLanguage === language.code"
-          (click)="selectLanguage(language.code)"
-        >
-          <div class="language-icon" [class]="language.iconClass">
-            <ion-icon [name]="language.icon" aria-hidden="true"></ion-icon>
-          </div>
-          <div class="language-copy">
-            <strong>{{ language.labelKey | translate }}</strong>
-            <span>{{ language.subtitleKey | translate }}</span>
-          </div>
-        </button>
+      <button type="button" class="language-card" [class.selected]="selectedLanguage === language.code"
+        (click)="selectLanguage(language.code)">
+        <div class="language-icon" [class]="language.iconClass">
+          <ion-icon [name]="language.icon" aria-hidden="true"></ion-icon>
+        </div>
+        <div class="language-copy">
+          <strong>{{ language.labelKey | translate }}</strong>
+          <span>{{ language.subtitleKey | translate }}</span>
+        </div>
+      </button>
       }
     </div>
 
@@ -40,13 +41,9 @@
       </div>
     </figure>
 
-    <ion-button
-      expand="block"
-      class="continue-btn"
-      [disabled]="!selectedLanguage"
-      (click)="continue()"
-    >
-      {{ 'LANGUAGE.CONTINUE' | translate }}
+    <ion-button expand="block" class="continue-btn" [disabled]="!selectedLanguage" (click)="continue()">
+      <span>{{ 'LANGUAGE.CONTINUE' | translate }}</span>
+      <ion-icon slot="end" name="arrow-forward-outline" aria-hidden="true"></ion-icon>
     </ion-button>
 
     <p class="terms-copy">

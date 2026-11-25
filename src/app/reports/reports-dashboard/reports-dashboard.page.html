@@ -1,0 +1,138 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar class="rep-toolbar">
+    <ion-buttons slot="start">
+      <ion-back-button [defaultHref]="backHref()"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Reports & Analytics</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="rep-content">
+  <div class="rep-container">
+    <nav class="rep-subnav">
+      <a class="nav-pill active" routerLink="/reports">Overview</a>
+      <a class="nav-pill" routerLink="/reports/bookings">Bookings & Occupancy</a>
+      @if (canViewFinance()) {
+        <a class="nav-pill" routerLink="/reports/revenue">Revenue & Payments</a>
+      }
+      <a class="nav-pill" routerLink="/reports/operations">Housekeeping & Maintenance</a>
+      <a class="nav-pill" routerLink="/reports/inventory">Inventory</a>
+      @if (canViewGuests()) {
+        <a class="nav-pill" routerLink="/reports/customers">Customers</a>
+      }
+      <a class="nav-pill" routerLink="/reports/staff">Staff Performance</a>
+    </nav>
+
+    <app-report-filter-bar></app-report-filter-bar>
+
+    <!-- 8 KPIs -->
+    <section class="kpi-grid">
+      <div class="kpi-card">
+        <div class="kpi-ico blue"><ion-icon name="calendar-outline"></ion-icon></div>
+        <div><div class="kpi-val">{{ kpis().totalBookings }}</div><div class="kpi-lbl">Total Bookings</div></div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-ico green"><ion-icon name="checkmark-circle-outline"></ion-icon></div>
+        <div><div class="kpi-val">{{ kpis().confirmedBookings }}</div><div class="kpi-lbl">Confirmed Bookings</div></div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-ico indigo"><ion-icon name="bed-outline"></ion-icon></div>
+        <div><div class="kpi-val">{{ kpis().occupancyRate }}%</div><div class="kpi-lbl">Occupancy Rate</div></div>
+      </div>
+      <div class="kpi-card">
+        <div class="kpi-ico rose"><ion-icon name="close-circle-outline"></ion-icon></div>
+        <div><div class="kpi-val">{{ kpis().cancellationRate }}%</div><div class="kpi-lbl">Cancellation Rate</div></div>
+      </div>
+
+      @if (canViewFinance()) {
+        <div class="kpi-card">
+          <div class="kpi-ico blue"><ion-icon name="wallet-outline"></ion-icon></div>
+          <div><div class="kpi-val">₹{{ kpis().totalBookingValue | number: '1.0-0' }}</div><div class="kpi-lbl">Booking Value</div></div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-ico green"><ion-icon name="cash-outline"></ion-icon></div>
+          <div><div class="kpi-val">₹{{ kpis().totalCollections | number: '1.0-0' }}</div><div class="kpi-lbl">Collections</div></div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-ico amber"><ion-icon name="alert-circle-outline"></ion-icon></div>
+          <div><div class="kpi-val">₹{{ kpis().outstandingPayments | number: '1.0-0' }}</div><div class="kpi-lbl">Outstanding</div></div>
+        </div>
+        <div class="kpi-card">
+          <div class="kpi-ico rose"><ion-icon name="return-down-back-outline"></ion-icon></div>
+          <div><div class="kpi-val">₹{{ kpis().completedRefunds | number: '1.0-0' }}</div><div class="kpi-lbl">Refunds</div></div>
+        </div>
+      }
+    </section>
+
+    <!-- Charts -->
+    <div class="charts-grid">
+      @if (canViewFinance()) {
+        <section class="panel">
+          <h3>Collections Trend</h3>
+          @if (trendDates().labels.length === 0) {
+            <div class="empty-box">No payment collections in selected date range.</div>
+          } @else {
+            <apx-chart
+              [series]="revenueChartOptions().series"
+              [chart]="revenueChartOptions().chart"
+              [xaxis]="revenueChartOptions().xaxis"
+              [dataLabels]="revenueChartOptions().dataLabels"
+              [stroke]="revenueChartOptions().stroke"
+              [colors]="revenueChartOptions().colors"
+            ></apx-chart>
+          }
+        </section>
+      }
+
+      <section class="panel">
+        <h3>Booking Trend</h3>
+        @if (trendDates().labels.length === 0) {
+          <div class="empty-box">No bookings in selected date range.</div>
+        } @else {
+          <apx-chart
+            [series]="bookingChartOptions().series"
+            [chart]="bookingChartOptions().chart"
+            [xaxis]="bookingChartOptions().xaxis"
+            [dataLabels]="bookingChartOptions().dataLabels"
+            [colors]="bookingChartOptions().colors"
+          ></apx-chart>
+        }
+      </section>
+    </div>
+
+    <!-- Lodge Comparison -->
+    <section class="panel">
+      <h3>Lodge-wise Performance Comparison</h3>
+      @if (lodgeComparison().length === 0) {
+        <div class="empty-box">No accessible lodges found.</div>
+      } @else {
+        <div class="table-wrap">
+          <table>
+            <thead>
+              <tr>
+                <th>Lodge</th>
+                <th>Active Bookings</th>
+                @if (canViewFinance()) {
+                  <th>Booking Value</th>
+                  <th>Collections</th>
+                }
+              </tr>
+            </thead>
+            <tbody>
+              @for (row of lodgeComparison(); track row.id) {
+                <tr>
+                  <td><strong>{{ row.name }}</strong></td>
+                  <td>{{ row.bookings }}</td>
+                  @if (canViewFinance()) {
+                    <td>₹{{ row.bookingValue | number: '1.0-0' }}</td>
+                    <td>₹{{ row.collections | number: '1.0-0' }}</td>
+                  }
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    </section>
+  </div>
+</ion-content>

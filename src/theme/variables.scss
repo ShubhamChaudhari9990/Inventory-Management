@@ -1,12 +1,22 @@
 :root {
+  color-scheme: light;
+  --ion-color-scheme: light;
+  --ion-text-color: #0f172a;
+  --ion-text-color-rgb: 15, 23, 42;
+  --ion-background-color: #ffffff;
+  --ion-background-color-rgb: 255, 255, 255;
+  --ion-item-background: #ffffff;
+  --ion-card-background: #ffffff;
+
   --brand-primary: #1d3e9f;
   --brand-primary-dark: #152f7a;
   --brand-primary-soft: #e8eefc;
-  --text-primary: #111827;
-  --text-muted: #6b7280;
-  --border-color: #e5e7eb;
+  --text-primary: #0f172a;
+  --text-secondary: #475569;
+  --text-muted: #64748b;
+  --border-color: #e2e8f0;
   --surface: #ffffff;
-  --surface-muted: #f3f4f6;
+  --surface-muted: #f8fafc;
   --destructive: #ef4444;
   --sidebar-width: 288px;
   /* Mobile drawer below this; persistent web sidebar at/above (see app-shell). */
@@ -14,6 +24,6 @@
   /* Keep sidebar brand row + top header the same height so dividers align. */
   --shell-topbar-height: 60px;
 
-  --font-sans: Poppins, "Noto Sans Devanagari", ui-sans-serif, system-ui, sans-serif;
+  --font-sans: "Noto Sans Devanagari", Poppins, ui-sans-serif, system-ui, sans-serif;
   --ion-font-family: var(--font-sans);
 }

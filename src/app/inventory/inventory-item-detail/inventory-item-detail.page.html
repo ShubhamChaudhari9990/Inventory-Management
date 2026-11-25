@@ -1,0 +1,100 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar class="ops-toolbar">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/inventory/items"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Item Details</ion-title>
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="ops-content">
+  <div class="ops-container">
+    @if (!item()) {
+      <div class="card">Inventory item not found.</div>
+    } @else {
+      @let it = item()!;
+      <section class="card">
+        <div class="top-row">
+          <div>
+            <h2>{{ it.name }}</h2>
+            <p class="sub">
+              SKU: {{ it.sku || it.id }} · {{ it.category }} · {{ getLodgeName(it.propertyId) }}
+            </p>
+          </div>
+          <span class="stock-pill">{{ it.quantity }} {{ it.unit }}</span>
+        </div>
+        <div class="meta-grid">
+          <div>Min Stock: <strong>{{ it.min }}</strong></div>
+          <div>In Transit: <strong>{{ it.inTransitQuantity || 0 }}</strong></div>
+          <div>Price: <strong>₹{{ it.purchasePrice || 0 | number: '1.0-0' }}</strong></div>
+          <div>Location: <strong>{{ it.storageLocation || 'Main Store' }}</strong></div>
+          <div>Tracking: <strong>{{ it.trackingType || 'Consumable' }}</strong></div>
+          @if (it.serialNumber) {
+            <div>Serial: <strong>{{ it.serialNumber }}</strong></div>
+          }
+          @if (it.expiryDate) {
+            <div>Expiry: <strong>{{ it.expiryDate }}</strong></div>
+          }
+        </div>
+      </section>
+
+      <div class="forms-grid">
+        @if (canManage()) {
+          <section class="card">
+            <h3>Stock Inward</h3>
+            <div class="field"><label>Quantity</label><input type="number" min="1" [ngModel]="inQty()" (ngModelChange)="inQty.set($event)" /></div>
+            <div class="field"><label>Unit Price (₹)</label><input type="number" min="0" [ngModel]="inPrice()" (ngModelChange)="inPrice.set($event)" /></div>
+            <div class="field"><label>Supplier</label><input type="text" [ngModel]="inSupplier()" (ngModelChange)="inSupplier.set($event)" /></div>
+            <div class="field"><label>Invoice #</label><input type="text" [ngModel]="inInvoice()" (ngModelChange)="inInvoice.set($event)" /></div>
+            <div class="field"><label>Notes</label><input type="text" [ngModel]="inNotes()" (ngModelChange)="inNotes.set($event)" /></div>
+            <button class="btn-green" [disabled]="saving()" (click)="submitInward()">Confirm Receipt</button>
+          </section>
+        }
+
+        <section class="card">
+          <h3>Stock Outward (Issue)</h3>
+          <div class="field"><label>Quantity</label><input type="number" min="1" [ngModel]="outQty()" (ngModelChange)="outQty.set($event)" /></div>
+          <div class="field">
+            <label>Department</label>
+            <select [ngModel]="outDept()" (ngModelChange)="outDept.set($event)">
+              <option value="Housekeeping">Housekeeping</option>
+              <option value="Maintenance">Maintenance</option>
+              <option value="Reception">Reception</option>
+              <option value="Kitchen">Kitchen</option>
+              <option value="Other">Other</option>
+            </select>
+          </div>
+          <div class="field"><label>Issued To *</label><input type="text" [ngModel]="outIssuedTo()" (ngModelChange)="outIssuedTo.set($event)" placeholder="Staff name..." /></div>
+          <div class="field"><label>Reason</label><input type="text" [ngModel]="outReason()" (ngModelChange)="outReason.set($event)" /></div>
+          <button class="btn-primary" [disabled]="saving()" (click)="submitOutward()">Issue Stock</button>
+        </section>
+
+        @if (canManage()) {
+          <section class="card">
+            <h3>Stock Adjustment</h3>
+            <div class="field"><label>Delta (+/-)</label><input type="number" [ngModel]="adjDelta()" (ngModelChange)="adjDelta.set($event)" /></div>
+            <div class="field"><label>Reason (Required) *</label><input type="text" [ngModel]="adjReason()" (ngModelChange)="adjReason.set($event)" placeholder="Audit recount, damaged..." /></div>
+            <button class="btn-amber" [disabled]="saving()" (click)="submitAdjustment()">Apply Adjustment</button>
+          </section>
+        }
+      </div>
+
+      <section class="card">
+        <h3>Movement History</h3>
+        @if (itemMovements().length === 0) {
+          <div class="empty-box">No movements recorded for this item yet.</div>
+        } @else {
+          @for (m of itemMovements(); track m.id) {
+            <div class="mov-row">
+              <div>
+                <strong>{{ m.movementType || m.type }}</strong> · {{ m.reason }}
+                <div class="sub">{{ m.performedBy }} · {{ m.timestamp | date: 'short' }}</div>
+              </div>
+              <strong>{{ m.delta || m.change }}</strong>
+            </div>
+          }
+        }
+      </section>
+    }
+  </div>
+</ion-content>

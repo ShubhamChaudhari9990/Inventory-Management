@@ -1,51 +1,87 @@
 :host {
-  --brand-primary: #1a3b8b;
+  --brand-primary: #1d3e9f;
   --brand-primary-dark: #152f7a;
   --text-muted: #6b7280;
   --border-color: #e5e7eb;
 }
 
 .register-content {
-  --background: linear-gradient(180deg, #f8faff 0%, #ffffff 40%);
+  --background: #f8fafc;
 }
 
 .page-shell {
-  max-width: 420px;
+  max-width: 430px;
   margin: 0 auto;
-  padding: 24px 20px 32px;
+  padding: 0 20px calc(28px + env(safe-area-inset-bottom, 0px));
 }
 
+/* Header with Brand on Left and Language Switcher on Right (Sticky, non-moving) */
 .brand-header {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  background: #f8fafc;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 24px;
+  gap: 12px;
+  padding-top: calc(16px + env(safe-area-inset-top, 0px));
+  padding-bottom: 12px;
+  margin-bottom: 16px;
+  border-bottom: 1px solid rgba(226, 232, 240, 0.7);
 }
 
-.brand-left {
+.brand-main {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
+  min-width: 0;
 }
 
 .brand-logo {
-  width: 36px;
-  height: 36px;
-  border-radius: 50%;
-  background: var(--brand-primary);
+  width: 40px;
+  height: 40px;
+  border-radius: 12px;
+  background: #ffffff;
+  border: 1px solid rgba(226, 232, 240, 0.9);
   display: grid;
   place-items: center;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+
+  .brand-logo-img {
+    width: 100%;
+    height: 100%;
+    object-fit: contain;
+    padding: 2px;
+  }
 
   ion-icon {
-    color: #ffffff;
-    font-size: 20px;
+    color: #1d3e9f;
+    font-size: 22px;
   }
 }
 
+.brand-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
 .brand-name {
-  font-size: 18px;
+  font-size: 19px;
   font-weight: 700;
-  color: var(--brand-primary);
+  color: #0f172a;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+}
+
+.brand-subtitle {
+  font-size: 11px;
+  font-weight: 500;
+  color: #64748b;
+  line-height: 1.2;
 }
 
 .language-toggle {
@@ -57,10 +93,18 @@
   place-items: center;
   text-decoration: none;
   background: #ffffff;
+  color: #334155;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04);
+  transition: all 0.15s ease;
 
   ion-icon {
-    font-size: 20px;
+    font-size: 19px;
     color: var(--brand-primary);
+  }
+
+  &:hover {
+    background: #f1f5f9;
+    border-color: #cbd5e1;
   }
 }
 
@@ -111,11 +155,24 @@
   --min-height: 52px;
   border: 1px solid var(--border-color);
   border-radius: 12px;
+  font-family: var(--font-sans);
 
   ion-icon[slot='start'] {
     color: #9ca3af;
     font-size: 20px;
     margin-inline-end: 8px;
+  }
+
+  ion-input,
+  ion-select {
+    font-family: var(--font-sans) !important;
+    font-size: 15px;
+    font-weight: 400;
+    color: #111827;
+    --placeholder-font-family: var(--font-sans);
+    --placeholder-color: #9ca3af;
+    --placeholder-opacity: 1;
+    --color: #111827;
   }
 }
 
@@ -143,40 +200,115 @@
   }
 }
 
-.terms-row {
+/* Enhanced Checkbox Card UI/UX */
+.terms-card {
   display: flex;
   align-items: flex-start;
-  gap: 10px;
-  margin-top: 4px;
-  font-size: 13px;
-  color: #4b5563;
-  line-height: 1.5;
+  gap: 12px;
+  padding: 12px 14px;
+  background: #f8fafc;
+  border: 1.5px solid #e2e8f0;
+  border-radius: 12px;
+  margin-top: 6px;
+  margin-bottom: 8px;
+  cursor: pointer;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  user-select: none;
 
-  ion-checkbox {
-    --size: 18px;
-    --checkbox-background-checked: var(--brand-primary);
-    --border-color-checked: var(--brand-primary);
-    margin-top: 2px;
+  &:hover {
+    background: #f1f5f9;
+    border-color: #cbd5e1;
   }
 
-  a {
-    color: var(--brand-primary);
-    font-weight: 600;
-    text-decoration: none;
+  &--checked {
+    background: #eff6ff;
+    border-color: #93c5fd;
+    box-shadow: 0 2px 8px rgba(37, 99, 235, 0.08);
+  }
+
+  .terms-checkbox {
+    --size: 20px;
+    --border-radius: 6px;
+    --border-width: 1.5px;
+    --border-color: #94a3b8;
+    --border-color-checked: var(--brand-primary);
+    --checkbox-background-checked: var(--brand-primary);
+    --checkmark-color: #ffffff;
+    --checkmark-width: 2px;
+    margin-top: 1px;
+    flex-shrink: 0;
+  }
+
+  .terms-text {
+    font-size: 13px;
+    line-height: 1.45;
+    color: #334155;
+    flex: 1;
+
+    a {
+      color: var(--brand-primary);
+      font-weight: 600;
+      text-decoration: underline;
+      text-underline-offset: 2px;
+      transition: color 0.15s ease;
+
+      &:hover {
+        color: var(--brand-primary-dark);
+      }
+    }
   }
 }
 
-.primary-btn {
-  --background: var(--brand-primary);
-  --background-hover: var(--brand-primary-dark);
-  --background-activated: var(--brand-primary-dark);
-  --border-radius: 12px;
-  --box-shadow: none;
-  margin: 8px 0 0;
+/* Premium Primary Register Button */
+.primary-btn.register-btn {
+  --background: linear-gradient(135deg, #1d3e9f 0%, #2563eb 100%);
+  --background-hover: linear-gradient(135deg, #173282 0%, #1d4ed8 100%);
+  --background-activated: linear-gradient(135deg, #152f7a 0%, #1e40af 100%);
+  --border-radius: 14px;
+  --box-shadow: 0 6px 18px rgba(29, 62, 159, 0.28), 0 2px 4px rgba(29, 62, 159, 0.1);
+  --color: #ffffff;
+  margin: 14px 0 0;
   height: 52px;
+  min-height: 52px;
+  font-size: 15px;
   font-weight: 600;
+  letter-spacing: 0.2px;
   text-transform: none;
-  letter-spacing: 0;
+  transition: all 0.2s ease;
+
+  &::part(native) {
+    border-radius: 14px;
+  }
+
+  &:hover:not([disabled]) {
+    --box-shadow: 0 8px 24px rgba(29, 62, 159, 0.35), 0 4px 8px rgba(29, 62, 159, 0.15);
+  }
+
+  &:active:not([disabled]) {
+    transform: scale(0.99);
+  }
+
+  .btn-spinner {
+    color: #ffffff;
+    width: 20px;
+    height: 20px;
+    margin-right: 8px;
+  }
+
+  .btn-label {
+    font-size: 15px;
+    font-weight: 600;
+  }
+
+  .btn-arrow {
+    font-size: 18px;
+    margin-left: 6px;
+    transition: transform 0.2s ease;
+  }
+
+  &:hover .btn-arrow {
+    transform: translateX(3px);
+  }
 }
 
 .page-footer {
@@ -193,5 +325,84 @@
     color: var(--brand-primary);
     font-weight: 700;
     text-decoration: none;
+  }
+}
+
+.verification-card {
+  text-align: center;
+  padding: 32px 24px;
+
+  .verification-badge {
+    width: 64px;
+    height: 64px;
+    margin: 0 auto 16px;
+    border-radius: 50%;
+    background: rgba(26, 59, 139, 0.1);
+    color: var(--brand-primary);
+    display: grid;
+    place-items: center;
+
+    ion-icon {
+      font-size: 36px;
+    }
+  }
+
+  h1 {
+    font-size: 24px;
+    margin-bottom: 8px;
+  }
+
+  .email-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: #f1f5f9;
+    border: 1px solid #cbd5e1;
+    border-radius: 999px;
+    padding: 8px 16px;
+    margin: 12px 0 16px;
+    font-size: 14px;
+    color: #1e293b;
+
+    ion-icon {
+      font-size: 16px;
+      color: var(--brand-primary);
+    }
+  }
+
+  .verification-desc {
+    font-size: 14px;
+    color: var(--text-muted);
+    line-height: 1.6;
+    margin: 0 0 24px;
+  }
+
+  .verification-actions {
+    display: grid;
+    gap: 12px;
+
+    .resend-btn {
+      --color: var(--brand-primary);
+      --border-color: var(--brand-primary);
+      --border-radius: 12px;
+      height: 48px;
+      font-weight: 600;
+      text-transform: none;
+    }
+  }
+}
+
+.designation-block {
+  animation: fadeIn 0.25s ease-in-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }

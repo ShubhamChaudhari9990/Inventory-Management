@@ -4,11 +4,13 @@
       type="button"
       class="bottom-nav__item"
       [attr.data-nav-id]="item.id"
-      [class.bottom-nav__item--active]="item.id === activeId()"
-      [attr.aria-current]="item.id === activeId() ? 'page' : null"
+      [class.bottom-nav__item--active]="isItemActive(item)"
+      [attr.aria-current]="isItemActive(item) ? 'page' : null"
       (click)="onNavigate(item)"
     >
-      <ion-icon [name]="item.icon" aria-hidden="true"></ion-icon>
+      <div class="bottom-nav__icon-box">
+        <ion-icon [name]="item.icon" aria-hidden="true"></ion-icon>
+      </div>
       <span class="bottom-nav__label">{{ item.label | translate }}</span>
     </button>
   }

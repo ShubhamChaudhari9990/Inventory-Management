@@ -1,0 +1,43 @@
+<ion-header class="ion-no-border">
+  <ion-toolbar class="rep-toolbar">
+    <ion-buttons slot="start">
+      <ion-back-button defaultHref="/reports"></ion-back-button>
+    </ion-buttons>
+    <ion-title>Inventory Reports</ion-title>
+    @if (reportsService.canExportReports()) {
+      <ion-buttons slot="end" class="exp-btns">
+        <button class="btn-exp" (click)="export('csv')">CSV</button>
+        <button class="btn-exp" (click)="export('pdf')">PDF</button>
+      </ion-buttons>
+    }
+  </ion-toolbar>
+</ion-header>
+
+<ion-content class="rep-content">
+  <div class="rep-container">
+    <app-report-filter-bar></app-report-filter-bar>
+
+    <section class="kpi-grid">
+      <div class="stat-card"><div class="lbl">Total Items</div><div class="val">{{ summary().totalItems }}</div></div>
+      <div class="stat-card"><div class="lbl">Current Stock</div><div class="val">{{ summary().currentStock }}</div></div>
+      <div class="stat-card"><div class="lbl">Low / Out Stock</div><div class="val">{{ summary().lowStock }}</div></div>
+      <div class="stat-card"><div class="lbl">Expiring / Expired</div><div class="val">{{ summary().expiring }}</div></div>
+      <div class="stat-card"><div class="lbl">Stock Inward / Outward</div><div class="val">+{{ summary().inward }} / -{{ summary().outward }}</div></div>
+      <div class="stat-card"><div class="lbl">Valuation</div><div class="val">₹{{ summary().valuation | number: '1.0-0' }}</div></div>
+    </section>
+
+    <section class="panel">
+      <h3>Supplier-wise Purchase Summary</h3>
+      @if (supplierPurchases().length === 0) {
+        <div class="empty-box">No purchase orders in selected scope.</div>
+      } @else {
+        @for (sp of supplierPurchases(); track sp.supplier) {
+          <div class="row">
+            <span>{{ sp.supplier }} ({{ sp.count }} POs)</span>
+            <strong>₹{{ sp.total | number: '1.0-0' }}</strong>
+          </div>
+        }
+      }
+    </section>
+  </div>
+</ion-content>

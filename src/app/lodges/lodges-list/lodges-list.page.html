@@ -1,0 +1,254 @@
+<app-shell
+  [activeNavId]="'lodges'"
+  [breadcrumb]="'My Lodges'"
+  (activeNavIdChange)="onNavChange($event)"
+>
+  <div class="lodge-page">
+    <div class="lodge-page__inner">
+      <!-- Page Header -->
+      <header class="lodge-header">
+        <div class="lodge-header__copy">
+          <h1 class="lodge-header__title">My Lodges</h1>
+          <p class="lodge-header__subtitle">Manage all your properties</p>
+        </div>
+
+        @if (isOwner()) {
+          <ion-button class="lodge-header__cta" fill="solid" (click)="goToAdd()">
+            <ion-icon slot="start" name="add-outline"></ion-icon>
+            Add New Lodge
+          </ion-button>
+        }
+      </header>
+
+      <!-- Statistics Grid -->
+      <section class="lodge-stats">
+        <div class="stat-card">
+          <div class="stat-card__icon stat-card__icon--blue">
+            <ion-icon name="business-outline"></ion-icon>
+          </div>
+          <div class="stat-card__meta">
+            <span class="stat-card__label">Total Lodges</span>
+            <strong class="stat-card__value">{{ totalLodges() }}</strong>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-card__icon stat-card__icon--green">
+            <ion-icon name="checkmark-circle-outline"></ion-icon>
+          </div>
+          <div class="stat-card__meta">
+            <span class="stat-card__label">Active Lodges</span>
+            <strong class="stat-card__value">{{ activeLodges() }}</strong>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-card__icon stat-card__icon--amber">
+            <ion-icon name="close-circle-outline"></ion-icon>
+          </div>
+          <div class="stat-card__meta">
+            <span class="stat-card__label">Inactive Lodges</span>
+            <strong class="stat-card__value">{{ inactiveLodges() }}</strong>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-card__icon stat-card__icon--indigo">
+            <ion-icon name="bed-outline"></ion-icon>
+          </div>
+          <div class="stat-card__meta">
+            <span class="stat-card__label">Total Rooms</span>
+            <strong class="stat-card__value">{{ totalRoomsCount() }}</strong>
+          </div>
+        </div>
+      </section>
+
+      <!-- Search, Filter & Sort Toolbar -->
+      <section class="lodge-toolbar">
+        <div class="toolbar-search">
+          <ion-icon name="search-outline"></ion-icon>
+          <input
+            type="text"
+            placeholder="Search by lodge name, code, or city..."
+            [ngModel]="searchQuery()"
+            (ngModelChange)="searchQuery.set($event)"
+            aria-label="Search lodges"
+          />
+        </div>
+
+        <div class="toolbar-controls">
+          <div class="control-group">
+            <ion-icon name="funnel-outline"></ion-icon>
+            <select
+              [ngModel]="statusFilter()"
+              (ngModelChange)="statusFilter.set($event)"
+              aria-label="Filter by status"
+            >
+              <option value="all">All Status</option>
+              <option value="active">Active Only</option>
+              <option value="inactive">Inactive Only</option>
+            </select>
+          </div>
+
+          <div class="control-group">
+            <ion-icon name="swap-vertical-outline"></ion-icon>
+            <select
+              [ngModel]="sortBy()"
+              (ngModelChange)="sortBy.set($event)"
+              aria-label="Sort lodges"
+            >
+              <option value="name">Sort by Name</option>
+              <option value="createdAt">Newest First</option>
+            </select>
+          </div>
+        </div>
+      </section>
+
+      <!-- Lodge Cards Grid -->
+      @if (visibleLodges().length > 0) {
+        <section class="lodge-grid">
+          @for (lodge of visibleLodges(); track lodge.id) {
+            @let stats = getRoomStats(lodge);
+            <article
+              class="lodge-card"
+              [class.lodge-card--selected]="selectedPropertyId() === lodge.id"
+              [class.lodge-card--inactive]="lodge.status === 'inactive'"
+            >
+              <!-- Cover Banner -->
+              <div class="lodge-card__cover">
+                @if (lodge.images?.cover || lodge.imageUrl) {
+                  <img
+                    [src]="lodge.images?.cover || lodge.imageUrl"
+                    [alt]="lodge.name"
+                    class="lodge-card__cover-img"
+                  />
+                } @else {
+                  <div class="lodge-card__cover-fallback">
+                    <ion-icon name="business-outline"></ion-icon>
+                  </div>
+                }
+
+                <span class="lodge-card__type-pill">{{ lodge.type || 'Lodge' }}</span>
+                <span
+                  class="lodge-card__status-pill"
+                  [class.lodge-card__status-pill--active]="lodge.status === 'active'"
+                  [class.lodge-card__status-pill--inactive]="lodge.status !== 'active'"
+                >
+                  {{ lodge.status === 'active' ? 'Active' : 'Inactive' }}
+                </span>
+
+                <!-- Logo Overlay -->
+                <div class="lodge-card__logo">
+                  @if (lodge.images?.logo) {
+                    <img [src]="lodge.images?.logo" [alt]="lodge.name + ' logo'" />
+                  } @else {
+                    <span>{{ lodge.code.slice(0, 2) }}</span>
+                  }
+                </div>
+              </div>
+
+              <!-- Card Body -->
+              <div class="lodge-card__body">
+                <div class="lodge-card__title-row">
+                  <h2 class="lodge-card__name">{{ lodge.name }}</h2>
+                  <span class="lodge-card__code">{{ lodge.code }}</span>
+                </div>
+
+                <div class="lodge-card__meta-list">
+                  <div class="meta-item">
+                    <ion-icon name="location-outline"></ion-icon>
+                    <span>
+                      {{ lodge.address || lodge.lodgeAddress?.addressLine1 || 'Address not set' }}{{ lodge.city ? ', ' + lodge.city : '' }}{{ lodge.state ? ', ' + lodge.state : '' }}
+                    </span>
+                  </div>
+                  <div class="meta-item">
+                    <ion-icon name="call-outline"></ion-icon>
+                    <span>{{ lodge.contact?.primaryPhone || lodge.phone || 'No phone' }}</span>
+                  </div>
+                </div>
+
+                <!-- Room Availability Bar -->
+                <div class="lodge-card__rooms">
+                  <div class="room-stat">
+                    <span class="room-stat__num">{{ stats.total }}</span>
+                    <span class="room-stat__lbl">Total</span>
+                  </div>
+                  <div class="room-stat room-stat--occ">
+                    <span class="room-stat__num">{{ stats.occupied }}</span>
+                    <span class="room-stat__lbl">Occupied</span>
+                  </div>
+                  <div class="room-stat room-stat--avail">
+                    <span class="room-stat__num">{{ stats.available }}</span>
+                    <span class="room-stat__lbl">Available</span>
+                  </div>
+                </div>
+              </div>
+
+              <!-- Card Footer Actions -->
+              <div class="lodge-card__actions">
+                <button type="button" class="card-btn card-btn--primary" (click)="viewDetails(lodge)">
+                  <ion-icon name="eye-outline"></ion-icon>
+                  Details
+                </button>
+                @if (!isStaff()) {
+                  <button type="button" class="card-btn" (click)="editLodge(lodge)">
+                    <ion-icon name="create-outline"></ion-icon>
+                    Edit
+                  </button>
+                }
+                <button type="button" class="card-btn" (click)="manageRooms(lodge)">
+                  <ion-icon name="bed-outline"></ion-icon>
+                  Rooms
+                </button>
+                @if (isOwner() || isManager()) {
+                  <button type="button" class="card-btn" (click)="switchToLodge(lodge)">
+                    <ion-icon name="swap-horizontal-outline"></ion-icon>
+                    Switch
+                  </button>
+                }
+                @if (isOwner()) {
+                  <button
+                    type="button"
+                    class="card-btn"
+                    [class.card-btn--danger]="lodge.status === 'active'"
+                    [class.card-btn--success]="lodge.status !== 'active'"
+                    (click)="toggleStatus(lodge)"
+                  >
+                    <ion-icon name="power-outline"></ion-icon>
+                    {{ lodge.status === 'active' ? 'Deactivate' : 'Activate' }}
+                  </button>
+                }
+              </div>
+            </article>
+          }
+        </section>
+
+        @if (hasMore()) {
+          <div class="lodge-pagination">
+            <ion-button fill="outline" (click)="loadMore()">Load More Lodges</ion-button>
+          </div>
+        }
+      } @else {
+        <div class="lodge-empty">
+          <div class="lodge-empty__icon">
+            <ion-icon name="business-outline"></ion-icon>
+          </div>
+          <h3>No Lodges Found</h3>
+          <p>
+            @if (searchQuery() || statusFilter() !== 'all') {
+              No lodges match your current search or filter criteria.
+            } @else {
+              Add your first property to start managing rooms, bookings, and staff.
+            }
+          </p>
+          @if (isOwner() && !searchQuery() && statusFilter() === 'all') {
+            <ion-button fill="solid" (click)="goToAdd()">
+              <ion-icon slot="start" name="add-outline"></ion-icon>
+              Add New Lodge
+            </ion-button>
+          }
+        </div>
+      }
+    </div>
+  </div>
+</app-shell>

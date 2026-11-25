@@ -49,12 +49,20 @@ ion-menu::part(container) {
   overflow: hidden;
 }
 
+app-header {
+  position: sticky;
+  top: 0;
+  z-index: 40;
+  flex-shrink: 0;
+  width: 100%;
+}
+
 .shell-page__main {
   flex: 1;
   min-height: 0;
   overflow: auto;
   background: var(--surface-muted, #f3f4f6);
-  padding-bottom: 72px;
+  padding-bottom: 12px;
   scrollbar-width: none;
   -ms-overflow-style: none;
 
@@ -66,10 +74,8 @@ ion-menu::part(container) {
 }
 
 .shell-page__bottom-nav {
-  position: absolute;
-  right: 0;
-  bottom: 0;
-  left: 0;
+  flex-shrink: 0;
+  position: relative;
   z-index: 15;
   border: 0;
   background: #ffffff;

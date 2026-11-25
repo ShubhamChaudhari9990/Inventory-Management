@@ -46,6 +46,14 @@
   &:first-child {
     border-top: 0;
   }
+
+  &:hover {
+    background: #f8fafc;
+  }
+
+  &:active {
+    background: #f1f5f9;
+  }
 }
 
 .more-menu__item--destructive {

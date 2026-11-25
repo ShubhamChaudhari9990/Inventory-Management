@@ -1,0 +1,149 @@
+<app-shell
+  [activeNavId]="'staff'"
+  [breadcrumb]="pageTitle()"
+  (activeNavIdChange)="onNavChange($event)"
+>
+  <div class="emp-form-page">
+    <div class="emp-form-page__inner">
+      <header class="form-topbar">
+        <button type="button" class="back-btn" (click)="onCancel()">
+          <ion-icon name="arrow-back-outline"></ion-icon>
+          Directory
+        </button>
+        <div>
+          <h1>{{ pageTitle() }}</h1>
+          <p>Personal details, lodge assignment & granular RBAC permissions (no passwords stored)</p>
+        </div>
+      </header>
+
+      @if (linkedExistingUid() && !isEditMode()) {
+        <div class="link-banner">
+          Existing authenticated user found with this email (UID: {{ linkedExistingUid() }}). Saving will link and authorize their account directly.
+        </div>
+      }
+
+      <form [formGroup]="form" (ngSubmit)="onSubmit()" class="emp-form" novalidate>
+        <section class="form-card">
+          <h2>Personal Information</h2>
+          <div class="photo-row">
+            <div class="photo-box">
+              @if (photoUrl()) {
+                <img [src]="photoUrl()" alt="Employee photo" />
+              } @else {
+                <span>Photo</span>
+              }
+            </div>
+            <label class="mini-btn">
+              <ion-icon name="cloud-upload-outline"></ion-icon>
+              Upload Photo
+              <input type="file" accept="image/jpeg,image/png,image/webp" hidden (change)="onPhotoSelected($event)" />
+            </label>
+            @if (uploadProgress() !== null) {
+              <ion-progress-bar [value]="(uploadProgress() || 0) / 100"></ion-progress-bar>
+            }
+          </div>
+
+          <div class="form-grid">
+            <div class="field"><label>First Name *</label><input type="text" formControlName="firstName" /></div>
+            <div class="field"><label>Last Name</label><input type="text" formControlName="lastName" /></div>
+            <div class="field"><label>Email *</label><input type="email" formControlName="email" (blur)="onEmailBlur()" /></div>
+            <div class="field"><label>Phone *</label><input type="tel" formControlName="phone" /></div>
+            <div class="field"><label>Date of Birth</label><input type="date" formControlName="dateOfBirth" /></div>
+            <div class="field"><label>Address</label><input type="text" formControlName="address" /></div>
+          </div>
+        </section>
+
+        <section class="form-card">
+          <h2>Employment & Lodge Assignment</h2>
+          <div class="form-grid">
+            <div class="field"><label>Employee ID *</label><input type="text" formControlName="employeeId" /></div>
+            <div class="field">
+              <label>Role *</label>
+              <select formControlName="role" (change)="applyTemplate()">
+                <option value="manager">Manager</option>
+                <option value="staff">Staff</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Designation *</label>
+              <select formControlName="designation" (change)="applyTemplate()">
+                <option value="Lodge Manager">Lodge Manager</option>
+                <option value="receptionist">Receptionist</option>
+                <option value="housekeeping">Housekeeping</option>
+                <option value="maintenance">Maintenance</option>
+                <option value="accountant">Accountant</option>
+                <option value="other">Custom Staff</option>
+              </select>
+            </div>
+            <div class="field"><label>Department</label><input type="text" formControlName="department" /></div>
+            <div class="field">
+              <label>Employment Type</label>
+              <select formControlName="employmentType">
+                <option value="Full-Time">Full-Time</option>
+                <option value="Part-Time">Part-Time</option>
+                <option value="Contract">Contract</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Account Status *</label>
+              <select formControlName="employmentStatus">
+                <option value="active">Active</option>
+                <option value="pending">Pending</option>
+                <option value="suspended">Suspended</option>
+                <option value="inactive">Inactive</option>
+              </select>
+            </div>
+            <div class="field"><label>Joining Date</label><input type="date" formControlName="joiningDate" /></div>
+          </div>
+
+          <div class="lodge-assign">
+            <label>Assigned Lodge(s)</label>
+            <div class="chip-wrap">
+              @for (l of lodges(); track l.id) {
+                <button
+                  type="button"
+                  class="chip"
+                  [class.active]="assignedLodgeIds().includes(l.id)"
+                  (click)="toggleLodge(l.id)"
+                >
+                  {{ l.name }}
+                </button>
+              }
+            </div>
+          </div>
+        </section>
+
+        <section class="form-card">
+          <h2>Permissions ({{ selectedPermissions().length }} enabled)</h2>
+          <div class="perm-groups">
+            @for (g of permissionGroups; track g.category) {
+              <div class="perm-group">
+                <strong>{{ g.category | uppercase }}</strong>
+                <div class="chip-wrap">
+                  @for (p of g.permissions; track p.key) {
+                    <button
+                      type="button"
+                      class="chip sm"
+                      [class.active]="selectedPermissions().includes(p.key)"
+                      (click)="togglePerm(p.key)"
+                    >
+                      {{ p.key }}
+                    </button>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        </section>
+
+        <footer class="form-actions">
+          <ion-button fill="outline" color="medium" type="button" (click)="onCancel()">Cancel</ion-button>
+          <ion-button fill="solid" type="submit" [disabled]="isSaving()">
+            @if (isSaving()) { <ion-spinner slot="start" name="crescent"></ion-spinner> Saving... }
+            @else { <ion-icon slot="start" name="save-outline"></ion-icon> Save Employee }
+          </ion-button>
+        </footer>
+      </form>
+    </div>
+  </div>
+</app-shell>

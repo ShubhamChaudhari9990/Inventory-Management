@@ -1,0 +1,214 @@
+<app-shell
+  [activeNavId]="'customers'"
+  [breadcrumb]="pageTitle()"
+  (activeNavIdChange)="onNavChange($event)"
+>
+  <div class="cust-form-page">
+    <div class="cust-form-page__inner">
+      <header class="form-topbar">
+        <button type="button" class="back-btn" (click)="onCancel()">
+          <ion-icon name="arrow-back-outline"></ion-icon>
+          Back
+        </button>
+        <div>
+          <h1>{{ pageTitle() }}</h1>
+          <p>Capture guest details, preferences, and prevent duplicate records</p>
+        </div>
+      </header>
+
+      <!-- Duplicate Detection Alert -->
+      @if (duplicates().length > 0 && !isEditMode()) {
+        <section class="dup-banner">
+          <div class="dup-banner__head">
+            <ion-icon name="alert-circle-outline"></ion-icon>
+            <strong>Matching Guest Record Found ({{ duplicates().length }})</strong>
+          </div>
+          <p>A customer with a matching phone number or email already exists:</p>
+          <div class="dup-list">
+            @for (d of duplicates(); track d.id) {
+              <div class="dup-item">
+                <div>
+                  <strong>{{ d.name }}</strong>
+                  <span>{{ d.phone }} {{ d.email ? '· ' + d.email : '' }} · {{ d.city }}</span>
+                </div>
+                <button type="button" class="open-btn" (click)="openExistingCustomer(d)">
+                  <ion-icon name="open-outline"></ion-icon>
+                  Open Existing
+                </button>
+              </div>
+            }
+          </div>
+          <label class="shared-check">
+            <input
+              type="checkbox"
+              [(ngModel)]="allowSharedPhone"
+              [ngModelOptions]="{ standalone: true }"
+            />
+            <span>This is a legitimate shared family contact number — allow creating a separate profile</span>
+          </label>
+        </section>
+      }
+
+      <form [formGroup]="form" (ngSubmit)="onSubmit()" class="cust-form" novalidate>
+        <!-- Personal Information -->
+        <section class="form-card">
+          <h2>Personal Information</h2>
+          <div class="avatar-upload-row">
+            <div class="avatar-preview">
+              @if (photoUrl()) {
+                <img [src]="photoUrl()" alt="Profile photo" />
+              } @else {
+                <span>Photo</span>
+              }
+            </div>
+            <div class="avatar-btns">
+              <label class="mini-btn primary">
+                <ion-icon name="cloud-upload-outline"></ion-icon>
+                Upload Photo
+                <input type="file" accept="image/jpeg,image/png,image/webp" hidden (change)="onPhotoSelected($event)" />
+              </label>
+              @if (photoUrl()) {
+                <button type="button" class="mini-btn danger" (click)="removePhoto()">Remove</button>
+              }
+              @if (uploadProgress() !== null) {
+                <ion-progress-bar [value]="(uploadProgress() || 0) / 100"></ion-progress-bar>
+              }
+            </div>
+          </div>
+
+          <div class="form-grid">
+            <div class="field">
+              <label>First Name *</label>
+              <input type="text" formControlName="firstName" placeholder="e.g. Aarav" />
+            </div>
+            <div class="field">
+              <label>Last Name</label>
+              <input type="text" formControlName="lastName" placeholder="e.g. Deshmukh" />
+            </div>
+            <div class="field">
+              <label>Mobile Number *</label>
+              <input
+                type="tel"
+                formControlName="phone"
+                placeholder="+91 98765 43210"
+                (blur)="checkDuplicates()"
+              />
+            </div>
+            <div class="field">
+              <label>Email</label>
+              <input
+                type="email"
+                formControlName="email"
+                placeholder="guest@example.com"
+                (blur)="checkDuplicates()"
+              />
+            </div>
+            <div class="field">
+              <label>Gender (Optional)</label>
+              <select formControlName="gender">
+                <option value="">Prefer not to say</option>
+                <option value="Male">Male</option>
+                <option value="Female">Female</option>
+                <option value="Other">Other</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Date of Birth (Optional)</label>
+              <input type="date" formControlName="dateOfBirth" />
+            </div>
+          </div>
+        </section>
+
+        <!-- Address -->
+        <section class="form-card">
+          <h2>Address & Identity</h2>
+          <div class="form-grid">
+            <div class="field">
+              <label>Country</label>
+              <input type="text" formControlName="country" />
+            </div>
+            <div class="field">
+              <label>State</label>
+              <input type="text" formControlName="state" />
+            </div>
+            <div class="field">
+              <label>City *</label>
+              <input type="text" formControlName="city" placeholder="e.g. Pune" />
+            </div>
+            <div class="field">
+              <label>PIN Code</label>
+              <input type="text" formControlName="pincode" placeholder="411001" />
+            </div>
+            <div class="field field--full">
+              <label>Full Address</label>
+              <input type="text" formControlName="address" placeholder="Street, Area, Landmark" />
+            </div>
+            <div class="field">
+              <label>ID Type (Optional)</label>
+              <select formControlName="idType">
+                <option value="Aadhaar">Aadhaar</option>
+                <option value="Passport">Passport</option>
+                <option value="Driving License">Driving License</option>
+                <option value="Voter ID">Voter ID</option>
+                <option value="PAN">PAN</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>ID Number (Optional)</label>
+              <input type="text" formControlName="idNumber" placeholder="Document number" />
+            </div>
+          </div>
+        </section>
+
+        <!-- Additional Info -->
+        <section class="form-card">
+          <h2>Additional Information</h2>
+          <div class="form-grid">
+            <div class="field">
+              <label>Customer Type *</label>
+              <select formControlName="customerType">
+                <option value="Regular">Regular</option>
+                <option value="VIP">VIP</option>
+                <option value="Corporate">Corporate</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>Status *</label>
+              <select formControlName="customerStatus">
+                <option value="active">Active</option>
+                <option value="inactive">Inactive</option>
+              </select>
+            </div>
+            <div class="field field--full">
+              <label>Guest Preferences</label>
+              <input type="text" formControlName="preferences" placeholder="e.g. High floor, quiet room, extra pillows" />
+            </div>
+            <div class="field field--full">
+              <label>Special Requirements</label>
+              <input type="text" formControlName="specialRequirements" placeholder="e.g. Wheelchair access, vegetarian breakfast" />
+            </div>
+            <div class="field field--full">
+              <label>Internal Notes</label>
+              <textarea rows="2" formControlName="notes" placeholder="Staff-only notes..."></textarea>
+            </div>
+          </div>
+        </section>
+
+        <footer class="form-actions">
+          <ion-button fill="outline" color="medium" type="button" (click)="onCancel()" [disabled]="isSaving()">
+            Cancel
+          </ion-button>
+          <ion-button fill="solid" type="submit" [disabled]="isSaving()">
+            @if (isSaving()) {
+              <ion-spinner slot="start" name="crescent"></ion-spinner>
+              Saving...
+            } @else {
+              <ion-icon slot="start" name="save-outline"></ion-icon>
+              {{ isEditMode() ? 'Save Changes' : 'Create Customer' }}
+            }
+          </ion-button>
+        </footer>
+      </form>
+    </div>
+  </div>
+</app-shell>

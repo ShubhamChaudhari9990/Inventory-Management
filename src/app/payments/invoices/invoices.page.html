@@ -1,0 +1,152 @@
+<app-shell
+  [activeNavId]="'payments'"
+  [breadcrumb]="'Invoices'"
+  (activeNavIdChange)="onNavChange($event)"
+>
+  <div class="inv-page">
+    <div class="inv-page__inner">
+      <header class="inv-header no-print">
+        <button type="button" class="back-btn" (click)="goBack()">
+          <ion-icon name="arrow-back-outline"></ion-icon>
+          Payments
+        </button>
+        <div>
+          <h1>Invoice Management</h1>
+          <p>Immutable snapshot invoices preserving historical rates & GST breakdown</p>
+        </div>
+      </header>
+
+      <!-- Generate Invoice Bar -->
+      <section class="gen-bar no-print">
+        <select [(ngModel)]="selectedBookingForNew">
+          <option value="">Select booking to generate invoice...</option>
+          @for (b of bookings(); track b.id) {
+            <option [value]="b.id">{{ b.id }} · {{ b.guestName }} (Room {{ b.room }})</option>
+          }
+        </select>
+        <ion-button fill="solid" (click)="generateInvoice()">
+          <ion-icon slot="start" name="add-outline"></ion-icon>
+          Generate Invoice
+        </ion-button>
+      </section>
+
+      <div class="inv-layout">
+        <!-- Invoice List -->
+        <aside class="inv-list no-print">
+          <h3>Invoices ({{ invoices().length }})</h3>
+          @for (inv of invoices(); track inv.id) {
+            <button
+              type="button"
+              class="inv-item"
+              [class.active]="activeInvoice()?.id === inv.id"
+              (click)="selectedInvoice.set(inv)"
+            >
+              <strong>{{ inv.invoiceNumber }}</strong>
+              <span>{{ inv.customerName }} · ₹{{ inv.totalAmount.toLocaleString('en-IN') }}</span>
+            </button>
+          } @empty {
+            <p class="muted">No invoices generated yet.</p>
+          }
+        </aside>
+
+        <!-- Invoice Preview -->
+        @if (activeInvoice(); as inv) {
+          <article class="inv-sheet">
+            <div class="inv-sheet__actions no-print">
+              <button type="button" class="act-btn" (click)="printInvoice()">
+                <ion-icon name="print-outline"></ion-icon>
+                Print / Save PDF
+              </button>
+              <button type="button" class="act-btn" (click)="shareInvoice(inv)">
+                <ion-icon name="share-outline"></ion-icon>
+                Share
+              </button>
+            </div>
+
+            <div class="inv-sheet__top">
+              <div>
+                <h2>{{ inv.businessName }}</h2>
+                <strong>{{ inv.lodgeName }}</strong>
+                <p>{{ inv.lodgeAddress }}</p>
+                @if (inv.lodgeGst) {
+                  <p>GSTIN: {{ inv.lodgeGst }}</p>
+                }
+              </div>
+              <div class="inv-meta">
+                <h3>INVOICE</h3>
+                <span>#{{ inv.invoiceNumber }}</span>
+                <span>Issued: {{ inv.issuedAt | date:'mediumDate' }}</span>
+                <span>Booking: {{ inv.bookingId }}</span>
+              </div>
+            </div>
+
+            <div class="inv-billto">
+              <div>
+                <label>Billed To</label>
+                <strong>{{ inv.customerName }}</strong>
+                <span>{{ inv.customerPhone }}</span>
+              </div>
+              <div>
+                <label>Stay Details</label>
+                <span>Room {{ inv.roomNumber }} {{ inv.roomType ? '(' + inv.roomType + ')' : '' }}</span>
+                <span>{{ inv.checkInDate }} → {{ inv.checkOutDate }}</span>
+              </div>
+            </div>
+
+            <table class="inv-table">
+              <thead>
+                <tr>
+                  <th>Description</th>
+                  <th class="num">Amount</th>
+                </tr>
+              </thead>
+              <tbody>
+                <tr>
+                  <td>Room Charges</td>
+                  <td class="num">₹{{ inv.roomCharges.toLocaleString('en-IN') }}</td>
+                </tr>
+                @if (inv.additionalServices > 0) {
+                  <tr>
+                    <td>Additional Services</td>
+                    <td class="num">₹{{ inv.additionalServices.toLocaleString('en-IN') }}</td>
+                  </tr>
+                }
+                @if (inv.discounts > 0) {
+                  <tr>
+                    <td>Discounts</td>
+                    <td class="num">-₹{{ inv.discounts.toLocaleString('en-IN') }}</td>
+                  </tr>
+                }
+                @if (inv.taxAmount > 0) {
+                  <tr>
+                    <td>GST ({{ inv.taxRate }}%)</td>
+                    <td class="num">₹{{ inv.taxAmount.toLocaleString('en-IN') }}</td>
+                  </tr>
+                }
+              </tbody>
+              <tfoot>
+                <tr>
+                  <th>Total Invoice Amount</th>
+                  <th class="num">₹{{ inv.totalAmount.toLocaleString('en-IN') }}</th>
+                </tr>
+                <tr>
+                  <td>Amount Paid</td>
+                  <td class="num">₹{{ inv.amountPaid.toLocaleString('en-IN') }}</td>
+                </tr>
+                <tr>
+                  <th>Outstanding Balance</th>
+                  <th class="num">₹{{ inv.outstandingBalance.toLocaleString('en-IN') }}</th>
+                </tr>
+              </tfoot>
+            </table>
+          </article>
+        } @else {
+          <div class="inv-placeholder no-print">
+            <ion-icon name="document-text-outline"></ion-icon>
+            <p>Select an invoice from the list or generate one for a booking.</p>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+</app-shell>

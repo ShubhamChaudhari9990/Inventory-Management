@@ -1,0 +1,335 @@
+<app-shell
+  [activeNavId]="activeNavId()"
+  [breadcrumb]="'Lodge Operations'"
+  (activeNavIdChange)="navigateTo($event)"
+>
+  @if (isDashboardActive()) {
+    <div class="manager-dash">
+      <div class="manager-dash__inner">
+        <!-- Top Operations Hero -->
+        <section class="manager-dash__hero">
+          <div class="manager-dash__hero-copy">
+            <div class="manager-dash__badge">
+              <ion-icon name="business-outline"></ion-icon>
+              <span>Operations Hub · Assigned Lodge</span>
+            </div>
+            <h1 class="manager-dash__title">{{ selectedPropertyName() | translate }}</h1>
+            <p class="manager-dash__subtitle">
+              Front desk management, guest arrivals, housekeeping schedule & room turns.
+            </p>
+          </div>
+
+          <div class="manager-dash__hero-actions">
+            <ion-button class="manager-dash__cta" fill="outline" (click)="navigateTo('rooms')">
+              <ion-icon slot="start" name="bed-outline"></ion-icon>
+              Room Status
+            </ion-button>
+            <ion-button class="manager-dash__cta manager-dash__cta--primary" fill="solid" (click)="navigateTo('bookings')">
+              <ion-icon slot="start" name="calendar-outline"></ion-icon>
+              New Booking
+            </ion-button>
+          </div>
+        </section>
+
+        <!-- Operations Alerts Banner (Widget 9) -->
+        @if (importantAlerts().length > 0) {
+          <section class="manager-dash__alerts">
+            <div class="alerts-card">
+              <div class="alerts-card__header">
+                <ion-icon name="alert-circle-outline"></ion-icon>
+                <span>Live Operations Alerts ({{ importantAlerts().length }})</span>
+              </div>
+              <div class="alerts-card__grid">
+                @for (alert of importantAlerts(); track alert.id) {
+                  <div class="alert-box alert-box--{{ alert.severity }}">
+                    <div class="alert-box__content">
+                      <strong>{{ alert.title }}</strong>
+                      <p>{{ alert.description }}</p>
+                    </div>
+                    @if (alert.actionLabel && alert.actionId) {
+                      <button class="alert-box__action" (click)="navigateTo(alert.actionId)">
+                        {{ alert.actionLabel }}
+                      </button>
+                    }
+                  </div>
+                }
+              </div>
+            </div>
+          </section>
+        }
+
+        <!-- 8 KPI Cards Grid -->
+        <section class="manager-dash__kpis">
+          @for (kpi of managerKpis(); track kpi.id) {
+            <app-dashboard-kpi-card [kpi]="kpi" />
+          }
+        </section>
+
+        <!-- Guest Flow Grid: Today's Arrivals & Today's Departures (Widgets 1 & 2) -->
+        <section class="manager-dash__guest-flow">
+          <!-- Widget 1: Today's Arrivals -->
+          <app-dashboard-section-card title="Today's Scheduled Arrivals">
+            <div class="flow-list">
+              @for (item of todayArrivals(); track item.id) {
+                <div class="flow-item">
+                  <div class="flow-item__info">
+                    <div class="flow-item__name-row">
+                      <span class="guest-name">{{ item.guestName }}</span>
+                      <span class="room-pill">Room {{ item.roomNumber }}</span>
+                    </div>
+                    <span class="flow-item__sub">
+                      {{ item.roomType }} · Expected {{ item.scheduledTime }} · {{ item.phone }}
+                    </span>
+                  </div>
+
+                  <div class="flow-item__actions">
+                    <span class="pay-pill pay-pill--{{ item.paymentStatus.toLowerCase() }}">
+                      {{ item.paymentStatus }}
+                    </span>
+                    @if (item.status === 'Checked In') {
+                      <span class="checked-badge">In House</span>
+                    } @else {
+                      <button class="flow-btn flow-btn--checkin" (click)="onQuickCheckIn(item)">
+                        Check In
+                      </button>
+                    }
+                  </div>
+                </div>
+              }
+            </div>
+          </app-dashboard-section-card>
+
+          <!-- Widget 2: Today's Departures -->
+          <app-dashboard-section-card title="Today's Scheduled Departures">
+            <div class="flow-list">
+              @for (item of todayDepartures(); track item.id) {
+                <div class="flow-item">
+                  <div class="flow-item__info">
+                    <div class="flow-item__name-row">
+                      <span class="guest-name">{{ item.guestName }}</span>
+                      <span class="room-pill">Room {{ item.roomNumber }}</span>
+                    </div>
+                    <span class="flow-item__sub">
+                      Departure at {{ item.scheduledTime }} · {{ item.phone }}
+                    </span>
+                  </div>
+
+                  <div class="flow-item__actions">
+                    @if (item.amountDue > 0) {
+                      <span class="pay-pill pay-pill--due">₹{{ item.amountDue }} Due</span>
+                    } @else {
+                      <span class="pay-pill pay-pill--paid">Paid</span>
+                    }
+
+                    @if (item.status === 'Checked Out') {
+                      <span class="checked-badge">Departed</span>
+                    } @else {
+                      <button class="flow-btn flow-btn--checkout" (click)="onQuickCheckOut(item)">
+                        Check Out
+                      </button>
+                    }
+                  </div>
+                </div>
+              }
+            </div>
+          </app-dashboard-section-card>
+        </section>
+
+        <!-- Widget 3: Room Availability Matrix -->
+        <app-dashboard-section-card title="Room Status & Floor Matrix">
+          <div class="room-matrix">
+            @for (room of roomMatrix(); track room.number) {
+              <div
+                class="room-chip"
+                [class.room-chip--available]="room.status === 'Available'"
+                [class.room-chip--occupied]="room.status === 'Occupied'"
+                [class.room-chip--cleaning]="room.status === 'Cleaning'"
+                [class.room-chip--maint]="room.status === 'Maintenance'"
+                [class.room-chip--reserved]="room.status === 'Reserved'"
+                (click)="navigateTo('rooms')"
+              >
+                <span class="room-chip__num">{{ room.number }}</span>
+                <span class="room-chip__type">{{ room.type }}</span>
+                <span class="room-chip__status">{{ room.status }}</span>
+              </div>
+            }
+          </div>
+        </app-dashboard-section-card>
+
+        <!-- Operations Middle Grid: Housekeeping & Maintenance (Widgets 6 & 7) -->
+        <section class="manager-dash__ops-grid">
+          <!-- Widget 6: Housekeeping Tasks -->
+          <app-dashboard-section-card title="Housekeeping & Turnaround Schedule">
+            <div class="tasks-list">
+              @for (task of housekeepingTasks(); track task.id) {
+                <div class="task-card">
+                  <div class="task-card__header">
+                    <strong>Room {{ task.room }}</strong>
+                    <span class="task-card__status task-card__status--{{ task.status.toLowerCase().replace(' ', '-') }}">
+                      {{ task.status }}
+                    </span>
+                  </div>
+                  <div class="task-card__meta">
+                    <span>Assigned: {{ task.assignedTo }}</span>
+                    <span>Type: {{ task.type }}</span>
+                  </div>
+                  @if (task.status !== 'Completed') {
+                    <button class="task-card__btn" (click)="markTaskCompleted(task.id)">
+                      <ion-icon name="checkmark-circle-outline"></ion-icon>
+                      Mark Cleaned
+                    </button>
+                  }
+                </div>
+              }
+            </div>
+          </app-dashboard-section-card>
+
+          <!-- Widget 7: Maintenance Requests -->
+          <app-dashboard-section-card title="Active Maintenance Work Orders">
+            <div class="tasks-list">
+              @for (maint of maintenanceRequests(); track maint.id) {
+                <div class="task-card">
+                  <div class="task-card__header">
+                    <strong>Room {{ maint.roomNumber }} · {{ maint.category }}</strong>
+                    <span class="priority-tag priority-tag--{{ maint.priority }}">
+                      {{ maint.priority | uppercase }}
+                    </span>
+                  </div>
+                  <p class="task-card__desc">{{ maint.issue }}</p>
+                  <div class="task-card__meta">
+                    <span>Tech: {{ maint.assignedTo }}</span>
+                    <span>Reported: {{ maint.reportedAt }}</span>
+                  </div>
+                </div>
+              }
+            </div>
+          </app-dashboard-section-card>
+        </section>
+
+        <!-- Operations Bottom Grid: Staff On Duty & Front-Desk Payments (Widgets 5 & 8) -->
+        <section class="manager-dash__bottom-grid">
+          <!-- Widget 8: Staff Overview -->
+          <app-dashboard-section-card title="Staff On Duty Today">
+            <div class="staff-roster">
+              @for (staff of staffOnDuty(); track staff.id) {
+                <div class="roster-item">
+                  <div class="roster-item__avatar">
+                    <ion-icon name="person-outline"></ion-icon>
+                  </div>
+                  <div class="roster-item__info">
+                    <strong class="name">{{ staff.name }}</strong>
+                    <span class="role">{{ staff.designation }} · {{ staff.shift }} Shift</span>
+                  </div>
+                  <span class="roster-status roster-status--{{ staff.status.toLowerCase().replace(' ', '-') }}">
+                    {{ staff.status }}
+                  </span>
+                </div>
+              }
+            </div>
+          </app-dashboard-section-card>
+
+          <!-- Widget 5: Recent Payment Collections -->
+          <app-dashboard-section-card title="Recent Front-Desk Collections">
+            <div class="payments-list">
+              @for (pay of recentPayments(); track pay.id) {
+                <div class="pay-row">
+                  <div class="pay-row__left">
+                    <span class="pay-row__guest">{{ pay.guestName }}</span>
+                    <span class="pay-row__time">{{ pay.method }} · {{ pay.status }}</span>
+                  </div>
+                  <span class="pay-row__amount">₹{{ pay.numericAmount.toLocaleString('en-IN') }}</span>
+                </div>
+              }
+            </div>
+          </app-dashboard-section-card>
+        </section>
+      </div>
+    </div>
+  }
+
+  <!-- Secondary Views for Manager -->
+  @if (isRoomsActive()) {
+    <div class="manager-dash">
+      <div class="manager-dash__inner">
+        <app-rooms-view />
+      </div>
+    </div>
+  }
+  @if (isBookingsActive()) {
+    <div class="manager-dash">
+      <div class="manager-dash__inner">
+        <app-bookings-view />
+      </div>
+    </div>
+  }
+  @if (isCheckinActive()) {
+    <div class="manager-dash">
+      <div class="manager-dash__inner">
+        <app-bookings-view />
+      </div>
+    </div>
+  }
+  @if (isCustomersActive()) {
+    <div class="manager-dash">
+      <div class="manager-dash__inner">
+        <app-customers-view />
+      </div>
+    </div>
+  }
+  @if (isPaymentsActive()) {
+    <div class="manager-dash">
+      <div class="manager-dash__inner">
+        <app-payments-view />
+      </div>
+    </div>
+  }
+  @if (isInventoryActive()) {
+    <div class="manager-dash">
+      <div class="manager-dash__inner">
+        <app-inventory-view />
+      </div>
+    </div>
+  }
+  @if (isStaffActive()) {
+    <div class="manager-dash">
+      <div class="manager-dash__inner">
+        <app-staff-view />
+      </div>
+    </div>
+  }
+  @if (isHousekeepingActive()) {
+    <div class="manager-dash">
+      <div class="manager-dash__inner">
+        <app-housekeeping-view />
+      </div>
+    </div>
+  }
+  @if (isMaintenanceActive()) {
+    <div class="manager-dash">
+      <div class="manager-dash__inner">
+        <app-housekeeping-view />
+      </div>
+    </div>
+  }
+  @if (isReportsActive()) {
+    <div class="manager-dash">
+      <div class="manager-dash__inner">
+        <app-reports-view />
+      </div>
+    </div>
+  }
+  @if (isSettingsActive()) {
+    <div class="manager-dash">
+      <div class="manager-dash__inner">
+        <app-settings-view />
+      </div>
+    </div>
+  }
+  @if (isMoreActive()) {
+    <div class="manager-dash">
+      <div class="manager-dash__inner">
+        <app-more-menu-view [items]="moreMenuItems" />
+      </div>
+    </div>
+  }
+</app-shell>

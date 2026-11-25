@@ -1,0 +1,121 @@
+rules_version = '2';
+
+service firebase.storage {
+  match /b/{bucket}/o {
+
+    function isSignedIn() {
+      return request.auth != null;
+    }
+
+    function isValidImageUpload() {
+      return request.resource.size <= 5 * 1024 * 1024
+        && request.resource.contentType.matches('image/(jpeg|png|webp)');
+    }
+
+    function isValidDocumentUpload() {
+      return request.resource.size <= 10 * 1024 * 1024
+        && (
+          request.resource.contentType == 'application/pdf'
+          || request.resource.contentType.matches('image/(jpeg|png|webp)')
+          || request.resource.contentType == 'application/msword'
+          || request.resource.contentType == 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+        );
+    }
+
+    function getUserDoc() {
+      return firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data;
+    }
+
+    function isActiveUser() {
+      let u = getUserDoc();
+      return isSignedIn() && (u.role == 'owner' || u.accountStatus == 'active' || u.status == 'active');
+    }
+
+    function belongsToOrg(orgId) {
+      return isActiveUser() && getUserDoc().organizationId == orgId;
+    }
+
+    function canManageLodge(orgId, lodgeId) {
+      let u = getUserDoc();
+      return belongsToOrg(orgId) && (
+        u.role == 'owner'
+        || (u.role == 'manager' && lodgeId in u.propertyIds)
+      );
+    }
+
+    function canViewLodge(orgId, lodgeId) {
+      let u = getUserDoc();
+      return belongsToOrg(orgId) && (
+        u.role == 'owner'
+        || lodgeId in u.propertyIds
+      );
+    }
+
+    // Lodge Branding & Gallery Images
+    match /lodges/{orgId}/{lodgeId}/branding/{fileName} {
+      allow read: if canViewLodge(orgId, lodgeId);
+      allow write: if canManageLodge(orgId, lodgeId) && isValidImageUpload();
+      allow delete: if canManageLodge(orgId, lodgeId);
+    }
+
+    match /lodges/{orgId}/{lodgeId}/gallery/{fileName} {
+      allow read: if canViewLodge(orgId, lodgeId);
+      allow write: if canManageLodge(orgId, lodgeId) && isValidImageUpload();
+      allow delete: if canManageLodge(orgId, lodgeId);
+    }
+
+    // Sensitive Lodge Documents (GST, Registration, Fire Safety, Property Deeds)
+    match /lodges/{orgId}/{lodgeId}/documents/{fileName} {
+      allow read: if canManageLodge(orgId, lodgeId);
+      allow write: if canManageLodge(orgId, lodgeId) && isValidDocumentUpload();
+      allow delete: if canManageLodge(orgId, lodgeId);
+    }
+
+    // Room Primary & Gallery Images
+    match /businesses/{orgId}/lodges/{lodgeId}/rooms/{roomId}/{folder}/{fileName} {
+      allow read: if canViewLodge(orgId, lodgeId);
+      allow write: if canManageLodge(orgId, lodgeId) && isValidImageUpload() && (folder == 'primary' || folder == 'gallery');
+      allow delete: if canManageLodge(orgId, lodgeId);
+    }
+
+    // Housekeeping & Inspection Photos
+    match /businesses/{orgId}/lodges/{lodgeId}/rooms/{roomId}/housekeeping/{taskId}/{fileName} {
+      allow read: if canViewLodge(orgId, lodgeId);
+      allow write: if canViewLodge(orgId, lodgeId) && isValidImageUpload();
+      allow delete: if canManageLodge(orgId, lodgeId);
+    }
+
+    // Customer Profile Photos
+    match /businesses/{orgId}/customers/{customerId}/profile/{fileName} {
+      allow read: if belongsToOrg(orgId);
+      allow write: if belongsToOrg(orgId) && isValidImageUpload();
+      allow delete: if belongsToOrg(orgId);
+    }
+
+    // Employee Profile Photos
+    match /businesses/{orgId}/employees/{employeeId}/profile/{fileName} {
+      allow read: if belongsToOrg(orgId);
+      allow write: if belongsToOrg(orgId) && isValidImageUpload();
+      allow delete: if belongsToOrg(orgId);
+    }
+
+    // Inventory Item Photos
+    match /businesses/{orgId}/inventory/{itemId}/{fileName} {
+      allow read: if belongsToOrg(orgId);
+      allow write: if belongsToOrg(orgId) && isValidImageUpload();
+      allow delete: if belongsToOrg(orgId);
+    }
+
+    // Maintenance Request & Work Order Photos
+    match /businesses/{orgId}/lodges/{lodgeId}/maintenance/{entityId}/{fileName} {
+      allow read: if canViewLodge(orgId, lodgeId);
+      allow write: if canViewLodge(orgId, lodgeId) && isValidImageUpload();
+      allow delete: if canManageLodge(orgId, lodgeId);
+    }
+
+    // Deny all other paths by default
+    match /{allPaths=**} {
+      allow read, write: if false;
+    }
+  }
+}

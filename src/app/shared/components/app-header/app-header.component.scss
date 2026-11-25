@@ -1,336 +1,819 @@
 :host {
   display: block;
-}
-
-.app-header {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  height: var(--shell-topbar-height, 60px);
-  box-sizing: border-box;
-  padding: 0 12px;
-  background: var(--surface, #ffffff);
-  border-bottom: 1px solid var(--border-color, #e5e7eb);
-}
-
-.app-header__title {
-  flex: 1;
-  min-width: 0;
-  margin: 0;
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--text-primary, #111827);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.app-header__actions {
-  display: flex;
-  align-items: center;
-  gap: 4px;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  width: 100%;
   flex-shrink: 0;
 }
 
-.app-header__icon-btn {
-  --padding-start: 0;
-  --padding-end: 0;
-  --background: transparent;
-  --background-hover: var(--surface-muted, #f3f4f6);
-  --background-activated: var(--surface-muted, #f3f4f6);
-  --border-radius: 8px;
-  --box-shadow: none;
-  --color: var(--text-primary, #111827);
-  margin: 0;
-  width: 36px;
-  height: 36px;
-  min-height: 36px;
+.app-header {
+  position: relative;
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: calc(var(--shell-topbar-height, 60px) + env(safe-area-inset-top, 0px));
+  box-sizing: border-box;
+  padding: env(safe-area-inset-top, 0px) calc(20px + env(safe-area-inset-right, 0px)) 0 calc(20px + env(safe-area-inset-left, 0px));
+  background: var(--surface, #ffffff);
+  border-bottom: 1px solid var(--border-color, #e2e8f0);
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.03);
+}
 
-  &::part(native) {
-    padding: 0;
-    width: 36px;
-    height: 36px;
-  }
+// -------------------------------------------------------------
+// Mobile Menu Drawer Button (< 1027px only)
+// -------------------------------------------------------------
+.app-header__menu-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  padding: 0;
+  margin: 0;
+  border: 1px solid #e2e8f0;
+  border-radius: 9px;
+  background: #f8fafc;
+  color: #1e293b;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
 
   ion-icon {
     font-size: 20px;
+    color: #1e293b;
+  }
+
+  &:hover {
+    background: #f1f5f9;
+    border-color: #cbd5e1;
+  }
+
+  &:active {
+    transform: scale(0.96);
   }
 }
 
-.app-header__icon-btn--relative {
+// -------------------------------------------------------------
+// Left Lodge Area
+// -------------------------------------------------------------
+.app-header__lodge-area {
+  display: flex;
+  align-items: center;
+  flex-shrink: 0;
+}
+
+.app-header__lodge-dropdown-wrap {
   position: relative;
 }
 
-.app-header__lang,
-.app-header__notifications,
-.app-header__profile {
-  position: relative;
+// Owner Interactive Lodge Button
+.app-header__lodge-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 38px;
+  height: auto;
+  padding: 4px 12px 4px 8px;
+  margin: 0;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  background: #f8fafc;
+  color: #0f172a;
+  cursor: pointer;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  line-height: 1.35;
+  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
+
+  &:hover {
+    background: #f1f5f9;
+    border-color: #cbd5e1;
+    box-shadow: 0 1px 3px rgba(15, 23, 42, 0.06);
+  }
+
+  &:active {
+    background: #e2e8f0;
+  }
 }
 
-/* Shared dropdown shell used by language / notifications / profile */
-.app-header__dropdown {
-  position: absolute;
-  top: calc(100% + 6px);
-  right: 0;
-  z-index: 50;
-  padding: 4px;
-  margin: 0;
-  border: 1px solid var(--border-color, #e5e7eb);
-  border-radius: 16px;
-  background: var(--surface, #ffffff);
-  box-shadow: 0 8px 24px rgba(17, 24, 39, 0.12);
-}
-
-.app-header__lang-btn {
-  --padding-start: 12px;
-  --padding-end: 12px;
-  --background: transparent;
-  --background-hover: var(--surface-muted, #f3f4f6);
-  --background-activated: var(--surface-muted, #f3f4f6);
-  --border-radius: 12px;
-  --box-shadow: none;
-  --color: var(--text-primary, #111827);
-  margin: 0;
-  height: 32px;
-  min-height: 32px;
-  text-transform: none;
-  font-weight: 500;
+.app-header__lodge-icon-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  background: #eff6ff;
+  color: var(--brand-primary, #1d3e9f);
+  flex-shrink: 0;
 
   ion-icon {
     font-size: 16px;
-    margin-inline-end: 6px;
   }
+}
+
+.app-header__lodge-name {
+  max-width: 220px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  letter-spacing: -0.1px;
+  line-height: 1.4;
+  padding: 2px 0;
+}
+
+.app-header__lodge-chevron {
+  font-size: 13px;
+  color: #64748b;
+  margin-left: 2px;
+  transition: transform 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+
+  &--open {
+    transform: rotate(180deg);
+  }
+}
+
+// Manager & Staff Static Assigned Lodge Badge
+.app-header__assigned-lodge {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  min-height: 38px;
+  height: auto;
+  padding: 4px 12px 4px 8px;
+  border: 1px solid #e2e8f0;
+  border-radius: 10px;
+  background: #f8fafc;
+  line-height: 1.35;
+}
+
+.app-header__assigned-lodge-icon-box {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: 6px;
+  background: #eff6ff;
+  color: var(--brand-primary, #1d3e9f);
+  overflow: hidden;
+  flex-shrink: 0;
+
+  ion-icon {
+    font-size: 16px;
+  }
+}
+
+.app-header__assigned-lodge-thumb {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.app-header__assigned-lodge-content {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.app-header__assigned-lodge-name {
+  font-size: 13px;
+  font-weight: 600;
+  color: #0f172a;
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  line-height: 1.4;
+  padding: 2px 0;
+}
+
+.app-header__assigned-lodge-badge {
+  display: inline-block;
+  padding: 2px 7px;
+  border-radius: 6px;
+  font-size: 10px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  line-height: 1.2;
+
+  &--manager {
+    background: #fef3c7;
+    color: #92400e;
+    border: 1px solid #fde68a;
+  }
+
+  &--staff {
+    background: #d1fae5;
+    color: #065f46;
+    border: 1px solid #a7f3d0;
+  }
+}
+
+// -------------------------------------------------------------
+// Center Spacer
+// -------------------------------------------------------------
+.app-header__spacer {
+  flex: 1;
+  min-width: 8px;
+}
+
+// -------------------------------------------------------------
+// Right Action Area (Language & Profile ONLY)
+// -------------------------------------------------------------
+.app-header__actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.app-header__action-item {
+  position: relative;
+}
+
+// Language Selector Button
+.app-header__lang-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  height: 36px;
+  padding: 0 10px;
+  margin: 0;
+  border: 1px solid #e2e8f0;
+  border-radius: 9px;
+  background: #f8fafc;
+  color: #1e293b;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.15s ease;
+
+  &:hover {
+    background: #f1f5f9;
+    border-color: #cbd5e1;
+  }
+
+  &:active {
+    background: #e2e8f0;
+  }
+}
+
+.app-header__lang-icon {
+  font-size: 16px;
+  color: #64748b;
 }
 
 .app-header__lang-code {
   font-size: 12px;
-  font-weight: 600;
+  font-weight: 700;
   text-transform: uppercase;
-  letter-spacing: 0.02em;
+  letter-spacing: 0.5px;
 }
 
-.app-header__lang-menu {
-  min-width: 8rem;
-}
-
-.app-header__lang-option {
-  --background: transparent;
-  --background-hover: var(--surface-muted, #f3f4f6);
-  --background-activated: var(--surface-muted, #f3f4f6);
-  --color: var(--text-primary, #111827);
-  --padding-start: 8px;
-  --padding-end: 8px;
-  --inner-padding-end: 0;
-  --min-height: 34px;
-  --border-radius: 8px;
+// Profile Avatar Button (Header Profile Icon)
+.app-header__avatar-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 38px;
+  height: 38px;
+  padding: 0;
   margin: 0;
-  font-size: 14px;
-  border-radius: 8px;
-}
+  border: 1.5px solid #cbd5e1;
+  border-radius: 50%;
+  background: #f8fafc;
+  color: var(--brand-primary, #1d3e9f) !important;
+  -webkit-text-fill-color: var(--brand-primary, #1d3e9f) !important;
+  cursor: pointer;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.05);
+  transition: all 0.15s cubic-bezier(0.4, 0, 0.2, 1);
 
-.app-header__lang-option--active {
-  --color: var(--brand-primary, #1d3e9f);
-  font-weight: 600;
+  .app-header__avatar-icon {
+    font-size: 20px;
+    color: var(--brand-primary, #1d3e9f) !important;
+    -webkit-text-fill-color: var(--brand-primary, #1d3e9f) !important;
+    transition: transform 0.15s ease;
+  }
 
-  ion-label {
-    font-weight: 600;
+  &:hover,
+  &--open {
+    background: #eff6ff;
+    border-color: var(--brand-primary, #1d3e9f);
+    box-shadow: 0 0 0 3px rgba(29, 62, 159, 0.14);
+
+    .app-header__avatar-icon {
+      transform: scale(1.08);
+    }
+  }
+
+  &:active {
+    transform: scale(0.95);
   }
 }
 
-.app-header__badge {
+.app-header__avatar-initials {
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.3px;
+  line-height: 1;
+}
+
+// -------------------------------------------------------------
+// Universal Elevated Dropdown Menus
+// -------------------------------------------------------------
+.app-header__dropdown {
   position: absolute;
-  top: 8px;
-  right: 8px;
-  width: 8px;
-  height: 8px;
-  border-radius: 999px;
-  background: var(--destructive, #ef4444);
-  pointer-events: none;
-  z-index: 1;
+  top: calc(100% + 8px);
+  right: 0;
+  z-index: 1000;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  box-shadow: 0 12px 28px -4px rgba(15, 23, 42, 0.12), 0 4px 10px -2px rgba(15, 23, 42, 0.04);
+  padding: 6px;
+  animation: dropdownFadeIn 0.15s ease-out;
 }
 
-.app-header__notifications-menu {
-  position: fixed;
-  top: 58px;
-  left: 50%;
-  right: auto;
-  transform: translateX(-50%);
-  width: min(20rem, calc(100vw - 24px));
-  max-height: min(70vh, 360px);
-  overflow-y: auto;
+@keyframes dropdownFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px) scale(0.98);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
 }
 
-.app-header__notifications-heading {
-  margin: 0;
-  padding: 8px 10px 6px;
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--text-primary, #111827);
+.app-header__dropdown-header {
+  padding: 6px 10px 8px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: #64748b;
 }
 
-.app-header__notification-item {
+.app-header__dropdown-divider {
+  height: 1px;
+  background: #f1f5f9;
+  margin: 4px 6px;
+}
+
+.app-header__dropdown-item {
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 2px;
+  align-items: center;
+  gap: 10px;
   width: 100%;
-  margin: 0;
   padding: 8px 10px;
   border: 0;
   border-radius: 8px;
   background: transparent;
+  color: #0f172a;
   text-align: left;
   cursor: pointer;
+  font-family: inherit;
+  transition: background 0.12s ease;
 
-  &:hover,
-  &:focus-visible {
-    background: var(--surface-muted, #f3f4f6);
-    outline: none;
+  &:hover {
+    background: #f8fafc;
+  }
+
+  &--active {
+    background: #eff6ff !important;
+
+    .app-header__dropdown-item-title {
+      color: var(--brand-primary, #1d3e9f);
+      font-weight: 700;
+    }
   }
 }
 
-.app-header__notification-title {
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--text-primary, #111827);
-  line-height: 1.3;
-}
-
-.app-header__notification-desc {
-  font-size: 12px;
-  font-weight: 400;
-  color: var(--text-muted, #6b7280);
-  line-height: 1.35;
-}
-
-.app-header__avatar {
-  --padding-start: 0;
-  --padding-end: 0;
-  --background: var(--brand-primary, #1d3e9f);
-  --background-hover: var(--brand-primary-dark, #152f7a);
-  --background-activated: var(--brand-primary-dark, #152f7a);
-  --border-radius: 50%;
-  --box-shadow: none;
-  --color: #ffffff;
-  margin: 0;
-  width: 36px;
-  height: 36px;
-  min-height: 36px;
-  font-size: 12px;
-  font-weight: 600;
-  text-transform: none;
-
-  &::part(native) {
-    width: 36px;
-    height: 36px;
-    min-width: 36px;
-    min-height: 36px;
-    padding: 0;
-    border-radius: 50%;
-    background: var(--brand-primary, #1d3e9f);
-    color: #ffffff;
-    font-size: 12px;
-    font-weight: 600;
-  }
-}
-
-.app-header__profile-menu {
-  width: 14rem;
-  padding: 6px;
-  border-radius: 12px;
-  border: 1px solid #e8ebf0;
-  box-shadow: 0 10px 28px rgba(15, 23, 42, 0.1);
-}
-
-.app-header__profile-info {
-  display: flex;
-  flex-direction: column;
-  padding: 8px 10px 10px;
-}
-
-.app-header__profile-name {
-  font-size: 14px;
-  font-weight: 600;
-  color: #111827;
-  line-height: 1.3;
-}
-
-.app-header__profile-role {
-  margin-top: 3px;
-  font-size: 12px;
-  font-weight: 400;
-  color: #6b7280;
-  line-height: 1.3;
-}
-
-.app-header__profile-separator {
-  height: 1px;
-  margin: 2px 0 4px;
-  background: #e5e7eb;
-}
-
-.app-header__menu-item {
+.app-header__dropdown-item-icon-box {
   display: flex;
   align-items: center;
-  gap: 8px;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 7px;
+  background: #f1f5f9;
+  color: #64748b;
+  flex-shrink: 0;
+  overflow: hidden;
+
+  ion-icon {
+    font-size: 18px;
+  }
+
+  &--all {
+    background: #eff6ff;
+    color: var(--brand-primary, #1d3e9f);
+  }
+}
+
+.app-header__dropdown-item-thumb {
   width: 100%;
-  margin: 0;
-  padding: 9px 10px;
+  height: 100%;
+  object-fit: cover;
+}
+
+.app-header__dropdown-item-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+.app-header__dropdown-item-title {
+  font-size: 13px;
+  font-weight: 600;
+  color: #0f172a;
+  line-height: 1.3;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.app-header__dropdown-item-meta {
+  font-size: 11px;
+  color: #64748b;
+  margin-top: 1px;
+}
+
+.app-header__dropdown-item-check {
+  font-size: 16px;
+  color: var(--brand-primary, #1d3e9f);
+  flex-shrink: 0;
+}
+
+// Lodge Menu Specifics
+.app-header__lodge-menu {
+  left: 0;
+  right: auto;
+  width: 270px;
+  max-height: 360px;
+  overflow-y: auto;
+}
+
+// Language Menu Specifics
+.app-header__lang-menu {
+  width: 140px;
+}
+
+.app-header__lang-option {
+  justify-content: space-between;
+  padding: 8px 12px;
+}
+
+.app-header__lang-option-text {
+  font-size: 13px;
+  font-weight: 500;
+}
+
+// Profile Menu Specifics
+.app-header__profile-menu {
+  width: 220px;
+}
+
+.app-header__profile-card {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+}
+
+.app-header__profile-card-avatar {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--brand-primary, #1d3e9f) 0%, #2563eb 100%);
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+  flex-shrink: 0;
+
+  ion-icon {
+    font-size: 20px;
+    color: #ffffff !important;
+    -webkit-text-fill-color: #ffffff !important;
+  }
+}
+
+.app-header__profile-card-details {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.app-header__profile-card-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: #0f172a;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.app-header__profile-card-role {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  margin-top: 3px;
+
+  &--owner {
+    background: #eff6ff;
+    color: #1d4ed8 !important;
+    -webkit-text-fill-color: #1d4ed8 !important;
+    border: 1px solid #bfdbfe;
+  }
+
+  &--manager {
+    background: #fef3c7;
+    color: #92400e !important;
+    -webkit-text-fill-color: #92400e !important;
+    border: 1px solid #fde68a;
+  }
+
+  &--staff {
+    background: #d1fae5;
+    color: #065f46 !important;
+    -webkit-text-fill-color: #065f46 !important;
+    border: 1px solid #a7f3d0;
+  }
+}
+
+.app-header__menu-action-btn {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  width: 100%;
+  padding: 8px 10px;
   border: 0;
   border-radius: 8px;
   background: transparent;
-  color: #111827;
-  font-size: 14px;
-  font-weight: 400;
-  line-height: 1.3;
+  color: #1e293b;
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 500;
   text-align: left;
   cursor: pointer;
+  transition: all 0.12s ease;
 
   ion-icon {
     font-size: 16px;
-    color: #374151;
+    color: #64748b;
   }
 
-  &:hover,
-  &:focus-visible {
-    background: #f3f4f6;
-    outline: none;
-  }
-}
-
-.app-header__menu-item--danger {
-  color: #ef4444;
-
-  ion-icon {
-    color: #ef4444;
+  &:hover {
+    background: #f1f5f9;
   }
 
-  &:hover,
-  &:focus-visible {
-    background: #feeceb;
+  &--danger {
+    color: #dc2626;
+
+    ion-icon {
+      color: #dc2626;
+    }
+
+    &:hover {
+      background: #fef2f2;
+    }
   }
 }
 
-/* Web: sidebar is always visible — hide hamburger / menu control */
+// -------------------------------------------------------------
+// Responsive Breakpoints
+// -------------------------------------------------------------
 @media (min-width: 1027px) {
   .app-header__menu-btn {
     display: none;
   }
 
   .app-header {
+    height: var(--shell-topbar-height, 60px);
     padding: 0 20px;
   }
 
-  .app-header__title {
-    font-size: 16px;
+  .app-header__lodge-name {
+    max-width: 260px;
+  }
+}
+
+@media (max-width: 640px) {
+  .app-header {
+    gap: 8px;
+    height: calc(56px + env(safe-area-inset-top, 0px));
+    padding-left: calc(10px + env(safe-area-inset-left, 0px));
+    padding-right: calc(10px + env(safe-area-inset-right, 0px));
   }
 
-  .app-header__notifications-menu {
-    position: absolute;
-    top: calc(100% + 6px);
-    left: auto;
+  .app-header__menu-btn {
+    width: 34px;
+    height: 34px;
+    border-radius: 8px;
+
+    ion-icon {
+      font-size: 18px;
+    }
+  }
+
+  .app-header__lodge-area {
+    min-width: 0;
+    flex-shrink: 1;
+  }
+
+  .app-header__lodge-btn {
+    height: 34px;
+    padding: 0 8px 0 6px;
+    font-size: 12px;
+  }
+
+  .app-header__lodge-icon-box {
+    width: 22px;
+    height: 22px;
+
+    ion-icon {
+      font-size: 14px;
+    }
+  }
+
+  .app-header__lodge-name {
+    max-width: 110px;
+  }
+
+  .app-header__assigned-lodge {
+    height: 34px;
+    padding: 0 8px 0 6px;
+    gap: 6px;
+    min-width: 0;
+    max-width: 170px;
+  }
+
+  .app-header__assigned-lodge-content {
+    min-width: 0;
+  }
+
+  .app-header__assigned-lodge-name {
+    max-width: 90px;
+    font-size: 12px;
+  }
+
+  .app-header__assigned-lodge-badge {
+    font-size: 9px;
+    padding: 1px 4px;
+    max-width: 60px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
+  .app-header__actions {
+    gap: 6px;
+    flex-shrink: 0;
+  }
+
+  .app-header__lang-btn {
+    height: 32px;
+    padding: 0 7px;
+    font-size: 12px;
+    gap: 4px;
+  }
+
+  .app-header__avatar-btn {
+    width: 32px;
+    height: 32px;
+  }
+
+  .app-header__avatar-initials {
+    font-size: 11px;
+  }
+
+  .app-header__lodge-menu {
+    width: min(260px, calc(100vw - 20px));
+  }
+
+  .app-header__lang-menu {
     right: 0;
-    transform: none;
-    width: 22rem;
+    left: auto;
+    width: min(200px, calc(100vw - 20px));
+  }
+
+  .app-header__profile-menu {
+    right: 0;
+    left: auto;
+    width: min(240px, calc(100vw - 20px));
+  }
+}
+
+@media (max-width: 420px) {
+  .app-header {
+    gap: 6px;
+    padding-left: calc(8px + env(safe-area-inset-left, 0px));
+    padding-right: calc(8px + env(safe-area-inset-right, 0px));
+  }
+
+  .app-header__menu-btn {
+    width: 32px;
+    height: 32px;
+
+    ion-icon {
+      font-size: 17px;
+    }
+  }
+
+  .app-header__lodge-btn {
+    height: 32px;
+    padding: 0 6px 0 4px;
+    font-size: 11.5px;
+    gap: 5px;
+  }
+
+  .app-header__lodge-icon-box {
+    width: 20px;
+    height: 20px;
+
+    ion-icon {
+      font-size: 13px;
+    }
+  }
+
+  .app-header__lodge-name {
+    max-width: 85px;
+    font-size: 11.5px;
+  }
+
+  .app-header__lodge-chevron {
+    font-size: 11px;
+    margin-left: 0;
+  }
+
+  .app-header__assigned-lodge {
+    height: 32px;
+    padding: 0 6px 0 4px;
+    gap: 4px;
+    max-width: 110px;
+  }
+
+  .app-header__assigned-lodge-icon-box {
+    width: 20px;
+    height: 20px;
+
+    ion-icon {
+      font-size: 13px;
+    }
+  }
+
+  .app-header__assigned-lodge-name {
+    max-width: 78px;
+    font-size: 11.5px;
+  }
+
+  .app-header__assigned-lodge-badge {
+    display: none;
+  }
+
+  .app-header__actions {
+    gap: 5px;
+  }
+
+  .app-header__lang-btn {
+    height: 30px;
+    padding: 0 5px;
+    font-size: 11px;
+    gap: 3px;
+  }
+
+  .app-header__avatar-btn {
+    width: 30px;
+    height: 30px;
+
+    ion-icon {
+      font-size: 16px;
+    }
+  }
+}
+
+@media (max-width: 350px) {
+  .app-header__lodge-name {
+    max-width: 65px;
+  }
+
+  .app-header__assigned-lodge-name {
+    max-width: 65px;
+  }
+
+  .app-header__spacer {
+    min-width: 2px;
   }
 }

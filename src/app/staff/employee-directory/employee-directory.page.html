@@ -1,0 +1,152 @@
+<app-shell
+  [activeNavId]="'staff'"
+  [breadcrumb]="'Employee Directory'"
+  (activeNavIdChange)="onNavChange($event)"
+>
+  <div class="dir-page">
+    <div class="dir-page__inner">
+      <header class="dir-header">
+        <button type="button" class="back-btn" (click)="goBack()">
+          <ion-icon name="arrow-back-outline"></ion-icon>
+          Staff Hub
+        </button>
+        <div class="dir-header__copy">
+          <h1>Employee Directory</h1>
+          <p>Search and manage employees across assigned lodges</p>
+        </div>
+        @if (isOwner()) {
+          <ion-button fill="solid" (click)="goToAdd()">
+            <ion-icon slot="start" name="add-outline"></ion-icon>
+            Add Employee
+          </ion-button>
+        }
+      </header>
+
+      <section class="toolbar">
+        <div class="search-box">
+          <ion-icon name="search-outline"></ion-icon>
+          <input
+            type="text"
+            placeholder="Search by name, email, phone, or ID..."
+            [ngModel]="searchQuery()"
+            (ngModelChange)="searchQuery.set($event)"
+          />
+        </div>
+
+        <select class="ctrl" [ngModel]="lodgeFilter()" (ngModelChange)="lodgeFilter.set($event)">
+          <option value="all">All Lodges</option>
+          @for (l of lodges(); track l.id) {
+            <option [value]="l.id">{{ l.name }}</option>
+          }
+        </select>
+
+        <select class="ctrl" [ngModel]="roleFilter()" (ngModelChange)="roleFilter.set($event)">
+          <option value="all">All Roles</option>
+          <option value="owner">Owner</option>
+          <option value="manager">Manager</option>
+          <option value="staff">Staff</option>
+        </select>
+
+        <select class="ctrl" [ngModel]="statusFilter()" (ngModelChange)="statusFilter.set($event)">
+          <option value="all">All Statuses</option>
+          <option value="active">Active</option>
+          <option value="pending">Pending</option>
+          <option value="suspended">Suspended</option>
+          <option value="inactive">Inactive</option>
+        </select>
+
+        <select class="ctrl" [ngModel]="sortBy()" (ngModelChange)="sortBy.set($event)">
+          <option value="name">Sort: Name</option>
+          <option value="joiningDate">Sort: Joining Date</option>
+        </select>
+      </section>
+
+      @if (visible().length > 0) {
+        <!-- Desktop Table -->
+        <section class="table-card desktop-only">
+          <div class="table-wrap">
+            <table class="dir-table">
+              <thead>
+                <tr>
+                  <th>Employee</th>
+                  <th>ID</th>
+                  <th>Phone / Email</th>
+                  <th>Role & Designation</th>
+                  <th>Assigned Lodges</th>
+                  <th>Status</th>
+                  <th>Joined</th>
+                  <th>Actions</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (e of visible(); track e.uid) {
+                  <tr>
+                    <td>
+                      <div class="emp-cell">
+                        <div class="avatar">
+                          @if (e.photoUrl) {
+                            <img [src]="e.photoUrl" [alt]="e.name" />
+                          } @else {
+                            <span>{{ e.name.slice(0, 2).toUpperCase() }}</span>
+                          }
+                        </div>
+                        <strong>{{ e.name }}</strong>
+                      </div>
+                    </td>
+                    <td>{{ e.employeeId }}</td>
+                    <td>{{ e.phone || '—' }}<br /><span class="sub">{{ e.email }}</span></td>
+                    <td>
+                      <span class="role-badge role-badge--{{ e.role || 'pending' }}">{{ e.role || 'Unassigned' }}</span>
+                      <span class="sub">{{ e.designation }}</span>
+                    </td>
+                    <td>{{ getLodgeNames(e.assignedLodgeIds) }}</td>
+                    <td><span class="st-pill st-pill--{{ e.employmentStatus }}">{{ e.employmentStatus }}</span></td>
+                    <td>{{ e.joiningDate || '—' }}</td>
+                    <td class="td-actions">
+                      <button type="button" class="act-btn primary" (click)="viewProfile(e)">View</button>
+                      @if (isOwner()) {
+                        <button type="button" class="act-btn" (click)="editEmployee(e)">Edit</button>
+                      }
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </section>
+
+        <!-- Mobile Cards -->
+        <section class="mobile-cards mobile-only">
+          @for (e of visible(); track e.uid) {
+            <article class="emp-card" (click)="viewProfile(e)">
+              <div class="emp-card__top">
+                <div class="avatar">
+                  @if (e.photoUrl) {
+                    <img [src]="e.photoUrl" [alt]="e.name" />
+                  } @else {
+                    <span>{{ e.name.slice(0, 2).toUpperCase() }}</span>
+                  }
+                </div>
+                <div>
+                  <strong>{{ e.name }}</strong>
+                  <span>{{ e.employeeId }} · {{ e.designation }}</span>
+                </div>
+                <span class="st-pill st-pill--{{ e.employmentStatus }}">{{ e.employmentStatus }}</span>
+              </div>
+              <p class="meta">{{ e.email }} · {{ e.phone || 'No phone' }}</p>
+              <p class="meta">Lodges: {{ getLodgeNames(e.assignedLodgeIds) }}</p>
+            </article>
+          }
+        </section>
+
+        @if (hasMore()) {
+          <div class="load-more">
+            <ion-button fill="outline" (click)="loadMore()">Load More</ion-button>
+          </div>
+        }
+      } @else {
+        <div class="empty">No employees match the current filters.</div>
+      }
+    </div>
+  </div>
+</app-shell>
